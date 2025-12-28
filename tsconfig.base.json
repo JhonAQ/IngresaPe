@@ -17,5 +17,10 @@
     "strict": true,
     "target": "es2022",
     "customConditions": ["@org/source"]
+  },
+  "paths": {
+  "@ingresa-pe/domain": ["libs/domain/src/index.ts"],
+  "@ingresa-pe/ui": ["libs/ui/src/index.ts"],
+  "@ingresa-pe/api": ["apps/api/src/index.ts"] 
   }
 }

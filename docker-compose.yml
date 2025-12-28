@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  # Base de Datos PostgreSQL (La memoria del sistema)
+  postgres:
+    image: postgres:15-alpine
+    container_name: ingresa_postgres
+    environment:
+      POSTGRES_USER: ingresa_user
+      POSTGRES_PASSWORD: ingresa_password
+      POSTGRES_DB: ingresa_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Redis (Para caché y colas - Requerido más adelante en tu PDF)
+  redis:
+    image: redis:alpine
+    container_name: ingresa_redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:
