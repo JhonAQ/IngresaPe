@@ -57,7 +57,12 @@ model User {
   email         String    @unique
   name          String?   // Ej: "Juan Pérez"
   password      String?   // Puede estar vacío si entra con Google
-  image         String?   // URL del avatar
+  image         String?   // URL del avatar (Aquí guardaremos la foto de Google)
+  
+  // --- OAuth (NUEVO: Para Login Social) ---
+  provider      String    @default("credentials") // 'google', 'facebook' o 'credentials'
+  providerId    String?   // El ID único que nos da Google/Facebook para este usuario
+
   role          Role      @default(USER)
   createdAt     DateTime  @default(now())
 
@@ -81,7 +86,6 @@ model User {
   subscriptions Subscription[] // Pagos realizados
   answers       AnswerLog[]    // Respuestas dadas (Data para IA)
 }
-
 // =========================================================
 // 3. CATALOGO DE CARRERAS (Nueva Tabla)
 // =========================================================
