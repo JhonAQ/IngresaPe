@@ -4,6 +4,9 @@ import { TrpcService } from './trpc.service';
 import { AppRouter } from './app.router';
 import { PrismaService } from './prisma.service';
 import { AuthRouter } from './routers/auth.router';
+import { AuthController } from './controllers/auth.controller';
+import { AuthService } from './services/auth.service';
+import { GoogleStrategy } from './strategies/google.strategy';
 
 @Module({
   imports: [
@@ -13,12 +16,16 @@ import { AuthRouter } from './routers/auth.router';
       signOptions: { expiresIn: '7d' }, // El token dura 7 días
     }),
   ],
-  controllers: [],
+  controllers: [
+    AuthController,
+  ],
   providers: [
     TrpcService,
     PrismaService,
     AppRouter,
     AuthRouter,
+    AuthService,
+    GoogleStrategy,
   ],
 })
 export class AppModule {}
