@@ -1,47 +1,49 @@
 import { Injectable } from '@nestjs/common';
 import { TrpcService } from './trpc.service';
-import { PrismaService } from './prisma.service'; // <--- Importar DB
-import { z } from 'zod';
+import { PrismaService } from './prisma.service';
+import { AuthRouter } from './routers/auth.router';
 import { helloSchema } from '@ingresa-pe/domain';
 
 @Injectable()
 export class AppRouter {
   constructor(
     private readonly trpc: TrpcService,
-    private readonly prisma: PrismaService // <--- Inyectar DB
+    private readonly prisma: PrismaService,
+    private readonly authRouter: AuthRouter
   ) {}
 
-  appRouter = this.trpc.router({
-    hello: this.trpc.procedure
-      .input(helloSchema)
-      .query(async ({ input }) => { // <--- Convertir a async
-        
-        // Simulación: Generamos un email único basado en el nombre
-        // para que puedas probar con varios nombres
-        const emailSimulado = `${input.name.replace(/\s+/g, '').toLowerCase()}@ingresa.pe`;
-        
-        // 1. Buscamos si el estudiante ya existe en Postgres
-        let student = await this.prisma.student.findUnique({
+  appRouter = this.trpc.mergeRouters(
+    this.trpc.router({
+      hello: this.trpc.publicProcedure
+        .input(helloSchema)
+        .query(async ({ input }) => {
+          // Simulación: Generamos un email único basado en el nombre
+          const emailSimulado = `${input.name.replace(/\s+/g, '').toLowerCase()}@ingresa.pe`;
+          
+          // 1. Buscamos si el usuario ya existe en Postgres
+          let user = await this.prisma.user.findUnique({
             where: { email: emailSimulado }
-        });
+          });
 
-        // 2. Si no existe, lo CREAMOS
-        if (!student) {
-            student = await this.prisma.student.create({
-                data: {
-                    email: emailSimulado,
-                    name: input.name,
-                    progress: { xp: 0, level: 1 } // <--- JSONB guardándose
-                }
+          // 2. Si no existe, lo CREAMOS
+          if (!user) {
+            user = await this.prisma.user.create({
+              data: {
+                email: emailSimulado,
+                name: input.name,
+              }
             });
-        }
+          }
 
-        return {
-          message: `Hola ${student.name}, estás registrado en Postgres con ID: ${student.id}`,
-          timestamp: Date.now(),
-        };
-      }),
-  });
+          return {
+            message: `Hola ${user.name}, estás registrado en Postgres con ID: ${user.id}`,
+            timestamp: Date.now(),
+          };
+        }),
+      healthCheck: this.trpc.publicProcedure.query(() => 'OK'),
+    }),
+    this.authRouter.router
+  );
 }
 
 export type AppRouterType = AppRouter['appRouter'];
