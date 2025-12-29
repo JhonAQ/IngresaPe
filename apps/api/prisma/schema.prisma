@@ -1,20 +1,196 @@
-// apps/api/prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
+  // Genera el cliente de TypeScript para que el autocompletado funcione
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  // PostgreSQL es necesario para soportar el tipo JSONB en las preguntas
 }
 
-model Student {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String
-  createdAt DateTime @default(now())
+// =========================================================
+// 1. ENUMS (Valores fijos y reglas de negocio)
+// =========================================================
+
+// Roles de seguridad
+enum Role {
+  USER        // Estudiante
+  ADMIN       // Tú y los fundadores (Control total)
+  DATA_ENTRY  // Data Squad (Solo pueden subir preguntas e inventario)
+}
+
+// Las 3 áreas académicas de la UNSA
+enum Area {
+  INGENIERIAS
+  SOCIALES
+  BIOMEDICAS
+}
+
+// Dificultad para equilibrar los simulacros
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+// Planes de suscripción (Modelo de Negocio)
+enum PlanType {
+  MONTHLY  // Plan "T-Rex" (S/ 9.90)
+  ANNUAL   // Plan "Cachimbo" (S/ 99.00)
+}
+
+// Estado de los pagos manuales (Yape/Plin)
+enum PaymentStatus {
+  PENDING   // Foto enviada, esperando revisión del Admin
+  APPROVED  // Pago validado, beneficios activos
+  REJECTED  // Pago inválido o no recibido
+}
+
+// =========================================================
+// 2. IDENTIDAD Y PERFIL DEL ESTUDIANTE
+// =========================================================
+
+model User {
+  // --- Datos Básicos ---
+  id            String    @id @default(uuid())
+  email         String    @unique
+  name          String?   // Ej: "Juan Pérez"
+  password      String?   // Puede estar vacío si entra con Google
+  image         String?   // URL del avatar
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+
+  // --- Perfil Académico (CARRERA) ---
+  // El usuario selecciona su carrera (ej: Civil), y a través de ella sabemos su Área.
+  careerId      String?   
+  career        Career?   @relation(fields: [careerId], references: [id])
+
+  // --- Gamificación (Stats rápidas para el Ranking) ---
+  energy        Int       @default(25)     // Moneda de juego (Max 25)
+  lastRefill    DateTime  @default(now())  // Hora de última recarga automática
+  totalXp       Int       @default(0)      // Puntaje total (Leaderboard)
+  streak        Int       @default(0)      // Racha de días consecutivos
   
-  // Tu columna flexible (JSONB)
-  progress  Json?    
+  // --- Estado Premium ---
+  isPremium     Boolean   @default(false)  // TRUE = Energía ilimitada
+  subExpiresAt  DateTime? // Fecha de vencimiento de la suscripción
+
+  // --- Historial y Relaciones ---
+  progress      UserProgress[] // Avance por cursos
+  subscriptions Subscription[] // Pagos realizados
+  answers       AnswerLog[]    // Respuestas dadas (Data para IA)
+}
+
+// =========================================================
+// 3. CATALOGO DE CARRERAS (Nueva Tabla)
+// =========================================================
+
+model Career {
+  id      String @id @default(uuid())
+  name    String // Ej: "Ingeniería Civil", "Medicina", "Derecho"
+  area    Area   // Ej: INGENIERIAS, BIOMEDICAS (Define qué cursos ve el usuario)
+  
+  users   User[] // Lista de alumnos inscritos en esta carrera
+}
+
+// =========================================================
+// 4. ACADEMIA (Inventario de Cursos y Preguntas)
+// =========================================================
+
+model Course {
+  id          String   @id @default(uuid())
+  name        String   // Ej: "Química", "Álgebra"
+  slug        String   @unique // Ej: "quimica" (URL friendly)
+  iconUrl     String?  // Icono para el menú
+  
+  topics      Topic[]        // Temas del curso
+  progress    UserProgress[] // Progreso de los alumnos
+}
+
+model Topic {
+  id          String   @id @default(uuid())
+  name        String   // Ej: "Átomos", "Ecuaciones Lineales"
+  slug        String   // Ej: "atomos"
+  order       Int      // 1, 2, 3... (Orden del camino de aprendizaje)
+  
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id])
+  
+  questions   Question[] // Banco de preguntas del tema
+}
+
+model Question {
+  id          String     @id @default(uuid())
+  statement   String     // Enunciado (Soporta LaTeX $x^2$)
+  imageUrl    String?    // Imagen opcional
+  difficulty  Difficulty @default(MEDIUM)
+  
+  // --- OPCIONES (JSONB) ---
+  // Estructura: [{ "text": "A) 5", "isCorrect": false }, { "text": "B) 10", "isCorrect": true }]
+  options     Json       
+  
+  // --- FEEDBACK ---
+  explanation String?    // Explicación generada por IA para cuando fallan
+  
+  topicId     String
+  topic       Topic      @relation(fields: [topicId], references: [id])
+  
+  answers     AnswerLog[]
+}
+
+// =========================================================
+// 5. SEGUIMIENTO (Progreso y Analytics)
+// =========================================================
+
+// Avance de un usuario en un curso específico
+model UserProgress {
+  id            String   @id @default(uuid())
+  
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  
+  courseId      String
+  course        Course   @relation(fields: [courseId], references: [id])
+  
+  // IDs de temas completados (Estrellas obtenidas)
+  completedTopicIds String[] 
+  
+  currentXp     Int      @default(0) // XP ganado en este curso
+
+  @@unique([userId, courseId]) // Solo un registro por curso/usuario
+}
+
+// Log individual de cada respuesta (Para detectar fallos y trampas)
+model AnswerLog {
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  questionId  String
+  question    Question @relation(fields: [questionId], references: [id])
+  
+  isCorrect   Boolean  // ¿Acertó?
+  timeTaken   Int?     // Segundos que tardó en responder
+}
+
+// =========================================================
+// 6. FINANZAS (Suscripciones Manuales)
+// =========================================================
+
+model Subscription {
+  id          String        @id @default(uuid())
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+  
+  plan        PlanType      // Mensual o Anual
+  amount      Float         // Precio pagado (Histórico)
+  proofUrl    String?       // Foto del voucher (Yape/Plin)
+  
+  status      PaymentStatus @default(PENDING) // Pendiente -> Aprobado
 }
