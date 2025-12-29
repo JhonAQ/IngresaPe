@@ -33,9 +33,9 @@ async function main() {
     'Ingeniería de Minas',
     'Ingeniería Civil',
     'Ingeniería Sanitaria',
-    'Física',        // Fac. Cs Naturales
-    'Matemáticas',   // Fac. Cs Naturales
-    'Química',       // Fac. Cs Naturales
+    'Física',        
+    'Matemáticas',   
+    'Química',       
     'Arquitectura'
   ];
 
