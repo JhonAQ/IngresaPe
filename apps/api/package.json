@@ -93,5 +93,8 @@
   },
   "devDependencies": {
     "@nestjs/testing": "^11.0.0"
+  },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
   }
 }
