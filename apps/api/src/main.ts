@@ -4,23 +4,22 @@ import { AppModule } from './app/app.module';
 import { TrpcService } from './app/trpc.service';
 import { AppRouter } from './app/app.router';
 import * as trpcExpress from '@trpc/server/adapters/express';
+import { createContext } from './app/trpc.context'; // <--- 1. IMPORTANTE: Importar tu contexto
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
-  app.enableCors(); // Importante para que el Frontend pueda conectarse
+  app.enableCors(); 
 
-  // Obtenemos las instancias de nuestro servicio y router
   const trpcService = app.get(TrpcService);
   const appRouter = app.get(AppRouter);
 
-  // Middleware de tRPC para Express (NestJS usa Express por debajo)
   app.use(
     '/trpc',
     trpcExpress.createExpressMiddleware({
       router: appRouter.appRouter,
-      createContext: () => ({}), // Contexto vacío por ahora
+      createContext: createContext, // <--- 2. CORRECCIÓN: Usar la función importada
     })
   );
 
