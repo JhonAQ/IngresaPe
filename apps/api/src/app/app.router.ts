@@ -1,49 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { TrpcService } from './trpc.service';
-import { PrismaService } from './prisma.service';
 import { AuthRouter } from './routers/auth.router';
-import { helloSchema } from '@ingresa-pe/domain';
+import { ContentRouter } from './routers/content.router';
+import { GameRouter } from './routers/game.router'; 
 
 @Injectable()
 export class AppRouter {
   constructor(
     private readonly trpc: TrpcService,
-    private readonly prisma: PrismaService,
-    private readonly authRouter: AuthRouter
+    private readonly auth: AuthRouter,
+    private readonly content: ContentRouter,
+    private readonly game: GameRouter 
   ) {}
 
-  appRouter = this.trpc.mergeRouters(
-    this.trpc.router({
-      hello: this.trpc.publicProcedure
-        .input(helloSchema)
-        .query(async ({ input }) => {
-          // Simulación: Generamos un email único basado en el nombre
-          const emailSimulado = `${input.name.replace(/\s+/g, '').toLowerCase()}@ingresa.pe`;
-          
-          // 1. Buscamos si el usuario ya existe en Postgres
-          let user = await this.prisma.user.findUnique({
-            where: { email: emailSimulado }
-          });
+  appRouter = this.trpc.router({
+    // 1. Health Check (Para saber si el server vive)
+    healthCheck: this.trpc.publicProcedure.query(() => 'OK'),
 
-          // 2. Si no existe, lo CREAMOS
-          if (!user) {
-            user = await this.prisma.user.create({
-              data: {
-                email: emailSimulado,
-                name: input.name,
-              }
-            });
-          }
-
-          return {
-            message: `Hola ${user.name}, estás registrado en Postgres con ID: ${user.id}`,
-            timestamp: Date.now(),
-          };
-        }),
-      healthCheck: this.trpc.publicProcedure.query(() => 'OK'),
-    }),
-    this.authRouter.router
-  );
+    // 2. Módulos del Sistema (Namespaced)
+    auth: this.auth.router,       // Acceso: client.auth.login
+    content: this.content.router, // Acceso: client.content.getQuestions
+    game: this.game.router,    // Acceso: client.game.submitAnswer
+  });
 }
 
 export type AppRouterType = AppRouter['appRouter'];
