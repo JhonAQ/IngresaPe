@@ -4,6 +4,12 @@ import { PrismaService } from '../prisma.service';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 
+// Interfaz para tipar las opciones de las preguntas
+interface QuestionOption {
+  text: string;
+  isCorrect: boolean;
+}
+
 @Injectable()
 export class GameRouter {
   constructor(
@@ -47,7 +53,7 @@ export class GameRouter {
 
         // 2. Evaluar Respuesta
         // Asumimos que 'options' es un array JSON en la BD: [{ text: "...", isCorrect: true }, ...]
-        const options = question.options as any[];
+        const options = question.options as unknown as QuestionOption[];
         const selectedOption = options[input.selectedOptionIndex];
 
         if (!selectedOption) {
@@ -86,7 +92,7 @@ export class GameRouter {
           return {
             success: true,
             isCorrect,
-            correctOptionIndex: options.findIndex((o: any) => o.isCorrect), // Para mostrar cuál era la buena
+            correctOptionIndex: options.findIndex((o: QuestionOption) => o.isCorrect), // Para mostrar cuál era la buena
             explanation: question.explanation, // Feedback educativo
             userStats: {
               energy: updatedUser.energy,

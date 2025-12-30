@@ -177,6 +177,7 @@ model AnswerLog {
   question    Question @relation(fields: [questionId], references: [id])
   
   isCorrect   Boolean  // ¿Acertó?
+  selectedOption Int?   // Índice de la opción seleccionada (0, 1, 2...)
   timeTaken   Int?     // Segundos que tardó en responder
 }
 
