@@ -76,7 +76,7 @@ model User {
   lastRefill    DateTime  @default(now())  // Hora de última recarga automática
   totalXp       Int       @default(0)      // Puntaje total (Leaderboard)
   streak        Int       @default(0)      // Racha de días consecutivos
-  
+  lastInteraction   DateTime  @default(now())  // Para comparar si jugó ayer u hoy
   // --- Estado Premium ---
   isPremium     Boolean   @default(false)  // TRUE = Energía ilimitada
   subExpiresAt  DateTime? // Fecha de vencimiento de la suscripción
