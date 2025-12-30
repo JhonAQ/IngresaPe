@@ -6,13 +6,13 @@ async function main() {
   console.log('🌱 Iniciando sembrado masivo de datos...');
 
   // 1. Limpieza inicial (Opcional: descomentar si quieres borrar todo antes)
-  // await prisma.answerLog.deleteMany();
-  // await prisma.userProgress.deleteMany();
-  // await prisma.question.deleteMany();
-  // await prisma.topic.deleteMany();
-  // await prisma.course.deleteMany();
-  // await prisma.user.deleteMany();
-  // await prisma.career.deleteMany();
+    await prisma.answerLog.deleteMany();
+    await prisma.userProgress.deleteMany();
+    await prisma.question.deleteMany();
+    await prisma.topic.deleteMany();
+    await prisma.course.deleteMany();
+    await prisma.user.deleteMany();
+    await prisma.career.deleteMany();
 
  // ÁREA DE INGENIERÍAS (Proceso A)
   const ingenierias = [
