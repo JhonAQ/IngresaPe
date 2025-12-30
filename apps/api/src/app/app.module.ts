@@ -8,13 +8,14 @@ import { AppRouter } from './app.router';
 
 // Routers (tRPC)
 import { AuthRouter } from './routers/auth.router';
-import { ContentRouter } from './routers/content.router'; // <--- 1. IMPORTAR
+import { ContentRouter } from './routers/content.router';
 import { GameRouter } from './routers/game.router';
 
 // Auth Components (REST & Strategies)
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
 import { GoogleStrategy } from './strategies/google.strategy';
+import { GameService } from './services/game.service';
 
 @Module({
   imports: [
@@ -36,7 +37,8 @@ import { GoogleStrategy } from './strategies/google.strategy';
     // Routers tRPC (Inyectables)
     AuthRouter,
     ContentRouter,
-    GameRouter, 
+    GameRouter,
+    GameService,
 
     // Lógica de Negocio Auth
     AuthService,
