@@ -62,7 +62,7 @@ Crea las tablas en tu base de datos local basándose en nuestro esquema.
 npx prisma migrate dev --name init_local --schema=apps/api/prisma/schema.prisma
 
 # (Opcional) Llena la DB con datos de prueba (Cursos y Carreras)
-npx prisma db seed
+npx tsx apps/api/prisma/seed.ts
 
 ```
 
