@@ -324,6 +324,8 @@ if (questions.length === 0) {
 ### `game.submitAnswer` (Mutation) ⚡ CORE GAME LOOP 🔒 Protected
 Envía la respuesta del usuario, la valida, guarda el log en la base de datos y actualiza las estadísticas del usuario.
 
+> **Arquitectura:** Este endpoint utiliza el patrón **Service Layer**. El router delega toda la lógica de negocio a `GameService`, promoviendo separación de responsabilidades y reutilización de código.
+
 **Input:**
 ```typescript
 {
@@ -348,28 +350,65 @@ Envía la respuesta del usuario, la valida, guarda el log en la base de datos y 
 }
 ```
 
+**Arquitectura Interna:**
+
+```typescript
+// 1. Router (Capa de API)
+GameRouter → delega → GameService
+
+// 2. Servicio (Capa de Lógica de Negocio)
+GameService.submitAnswer() {
+  - Valida usuario y energía
+  - Obtiene y valida pregunta
+  - Evalúa respuesta
+  - Transacción atómica:
+    * Actualiza stats del usuario (XP, energía)
+    * Guarda log de respuesta
+  - Retorna resultado formateado
+}
+
+// 3. Persistencia
+PrismaService → PostgreSQL
+```
+
 **Lógica de Negocio:**
 
-1. **Validación de Energía:**
+1. **Validación de Usuario y Energía:**
+   - Verifica que el usuario existe
    - Usuarios **NO premium** con `energy <= 0` → Error `FORBIDDEN`
    - Usuarios **premium** → Energía ilimitada (no se descuenta)
 
-2. **Recompensas de XP:**
+2. **Validación de Pregunta:**
+   - Verifica que la pregunta existe
+   - Valida que el índice de opción es válido (0-4)
+
+3. **Evaluación de Respuesta:**
+   - Compara `selectedOptionIndex` con la opción correcta
+   - Determina `isCorrect` basado en el campo `isCorrect` de la opción
+
+4. **Recompensas de XP:**
    - Respuesta **correcta**: +20 XP
-   - Respuesta **incorrecta**: +5 XP (consuelo)
+   - Respuesta **incorrecta**: +5 XP (consuelo/motivación)
 
-3. **Costo de Energía:**
+5. **Costo de Energía:**
    - Usuario NO premium: -1 energía
-   - Usuario premium: -0 energía
+   - Usuario premium: -0 energía (ilimitada)
 
-4. **Registro de Respuesta:**
+6. **Transacción Atómica (ACID):**
+   - **Atomicidad**: Todo o nada (si falla guardar log, se revierte actualización de stats)
+   - **Consistencia**: Estado de BD siempre válido
+   - **Aislamiento**: No hay race conditions entre operaciones concurrentes
+   - **Durabilidad**: Cambios permanentes una vez confirmados
+
+7. **Registro de Respuesta:**
    - Se guarda en `AnswerLog` con: `userId`, `questionId`, `isCorrect`, `selectedOption`
    - Este log permite:
-     - Filtro anti-repetición (modo infinito)
-     - Analytics de rendimiento
-     - Detección de patrones de aprendizaje
+     - ✅ Filtro anti-repetición (modo infinito)
+     - 📊 Analytics de rendimiento
+     - 🧠 Detección de patrones de aprendizaje
+     - 🎯 Recomendaciones personalizadas (futuro)
 
-**Ejemplo:**
+**Ejemplo de Uso:**
 ```typescript
 // Usuario selecciona la opción C (índice 2)
 const result = await client.game.submitAnswer.mutate({
@@ -942,6 +981,210 @@ const Question = ({ question }) => {
 
 // ❌ MALO: Mostrar respuesta correcta antes de enviar
 {opt.isCorrect && <span>✓</span>} // ¡Trampa!
+```
+
+---
+
+## 🏗️ Arquitectura del Backend
+
+### Patrón de Capas (Layered Architecture)
+
+El backend sigue una arquitectura en capas para promover la separación de responsabilidades y mantenibilidad:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                   API Layer (tRPC)                      │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
+│  │ AuthRouter   │  │ ContentRouter│  │ GameRouter   │  │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘  │
+└─────────┼──────────────────┼──────────────────┼─────────┘
+          │                  │                  │
+          │                  │                  │
+┌─────────┼──────────────────┼──────────────────┼─────────┐
+│         ▼                  ▼                  ▼         │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
+│  │ AuthService  │  │ ContentService│  │ GameService  │  │
+│  │ (futuro)     │  │ (futuro)     │  │ ✅ Actual    │  │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘  │
+│         │                  │                  │         │
+│         Business Logic Layer (Services)       │         │
+└─────────┼──────────────────┼──────────────────┼─────────┘
+          │                  │                  │
+          └──────────────────┴──────────────────┘
+                             │
+┌────────────────────────────┼─────────────────────────────┐
+│                            ▼                             │
+│                   ┌──────────────────┐                   │
+│                   │  PrismaService   │                   │
+│                   └──────────────────┘                   │
+│                   Data Access Layer                      │
+└──────────────────────────────────────────────────────────┘
+                             │
+                             ▼
+                   ┌──────────────────┐
+                   │   PostgreSQL     │
+                   └──────────────────┘
+```
+
+### Responsabilidades por Capa
+
+#### 1. **API Layer (Routers)**
+- ✅ Definir endpoints y schemas de validación (Zod)
+- ✅ Autenticación y autorización (middlewares)
+- ✅ Delegar lógica de negocio a servicios
+- ❌ NO contener lógica de negocio compleja
+- ❌ NO acceder directamente a Prisma (excepto casos simples)
+
+**Ejemplo:**
+```typescript
+// ✅ BUENO: Router delgado
+@Injectable()
+export class GameRouter {
+  constructor(
+    private readonly trpc: TrpcService,
+    private readonly gameService: GameService
+  ) {}
+
+  router = this.trpc.router({
+    submitAnswer: this.trpc.protectedProcedure
+      .input(z.object({
+        questionId: z.string(),
+        selectedOptionIndex: z.number().min(0),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        return await this.gameService.submitAnswer({
+          userId: ctx.user.userId,
+          ...input
+        });
+      }),
+  });
+}
+
+// ❌ MALO: Router con lógica compleja
+// (Toda la lógica de validación, transacciones, etc. en el router)
+```
+
+#### 2. **Business Logic Layer (Services)**
+- ✅ Contener toda la lógica de negocio
+- ✅ Validaciones complejas de dominio
+- ✅ Orquestación de transacciones
+- ✅ Cálculos y transformaciones
+- ✅ Reutilizable desde múltiples routers
+- ❌ NO depender de detalles de HTTP/tRPC
+
+**Ejemplo:**
+```typescript
+// ✅ BUENO: Servicio con lógica de negocio encapsulada
+@Injectable()
+export class GameService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async submitAnswer({ userId, questionId, selectedOptionIndex }: SubmitAnswerInput) {
+    // 1. Validaciones
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new TRPCError({ code: 'UNAUTHORIZED' });
+    if (!user.isPremium && user.energy <= 0) {
+      throw new TRPCError({ code: 'FORBIDDEN', message: '¡Sin energía!' });
+    }
+
+    // 2. Obtener datos
+    const question = await this.prisma.question.findUnique({
+      where: { id: questionId },
+    });
+    if (!question) throw new TRPCError({ code: 'NOT_FOUND' });
+
+    // 3. Lógica de negocio
+    const options = question.options as unknown as QuestionOption[];
+    const isCorrect = options[selectedOptionIndex]?.isCorrect ?? false;
+    const xpEarned = isCorrect ? 20 : 5;
+    const energyCost = user.isPremium ? 0 : 1;
+
+    // 4. Transacción atómica
+    return await this.prisma.$transaction(async (tx) => {
+      const updatedUser = await tx.user.update({
+        where: { id: userId },
+        data: {
+          energy: { decrement: energyCost },
+          totalXp: { increment: xpEarned },
+        },
+      });
+
+      await tx.answerLog.create({
+        data: { userId, questionId, isCorrect, selectedOption: selectedOptionIndex },
+      });
+
+      return {
+        success: true,
+        isCorrect,
+        correctOptionIndex: options.findIndex(o => o.isCorrect),
+        explanation: question.explanation,
+        userStats: {
+          xp: updatedUser.totalXp,
+          energy: updatedUser.energy,
+        },
+      };
+    });
+  }
+}
+```
+
+#### 3. **Data Access Layer (PrismaService)**
+- ✅ Gestión de conexiones a base de datos
+- ✅ Mapeo de objetos (ORM)
+- ✅ Transacciones
+- ✅ Migraciones (Prisma CLI)
+- ❌ NO contener lógica de negocio
+
+### Ventajas de esta Arquitectura
+
+1. **Separación de Responsabilidades**
+   - Cada capa tiene un propósito claro
+   - Código más organizado y mantenible
+
+2. **Testabilidad**
+   - Servicios pueden ser testeados independientemente
+   - Mock de dependencias más fácil
+
+3. **Reutilización**
+   - Servicios pueden ser usados desde múltiples routers
+   - Lógica de negocio centralizada
+
+4. **Escalabilidad**
+   - Fácil migrar a microservicios (extraer servicios)
+   - Agregar nuevas capas (caché, mensajería)
+
+5. **Mantenibilidad**
+   - Cambios en una capa no afectan otras
+   - Código más legible y predecible
+
+### Ejemplo de Flujo Completo
+
+```
+Usuario Frontend
+    │
+    │ POST /trpc/game.submitAnswer
+    ▼
+GameRouter (API Layer)
+    │ 1. Validar JWT (middleware)
+    │ 2. Parsear input (Zod)
+    │ 3. Extraer userId del contexto
+    ▼
+GameService (Business Layer)
+    │ 4. Validar usuario y energía
+    │ 5. Obtener pregunta
+    │ 6. Evaluar respuesta
+    │ 7. Calcular XP y energía
+    │ 8. Transacción atómica
+    ▼
+PrismaService (Data Layer)
+    │ 9. UPDATE user
+    │ 10. INSERT answerLog
+    │ 11. COMMIT transaction
+    ▼
+PostgreSQL
+    │ 12. Persistir cambios
+    ▼
+Respuesta al Frontend
 ```
 
 ---
