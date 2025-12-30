@@ -7,6 +7,7 @@
   - [Auth Router](#auth-router)
   - [Content Router](#content-router)
   - [Game Router](#game-router)
+  - [Stats Router](#stats-router)
 - [Modelos de Datos](#modelos-de-datos)
 - [Flujos de Usuario](#flujos-de-usuario)
 - [Manejo de Errores](#manejo-de-errores)
@@ -47,6 +48,15 @@ const client = createTRPCProxyClient<AppRouterType>({
 ## 🔐 Autenticación
 
 Todas las rutas marcadas como `protectedProcedure` requieren autenticación mediante JWT.
+
+### Routers Disponibles
+
+El sistema cuenta con **4 routers principales**:
+
+1. **Auth Router** (`client.auth.*`) - Autenticación y gestión de cuentas
+2. **Content Router** (`client.content.*`) - Preguntas, cursos, carreras
+3. **Game Router** (`client.game.*`) - Lógica de juego y respuestas
+4. **Stats Router** (`client.stats.*`) - Dashboard y estadísticas del usuario
 
 ### Headers Requeridos
 ```
@@ -339,6 +349,15 @@ Envía la respuesta del usuario, la valida, guarda el log en la base de datos y 
 {
   success: boolean;           // true si la operación fue exitosa
   isCorrect: boolean;         // true = Respuesta correcta ✅ | false = Incorrecta ❌
+  correctOptionIndex: number; // Índice de la opción correcta (0-4)
+  explanation: string;        // Explicación detallada de la respuesta
+  userStats: {
+    xp: number;              // XP total acumulado
+    energy: number;          // Energía restante (0-25)
+    streak: number;          // 🔥 Racha de días consecutivos jugando
+  }
+}
+```
   correctOptionIndex: number; // Índice de la opción correcta (para feedback visual)
   explanation: string | null; // Explicación educativa de la respuesta correcta
   
@@ -394,13 +413,22 @@ PrismaService → PostgreSQL
    - Usuario NO premium: -1 energía
    - Usuario premium: -0 energía (ilimitada)
 
-6. **Transacción Atómica (ACID):**
+6. **🔥 Sistema de Racha (Streak):**
+   - Llama al método privado `calculateNewStreak()` para evaluar la racha
+   - **Lógica de Días Consecutivos:**
+     - **Hoy**: Si `lastInteraction` es HOY → Mantiene racha actual (ya jugó hoy)
+     - **Ayer**: Si `lastInteraction` fue AYER → ¡Suma +1 a la racha! 🔥
+     - **>1 día**: Si pasaron más de 1 día → Racha se reinicia a 1 💔
+   - Actualiza `lastInteraction` con la fecha/hora actual
+   - **Normalización**: Compara fechas sin considerar horas/minutos (solo el día)
+
+7. **Transacción Atómica (ACID):**
    - **Atomicidad**: Todo o nada (si falla guardar log, se revierte actualización de stats)
    - **Consistencia**: Estado de BD siempre válido
    - **Aislamiento**: No hay race conditions entre operaciones concurrentes
    - **Durabilidad**: Cambios permanentes una vez confirmados
 
-7. **Registro de Respuesta:**
+8. **Registro de Respuesta:**
    - Se guarda en `AnswerLog` con: `userId`, `questionId`, `isCorrect`, `selectedOption`
    - Este log permite:
      - ✅ Filtro anti-repetición (modo infinito)
@@ -427,6 +455,7 @@ if (result.isCorrect) {
 
 console.log(`Nueva energía: ${result.userStats.energy}/25`);
 console.log(`XP Total: ${result.userStats.xp}`);
+console.log(`🔥 Racha: ${result.userStats.streak} días consecutivos`);
 ```
 
 **Errores Posibles:**
@@ -441,6 +470,74 @@ console.log(`XP Total: ${result.userStats.xp}`);
 - Mostrar feedback inmediato
 - Descontar/mantener energía
 - Tracking de respuestas para analytics
+- Mantener racha de días consecutivos
+
+---
+
+## 📊 Stats Router (`client.stats`)
+
+### `stats.getDashboard` (Query) 🔒 Protected
+Obtiene el dashboard principal del usuario con estadísticas agregadas, nivel, racha y progreso del día.
+
+**Input:** Ninguno (usa el `userId` del contexto JWT)
+
+**Output:**
+```typescript
+{
+  user: {
+    name: string;      // Nombre del usuario
+    level: number;     // Nivel calculado: floor(sqrt(totalXp) * 0.5) + 1
+    xp: number;        // XP total acumulado
+    energy: number;    // Energía actual (0-25)
+    streak: number;    // 🔥 Días consecutivos jugando
+  },
+  stats: {
+    daysUntilExam: number;     // Días restantes hasta el examen objetivo
+    questionsToday: number;    // Preguntas respondidas HOY
+  }
+}
+```
+
+**Lógica de Negocio:**
+
+1. **Cálculo de Nivel:**
+   - Fórmula: `nivel = floor(sqrt(totalXp) * 0.5) + 1`
+   - Ejemplos:
+     - 0 XP → Nivel 1
+     - 100 XP → Nivel 6
+     - 400 XP → Nivel 11
+     - 1000 XP → Nivel 16
+
+2. **Cuenta Regresiva al Examen:**
+   - Fecha objetivo hardcoded: `2025-08-15` (UNSA aproximado)
+   - Calcula días restantes desde hoy
+   - **TODO**: Hacer configurable por usuario o carrera
+
+3. **Preguntas de Hoy:**
+   - Cuenta registros en `AnswerLog` donde `createdAt >= startOfDay`
+   - Útil para gráficas de progreso diario
+
+**Ejemplo de Uso:**
+```typescript
+const dashboard = await client.stats.getDashboard.query();
+
+console.log(`¡Hola ${dashboard.user.name}!`);
+console.log(`Nivel ${dashboard.user.level} | ${dashboard.user.xp} XP`);
+console.log(`⚡ Energía: ${dashboard.user.energy}/25`);
+console.log(`🔥 Racha: ${dashboard.user.streak} días`);
+console.log(`⏰ Faltan ${dashboard.stats.daysUntilExam} días para el examen`);
+console.log(`📝 Hoy respondiste ${dashboard.stats.questionsToday} preguntas`);
+```
+
+**Errores Posibles:**
+- `UNAUTHORIZED (401)`: Token inválido o expirado
+- `NOT_FOUND (404)`: Usuario no encontrado
+
+**Casos de Uso:**
+- Pantalla principal del dashboard
+- Widgets de progreso
+- Motivación visual (racha, nivel)
+- Seguimiento de metas diarias
 
 ---
 
