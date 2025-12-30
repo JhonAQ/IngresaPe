@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { TrpcService } from './trpc.service';
 import { AuthRouter } from './routers/auth.router';
 import { ContentRouter } from './routers/content.router';
-import { GameRouter } from './routers/game.router'; 
+import { GameRouter } from './routers/game.router';
+import { StatsRouter } from './routers/stats.routers';
 
 @Injectable()
 export class AppRouter {
@@ -10,7 +11,8 @@ export class AppRouter {
     private readonly trpc: TrpcService,
     private readonly auth: AuthRouter,
     private readonly content: ContentRouter,
-    private readonly game: GameRouter 
+    private readonly game: GameRouter,
+    private readonly stats: StatsRouter
   ) {}
 
   appRouter = this.trpc.router({
@@ -20,7 +22,8 @@ export class AppRouter {
     // 2. Módulos del Sistema (Namespaced)
     auth: this.auth.router,       // Acceso: client.auth.login
     content: this.content.router, // Acceso: client.content.getQuestions
-    game: this.game.router,    // Acceso: client.game.submitAnswer
+    game: this.game.router,       // Acceso: client.game.submitAnswer
+    stats: this.stats.router,     // Acceso: client.stats.getDashboard
   });
 }
 

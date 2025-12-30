@@ -57,14 +57,22 @@ export class GameService {
     const xpEarned = isCorrect ? 20 : 5;     // 20 XP si acierta, 5 XP consuelo
     const energyCost = user.isPremium ? 0 : 1; // Costo de energía
 
-    // 5. Transacción Atómica: Guardar Intento y Actualizar User
+    // 🆕 5. Calcular Nueva Racha (Streak)
+    const { newStreak, shouldUpdateDate } = this.calculateNewStreak(
+      user.streak,
+      user.lastInteraction
+    );
+
+    // 6. Transacción Atómica: Guardar Intento y Actualizar User
     return await this.prisma.$transaction(async (tx) => {
-      // A. Actualizar Stats del Usuario
+      // A. Actualizar Stats del Usuario (Ahora con Streak)
       const updatedUser = await tx.user.update({
         where: { id: userId },
         data: {
           energy: { decrement: energyCost },
           totalXp: { increment: xpEarned },
+          streak: newStreak, // <--- Actualizamos racha
+          lastInteraction: shouldUpdateDate ? new Date() : undefined, // <--- Actualizamos fecha si es necesario
         },
       });
 
@@ -88,8 +96,41 @@ export class GameService {
         userStats: {
           xp: updatedUser.totalXp,
           energy: updatedUser.energy,
+          streak: updatedUser.streak, // <--- Devolvemos la racha nueva al front
         },
       };
     });
+  }
+
+  /**
+   * 🧠 Algoritmo de Racha (Streak)
+   * Determina si el usuario merece aumentar su racha basándose en la última interacción
+   * 
+   * @param currentStreak - Racha actual del usuario
+   * @param lastDate - Fecha de la última interacción
+   * @returns Objeto con la nueva racha y si debe actualizar la fecha
+   */
+  private calculateNewStreak(currentStreak: number, lastDate: Date) {
+    const now = new Date();
+    const last = new Date(lastDate);
+
+    // Normalizamos a "Días" (sin horas/minutos) para comparar
+    const isToday = now.toDateString() === last.toDateString();
+    
+    // Si fue ayer (Restamos 1 día a "hoy" y comparamos strings)
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const isYesterday = yesterday.toDateString() === last.toDateString();
+
+    if (isToday) {
+      // Ya jugó hoy, no sumamos racha pero mantenemos la que tiene
+      return { newStreak: currentStreak, shouldUpdateDate: true };
+    } else if (isYesterday) {
+      // Jugó ayer -> ¡Suma Racha! 🔥
+      return { newStreak: currentStreak + 1, shouldUpdateDate: true };
+    } else {
+      // Pasó más de un día -> Racha rota 💔, reinicia a 1
+      return { newStreak: 1, shouldUpdateDate: true };
+    }
   }
 }
