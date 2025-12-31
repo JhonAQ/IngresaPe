@@ -4,6 +4,7 @@ import { AuthRouter } from './routers/auth.router';
 import { ContentRouter } from './routers/content.router';
 import { GameRouter } from './routers/game.router';
 import { StatsRouter } from './routers/stats.routers';
+import { RankingRouter } from './routers/ranking.router';
 
 @Injectable()
 export class AppRouter {
@@ -12,7 +13,8 @@ export class AppRouter {
     private readonly auth: AuthRouter,
     private readonly content: ContentRouter,
     private readonly game: GameRouter,
-    private readonly stats: StatsRouter
+    private readonly stats: StatsRouter,
+    private readonly ranking: RankingRouter
   ) {}
 
   appRouter = this.trpc.router({
@@ -24,6 +26,7 @@ export class AppRouter {
     content: this.content.router, // Acceso: client.content.getQuestions
     game: this.game.router,       // Acceso: client.game.submitAnswer
     stats: this.stats.router,     // Acceso: client.stats.getDashboard
+    ranking: this.ranking.router,       // Acceso: client.ranking.getTopStudents
   });
 }
 

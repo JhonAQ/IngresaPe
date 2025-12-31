@@ -11,6 +11,7 @@ import { AuthRouter } from './routers/auth.router';
 import { ContentRouter } from './routers/content.router';
 import { GameRouter } from './routers/game.router';
 import { StatsRouter } from './routers/stats.routers';
+import { RankingRouter } from './routers/ranking.router';
 
 // Auth Components (REST & Strategies)
 import { AuthController } from './controllers/auth.controller';
@@ -40,7 +41,9 @@ import { GameService } from './services/game.service';
     ContentRouter,
     GameRouter,
     StatsRouter,
+    RankingRouter,
     GameService,
+
 
     // Lógica de Negocio Auth
     AuthService,
