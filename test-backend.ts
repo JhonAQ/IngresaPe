@@ -22,7 +22,7 @@ async function main() {
   try {
     // 2. Intentar Registrarse
     console.log('\n📝 Intentando Registro...');
-    const registro = await client.register.mutate({
+    const registro = await client.auth.register.mutate({
       name: 'Tester Script',
       email: `test${Date.now()}@script.com`, // Email único cada vez
       password: '123456password',
@@ -33,7 +33,7 @@ async function main() {
 
     // 3. Intentar Login
     console.log('\n🔐 Intentando Login...');
-    const login = await client.login.mutate({
+    const login = await client.auth.login.mutate({
       email: registro.user.email,
       password: '123456password',
     });
@@ -59,7 +59,7 @@ async function main() {
       ],
     });
 
-    const yo = await clientAutenticado.me.query();
+    const yo = await clientAutenticado.auth.me.query();
     console.log('✅ Usuario autenticado:', yo);
 
   } catch (error) {

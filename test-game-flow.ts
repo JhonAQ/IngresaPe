@@ -2,10 +2,6 @@
 import { createTRPCProxyClient, httpLink } from '@trpc/client';
 import superjson from 'superjson';
 import type { AppRouterType } from './apps/api/src/app/app.router'; // Asegúrate que la ruta sea correcta
-import fetch from 'node-fetch'; // Si usas node < 18
-
-// Polyfill para fetch si es necesario
-if (!global.fetch) (global as any).fetch = fetch;
 
 const client = createTRPCProxyClient<AppRouterType>({
   links: [
