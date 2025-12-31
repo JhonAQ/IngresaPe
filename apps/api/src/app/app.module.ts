@@ -1,12 +1,22 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
+
+// Core Services
 import { TrpcService } from './trpc.service';
-import { AppRouter } from './app.router';
 import { PrismaService } from './prisma.service';
+import { AppRouter } from './app.router';
+
+// Routers (tRPC)
 import { AuthRouter } from './routers/auth.router';
+import { ContentRouter } from './routers/content.router';
+import { GameRouter } from './routers/game.router';
+import { StatsRouter } from './routers/stats.routers';
+
+// Auth Components (REST & Strategies)
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
 import { GoogleStrategy } from './strategies/google.strategy';
+import { GameService } from './services/game.service';
 
 @Module({
   imports: [
@@ -20,10 +30,19 @@ import { GoogleStrategy } from './strategies/google.strategy';
     AuthController,
   ],
   providers: [
+    // Infraestructura
     TrpcService,
     PrismaService,
     AppRouter,
+    
+    // Routers tRPC (Inyectables)
     AuthRouter,
+    ContentRouter,
+    GameRouter,
+    StatsRouter,
+    GameService,
+
+    // Lógica de Negocio Auth
     AuthService,
     GoogleStrategy,
   ],
