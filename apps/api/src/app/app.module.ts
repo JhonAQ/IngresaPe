@@ -18,6 +18,8 @@ import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { GameService } from './services/game.service';
+import { AdminRouter } from './routers/admin.router';
+import { ProfileRouter } from './routers/profile.routers';
 
 @Module({
   imports: [
@@ -43,7 +45,8 @@ import { GameService } from './services/game.service';
     StatsRouter,
     RankingRouter,
     GameService,
-
+    AdminRouter,
+    ProfileRouter,
 
     // Lógica de Negocio Auth
     AuthService,
