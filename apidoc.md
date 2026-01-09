@@ -20,8 +20,83 @@
 **Base URL:** `http://localhost:3000/trpc` (Desarrollo)  
 **Base URL Producción:** `https://api.ingresa.pe/trpc`  
 **Protocolo:** tRPC v10 sobre HTTP  
-**Transformer:** SuperJSON (permite Date, Map, Set, BigInt)  
+**Transformer:** SuperJSON (serializa/deserializa tipos complejos de JavaScript)  
 **Autenticación:** JWT (JSON Web Token) con expiración de 7 días
+
+### 🔄 Transformer: SuperJSON vs JSON nativo
+
+**¿Por qué SuperJSON?**
+
+JSON nativo de JavaScript tiene limitaciones al serializar ciertos tipos de datos. SuperJSON extiende estas capacidades para soportar tipos complejos que son comunes en aplicaciones modernas.
+
+**Tipos soportados por SuperJSON:**
+
+| Tipo | JSON Nativo | SuperJSON | Ejemplo |
+|------|-------------|-----------|----------|
+| `Date` | ❌ String | ✅ Date | `new Date('2025-01-09')` |
+| `Map` | ❌ Objeto vacío | ✅ Map | `new Map([['key', 'value']])` |
+| `Set` | ❌ Objeto vacío | ✅ Set | `new Set([1, 2, 3])` |
+| `BigInt` | ❌ Error | ✅ BigInt | `9007199254740991n` |
+| `undefined` | ❌ null o ausente | ✅ undefined | `{ prop: undefined }` |
+| `RegExp` | ❌ Objeto vacío | ✅ RegExp | `/[a-z]+/gi` |
+| `NaN` / `Infinity` | ❌ null | ✅ NaN/Infinity | `NaN`, `Infinity` |
+
+**Caso de uso en Ingresa.pe:**
+
+En nuestra aplicación, usamos SuperJSON para:
+
+1. **Fechas (`Date`)**: 
+   - `lastRefill`, `createdAt`, `subExpiresAt`, `lastInteraction`
+   - Sin SuperJSON: El backend enviaría `"2025-01-09T10:30:00.000Z"` (string)
+   - Con SuperJSON: El frontend recibe un objeto `Date` nativo de JavaScript
+
+```typescript
+// ❌ SIN SuperJSON (JSON nativo)
+const user = await fetch('/trpc/auth.me');
+console.log(typeof user.lastRefill); // "string" 😢
+const date = new Date(user.lastRefill); // Conversión manual necesaria
+
+// ✅ CON SuperJSON
+const user = await client.auth.me.query();
+console.log(typeof user.lastRefill); // "object" (Date) ✅
+console.log(user.lastRefill.getHours()); // Funciona directamente
+```
+
+2. **Números grandes (`BigInt`)**: 
+   - Útil para IDs de bases de datos muy grandes
+   - Evita pérdida de precisión en números > 2^53
+
+3. **Valores especiales**:
+   - `undefined` en opcionales vs `null`
+   - `NaN` en cálculos matemáticos fallidos
+
+**Configuración Obligatoria:**
+
+⚠️ **IMPORTANTE:** Tanto el cliente como el servidor **DEBEN** usar el mismo transformer para evitar errores de deserialización.
+
+```typescript
+// Backend (apps/api/src/app/trpc.service.ts)
+import superjson from 'superjson';
+
+@Injectable()
+export class TrpcService {
+  trpc = initTRPC.context<Context>().create({
+    transformer: superjson, // ✅ Configurado en servidor
+  });
+}
+
+// Frontend (apps/web/src/utils/trpc.ts o similar)
+import SuperJSON from 'superjson';
+
+const client = createTRPCProxyClient<AppRouterType>({
+  transformer: SuperJSON, // ✅ Configurado en cliente
+  links: [httpBatchLink({ url: '...' })],
+});
+```
+
+**Referencias:**
+- Documentación oficial: https://github.com/blitz-js/superjson
+- tRPC Data Transformers: https://trpc.io/docs/data-transformers
 
 ### Configuración del Cliente
 
@@ -51,12 +126,13 @@ Todas las rutas marcadas como `protectedProcedure` requieren autenticación medi
 
 ### Routers Disponibles
 
-El sistema cuenta con **4 routers principales**:
+El sistema cuenta con **5 routers principales**:
 
 1. **Auth Router** (`client.auth.*`) - Autenticación y gestión de cuentas
 2. **Content Router** (`client.content.*`) - Preguntas, cursos, carreras
 3. **Game Router** (`client.game.*`) - Lógica de juego y respuestas
 4. **Stats Router** (`client.stats.*`) - Dashboard y estadísticas del usuario
+5. **Ranking Router** (`client.ranking.*`) - Leaderboard y posición del usuario
 
 ### Headers Requeridos
 ```
@@ -143,6 +219,171 @@ Inicia sesión con credenciales existentes.
 
 ---
 
+### 🔐 Autenticación con OAuth 2.0 (Google)
+
+**Estado:** ✅ Implementado en el backend, pendiente de integración en frontend
+
+Ingresa.pe soporta login social con Google OAuth 2.0, permitiendo a los usuarios registrarse e iniciar sesión sin necesidad de crear una contraseña.
+
+#### Flujo de Autenticación con Google
+
+```
+┌─────────┐              ┌──────────────┐              ┌─────────┐
+│ Usuario │              │  Ingresa.pe  │              │ Google  │
+└────┬────┘              └──────┬───────┘              └────┬────┘
+     │                          │                           │
+     │ 1. Click "Login Google" │                           │
+     ├─────────────────────────>│                           │
+     │                          │                           │
+     │                          │ 2. Redirigir a Google     │
+     │                          ├──────────────────────────>│
+     │                          │                           │
+     │ 3. Autorizar app         │                           │
+     │<─────────────────────────┴───────────────────────────┤
+     │                          │                           │
+     │ 4. Callback con token    │                           │
+     ├──────────────────────────┴──────────────────────────>│
+     │                          │                           │
+     │                          │ 5. Validar token          │
+     │                          │<──────────────────────────┤
+     │                          │                           │
+     │                          │ 6. Datos del usuario      │
+     │                          │<──────────────────────────┤
+     │                          │                           │
+     │ 7. JWT de Ingresa.pe     │                           │
+     │<─────────────────────────┤                           │
+     │                          │                           │
+```
+
+#### Configuración Requerida
+
+**Variables de Entorno (.env):**
+```bash
+# OAuth Google
+GOOGLE_CLIENT_ID="tu-client-id.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET="tu-secret-aqui"
+GOOGLE_CALLBACK_URL="http://localhost:3000/auth/google/callback"
+```
+
+**Obtener credenciales:**
+1. Ir a [Google Cloud Console](https://console.cloud.google.com/)
+2. Crear nuevo proyecto o seleccionar existente
+3. Habilitar "Google+ API"
+4. Crear credenciales OAuth 2.0
+5. Configurar URLs autorizadas:
+   - Authorized JavaScript origins: `http://localhost:3000`
+   - Authorized redirect URIs: `http://localhost:3000/auth/google/callback`
+
+#### Endpoints OAuth
+
+**Iniciar Login con Google:**
+```
+GET http://localhost:3000/auth/google
+```
+
+**Callback (manejado automáticamente):**
+```
+GET http://localhost:3000/auth/google/callback?code=...
+```
+
+#### Proceso en el Backend
+
+```typescript
+// 1. Usuario redirigido a Google (apps/api/src/app/strategies/google.strategy.ts)
+@Injectable()
+export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
+  async validate(accessToken, refreshToken, profile, done) {
+    // 2. Google devuelve el perfil del usuario
+    const { id, emails, displayName, photos } = profile;
+    
+    // 3. Buscar o crear usuario en nuestra BD
+    let user = await prisma.user.findFirst({
+      where: {
+        provider: 'google',
+        providerId: id, // ID de Google
+      },
+    });
+    
+    if (!user) {
+      // 4. Crear nuevo usuario
+      user = await prisma.user.create({
+        data: {
+          email: emails[0].value,
+          name: displayName,
+          image: photos[0].value,
+          provider: 'google',
+          providerId: id,
+          password: null, // Sin contraseña local
+        },
+      });
+    }
+    
+    // 5. Generar JWT de Ingresa.pe
+    const token = jwtService.sign({ 
+      userId: user.id, 
+      email: user.email 
+    });
+    
+    return { user, token };
+  }
+}
+```
+
+#### Consideraciones de Seguridad
+
+1. **Validación de Email:**
+   - Google garantiza que el email está verificado
+   - No es necesario enviar email de confirmación
+
+2. **Evitar Duplicados:**
+   - Se verifica `provider + providerId` para evitar múltiples cuentas
+   - Si un usuario se registra con `juan@gmail.com` (credentials) y luego intenta con Google (`juan@gmail.com`), se crearán 2 cuentas diferentes
+   - **Futuro:** Implementar fusión de cuentas por email
+
+3. **Sin Contraseña:**
+   - Usuarios OAuth tienen `password: null`
+   - No pueden usar login tradicional (solo OAuth)
+   - Intentar login con email/password → Error 401
+
+4. **Tokens:**
+   - El `accessToken` de Google solo se usa para obtener el perfil
+   - No se almacena (solo se usa durante el flujo)
+   - El JWT de Ingresa.pe es independiente y tiene su propia expiración (7 días)
+
+#### Integración Frontend (Pendiente)
+
+**Ejemplo con React:**
+```typescript
+// Botón de login
+<button onClick={() => window.location.href = 'http://localhost:3000/auth/google'}>
+  <img src="/google-icon.svg" alt="Google" />
+  Continuar con Google
+</button>
+
+// Página de callback (recibe el token)
+function GoogleCallback() {
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    
+    if (token) {
+      localStorage.setItem('token', token);
+      window.location.href = '/dashboard';
+    }
+  }, []);
+  
+  return <div>Iniciando sesión...</div>;
+}
+```
+
+**Estado Actual:**
+- ✅ Backend: Estrategia de Google configurada y funcional
+- ✅ Base de datos: Campos `provider` y `providerId` añadidos
+- ⏳ Frontend: Pendiente de implementar botón y flujo de redirección
+- ⏳ Producción: Pendiente configurar credenciales de producción
+
+---
+
 ### `auth.me` (Query) 🔒 Protected
 Obtiene información completa del usuario autenticado.
 
@@ -161,6 +402,7 @@ Obtiene información completa del usuario autenticado.
   lastRefill: Date;            // Última recarga automática
   totalXp: number;             // XP total acumulada
   streak: number;              // Días consecutivos jugando
+  lastInteraction: Date;       // Última vez que jugó (para calcular streak)
   career: {
     id: string;
     name: string;              // Ej: "Ingeniería Civil"
@@ -168,6 +410,11 @@ Obtiene información completa del usuario autenticado.
   } | null;
 }
 ```
+
+**Nota sobre `lastInteraction`:**
+- Se actualiza automáticamente cada vez que el usuario responde una pregunta
+- Usado internamente para calcular el `streak` (racha de días consecutivos)
+- El frontend puede usarlo para mostrar "Última actividad: hace 2 horas"
 
 **Ejemplo:**
 ```typescript
@@ -541,6 +788,141 @@ console.log(`📝 Hoy respondiste ${dashboard.stats.questionsToday} preguntas`);
 
 ---
 
+## 🏆 Ranking Router (`client.ranking`)
+
+### `ranking.getTopStudents` (Query) 🔒 Protected
+Obtiene el top 10 de estudiantes con mayor XP total, ordenados de mayor a menor.
+
+**Input:** Ninguno (usa el `userId` del contexto JWT)
+
+**Output:**
+```typescript
+Array<{
+  id: string;          // UUID del usuario
+  name: string;        // Nombre del usuario
+  totalXp: number;     // XP total acumulado
+  rank: number;        // Posición en el ranking (1-10)
+  isMe: boolean;       // true si es el usuario actual (para resaltar)
+}>
+```
+
+**Lógica de Negocio:**
+
+1. **Query de Top 10:**
+   - Ordena usuarios por `totalXp` de forma descendente
+   - Limita resultados a 10 registros
+   - Solo devuelve: `id`, `name`, `totalXp`
+
+2. **Cálculo de Rango:**
+   - El índice del array + 1 determina la posición (1-10)
+   - El usuario en posición 0 tiene `rank: 1` (primer lugar)
+
+3. **Identificación del Usuario Actual:**
+   - Compara el `id` de cada usuario con `ctx.user.userId`
+   - Si coinciden, marca `isMe: true` para resaltar en la UI
+
+**Ejemplo de Uso:**
+```typescript
+const topStudents = await client.ranking.getTopStudents.query();
+
+console.log('🏆 TOP 10 ESTUDIANTES 🏆');
+topStudents.forEach((student) => {
+  const medal = student.rank === 1 ? '🥇' : student.rank === 2 ? '🥈' : student.rank === 3 ? '🥉' : '  ';
+  const highlight = student.isMe ? ' ← ¡TÚ!' : '';
+  console.log(`${medal} #${student.rank} - ${student.name}: ${student.totalXp} XP${highlight}`);
+});
+```
+
+**Output de Ejemplo:**
+```
+🏆 TOP 10 ESTUDIANTES 🏆
+🥇 #1 - Carlos Mendoza: 2500 XP
+🥈 #2 - Ana García: 2350 XP
+🥉 #3 - Luis Torres: 2100 XP
+   #4 - María López: 1980 XP ← ¡TÚ!
+   #5 - Pedro Sánchez: 1850 XP
+   ...
+```
+
+**Errores Posibles:**
+- `UNAUTHORIZED (401)`: Token inválido o expirado
+
+**Casos de Uso:**
+- Leaderboard global
+- Pantalla de clasificación
+- Motivación competitiva
+- Identificar usuarios destacados
+- Resaltar posición del usuario en el top 10
+
+---
+
+### `ranking.getMyPosition` (Query) 🔒 Protected
+Obtiene la posición global del usuario autenticado en el ranking general.
+
+**Input:** Ninguno (usa el `userId` del contexto JWT)
+
+**Output:**
+```typescript
+{
+  rank: number;        // Posición global del usuario (ej: 42)
+  xp: number;          // XP total del usuario
+  name: string;        // Nombre del usuario
+}
+```
+
+**Lógica de Negocio:**
+
+1. **Obtener Usuario Actual:**
+   - Busca el usuario por `ctx.user.userId`
+   - Extrae: `totalXp` y `name`
+
+2. **Calcular Posición Global:**
+   - Cuenta cuántos usuarios tienen **más XP** que el usuario actual
+   - Fórmula: `rank = usersWithMoreXp + 1`
+   - Ejemplos:
+     - 0 usuarios con más XP → Posición #1 (primer lugar)
+     - 5 usuarios con más XP → Posición #6
+     - 99 usuarios con más XP → Posición #100
+
+**Ejemplo de Uso:**
+```typescript
+const myPosition = await client.ranking.getMyPosition.query();
+
+console.log(`📊 TU POSICIÓN EN EL RANKING GLOBAL 📊`);
+console.log(`Posición: #${myPosition.rank}`);
+console.log(`Nombre: ${myPosition.name}`);
+console.log(`XP Total: ${myPosition.xp}`);
+
+if (myPosition.rank === 1) {
+  console.log('🥇 ¡Eres el #1! ¡Increíble!');
+} else if (myPosition.rank <= 10) {
+  console.log('🏆 ¡Estás en el TOP 10!');
+} else if (myPosition.rank <= 100) {
+  console.log('🌟 ¡Estás en el TOP 100!');
+}
+```
+
+**Output de Ejemplo:**
+```
+📊 TU POSICIÓN EN EL RANKING GLOBAL 📊
+Posición: #42
+Nombre: Juan Pérez
+XP Total: 1250
+```
+
+**Errores Posibles:**
+- `UNAUTHORIZED (401)`: Token inválido o expirado
+- `NOT_FOUND (404)`: Usuario no encontrado (caso muy raro)
+
+**Casos de Uso:**
+- Mostrar posición en el dashboard
+- Widget de "Mi Ranking"
+- Comparar con el top 10
+- Motivación personal
+- Seguimiento de progreso competitivo
+
+---
+
 ## 📊 Modelos de Datos
 
 ### Usuario (User)
@@ -549,10 +931,13 @@ console.log(`📝 Hoy respondiste ${dashboard.stats.questionsToday} preguntas`);
   id: string;
   email: string;
   name: string;
-  password: string | null;    // null si registro con OAuth
-  image: string | null;       // URL del avatar
+  password: string | null;    // null si registro con OAuth (Google, Facebook)
+  image: string | null;       // URL del avatar (guardada desde OAuth)
+  
+  // OAuth (Autenticación Social)
   provider: string;           // "credentials" | "google" | "facebook"
-  providerId: string | null;  // ID de OAuth provider
+  providerId: string | null;  // ID único del usuario en el proveedor OAuth
+  
   role: "USER" | "ADMIN" | "DATA_ENTRY";
   createdAt: Date;
   
@@ -562,15 +947,43 @@ console.log(`📝 Hoy respondiste ${dashboard.stats.questionsToday} preguntas`);
   
   // Gamificación
   energy: number;             // 0-25 (max)
-  lastRefill: Date;           // Última recarga automática
-  totalXp: number;            // Puntaje total
-  streak: number;             // Días consecutivos
+  lastRefill: Date;           // Última recarga automática de energía
+  totalXp: number;            // Puntaje total (usado en ranking)
+  streak: number;             // Días consecutivos jugando
+  lastInteraction: Date;      // Última vez que el usuario jugó (para calcular streak)
   
   // Premium
   isPremium: boolean;
-  subExpiresAt: Date | null;
+  subExpiresAt: Date | null;  // Fecha de expiración de suscripción Premium
 }
 ```
+
+**Campos OAuth Explicados:**
+
+- **`provider`**: Indica el método de registro/login:
+  - `"credentials"`: Registro tradicional con email/password
+  - `"google"`: Login con Google OAuth 2.0
+  - `"facebook"`: Login con Facebook OAuth (futuro)
+
+- **`providerId`**: 
+  - ID único del usuario en el sistema del proveedor
+  - Ejemplo Google: `"103547891234567890123"`
+  - Usado para vincular cuentas y evitar duplicados
+  - `null` si el usuario se registró con email/password
+
+- **`password`**: 
+  - `null` si el usuario se registró con OAuth (no tiene contraseña local)
+  - Si un usuario OAuth intenta hacer login con email/password → Error 401
+
+**Campo lastInteraction:**
+
+- **Propósito**: Rastrear la última vez que el usuario jugó (respondió una pregunta)
+- **Uso**: Calcular la racha de días consecutivos (`streak`)
+- **Actualización**: Se actualiza automáticamente en `game.submitAnswer`
+- **Lógica de Streak**:
+  - Si `lastInteraction` es **HOY** → Mantiene streak actual
+  - Si `lastInteraction` fue **AYER** → Incrementa streak (+1)
+  - Si `lastInteraction` fue hace **>1 día** → Resetea streak a 1
 
 ### Carrera (Career)
 ```typescript
