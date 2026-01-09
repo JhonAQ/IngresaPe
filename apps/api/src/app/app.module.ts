@@ -12,14 +12,17 @@ import { ContentRouter } from './routers/content.router';
 import { GameRouter } from './routers/game.router';
 import { StatsRouter } from './routers/stats.routers';
 import { RankingRouter } from './routers/ranking.router';
+import { AdminRouter } from './routers/admin.router';
+import { ProfileRouter } from './routers/profile.routers';
+import { ShopRouter } from './routers/shop.router';
+import { LearningRouter } from './routers/learning.router';
+import { SubscriptionRouter } from './routers/subscription.router';
 
 // Auth Components (REST & Strategies)
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { GameService } from './services/game.service';
-import { AdminRouter } from './routers/admin.router';
-import { ProfileRouter } from './routers/profile.routers';
 
 @Module({
   imports: [
@@ -47,6 +50,9 @@ import { ProfileRouter } from './routers/profile.routers';
     GameService,
     AdminRouter,
     ProfileRouter,
+    ShopRouter,
+    LearningRouter,
+    SubscriptionRouter,
 
     // Lógica de Negocio Auth
     AuthService,

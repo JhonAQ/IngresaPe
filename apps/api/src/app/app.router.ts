@@ -7,6 +7,9 @@ import { StatsRouter } from './routers/stats.routers';
 import { RankingRouter } from './routers/ranking.router';
 import { AdminRouter } from './routers/admin.router';
 import { ProfileRouter } from './routers/profile.routers';
+import { ShopRouter } from './routers/shop.router';
+import { LearningRouter } from './routers/learning.router';
+import { SubscriptionRouter } from './routers/subscription.router';
 
 @Injectable()
 export class AppRouter {
@@ -18,7 +21,10 @@ export class AppRouter {
     private readonly stats: StatsRouter,
     private readonly ranking: RankingRouter,
     private readonly admin: AdminRouter,
-    private readonly profile: ProfileRouter
+    private readonly profile: ProfileRouter,
+    private readonly shop: ShopRouter,
+    private readonly learning: LearningRouter,
+    private readonly subscription: SubscriptionRouter
   ) {}
 
   appRouter = this.trpc.router({
@@ -33,6 +39,9 @@ export class AppRouter {
     ranking: this.ranking.router, // Acceso: client.ranking.getTopStudents
     admin: this.admin.router,     // Acceso: client.admin.createQuestion
     profile: this.profile.router, // Acceso: client.profile.getMe
+    shop: this.shop.router,       // Acceso: client.shop.getCatalog
+    learning: this.learning.router, // Acceso: client.learning.getRandomQuestion
+    subscription: this.subscription.router, // Acceso: client.subscription.requestSubscription
   });
 }
 
