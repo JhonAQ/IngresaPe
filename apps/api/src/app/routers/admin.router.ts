@@ -5,7 +5,6 @@ import { PrismaService } from '../prisma.service';
 import { TRPCError } from '@trpc/server';
 import { Role } from '@prisma/client';
 
-// Esquema para crear pregunta
 const createQuestionSchema = z.object({
   statement: z.string().min(5, 'El enunciado debe tener al menos 5 caracteres'),
   imageUrl: z.string().url().optional(),
@@ -29,8 +28,6 @@ export class AdminRouter {
     createQuestion: this.trpc.protectedProcedure
       .input(createQuestionSchema)
       .mutation(async ({ ctx, input }) => {
-        
-        // 1. Verificar Rol usando el ENUM real
         if (ctx.user.role !== Role.ADMIN && ctx.user.role !== Role.DATA_ENTRY) {
           throw new TRPCError({ 
             code: 'FORBIDDEN', 
@@ -38,7 +35,6 @@ export class AdminRouter {
           });
         }
 
-        // 2. Validar que solo hay una opción correcta
         const correctOptions = input.options.filter(opt => opt.isCorrect);
         if (correctOptions.length !== 1) {
           throw new TRPCError({
@@ -47,7 +43,6 @@ export class AdminRouter {
           });
         }
 
-        // 3. Verificar que el topic existe
         const topic = await this.prisma.topic.findUnique({
           where: { id: input.topicId },
         });
@@ -59,14 +54,13 @@ export class AdminRouter {
           });
         }
 
-        // 4. Crear la pregunta
         return await this.prisma.question.create({
           data: {
             statement: input.statement,
             imageUrl: input.imageUrl,
             difficulty: input.difficulty,
             topicId: input.topicId,
-            options: input.options, // JSON directo
+            options: input.options,
             explanation: input.explanation,
           },
           include: {

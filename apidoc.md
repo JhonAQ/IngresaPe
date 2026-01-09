@@ -1,4 +1,4 @@
-# 📘 Ingresa.pe - Documentación Completa de API
+﻿# 📘 Ingresa.pe - Documentación Completa de API
 
 ## 📋 Tabla de Contenidos
 - [Información General](#información-general)
@@ -8,6 +8,12 @@
   - [Content Router](#content-router)
   - [Game Router](#game-router)
   - [Stats Router](#stats-router)
+  - [Ranking Router](#ranking-router)
+  - [Shop Router](#shop-router)
+  - [Learning Router](#learning-router)
+  - [Subscription Router](#subscription-router)
+  - [Admin Router](#admin-router)
+  - [Profile Router](#profile-router)
 - [Modelos de Datos](#modelos-de-datos)
 - [Flujos de Usuario](#flujos-de-usuario)
 - [Manejo de Errores](#manejo-de-errores)
@@ -126,13 +132,16 @@ Todas las rutas marcadas como `protectedProcedure` requieren autenticación medi
 
 ### Routers Disponibles
 
-El sistema cuenta con **5 routers principales**:
+El sistema cuenta con **8 routers principales**:
 
 1. **Auth Router** (`client.auth.*`) - Autenticación y gestión de cuentas
 2. **Content Router** (`client.content.*`) - Preguntas, cursos, carreras
 3. **Game Router** (`client.game.*`) - Lógica de juego y respuestas
 4. **Stats Router** (`client.stats.*`) - Dashboard y estadísticas del usuario
 5. **Ranking Router** (`client.ranking.*`) - Leaderboard y posición del usuario
+6. **Shop Router** (`client.shop.*`) - Tienda de avatares y consumibles
+7. **Admin Router** (`client.admin.*`) - Gestión administrativa (crear preguntas)
+8. **Profile Router** (`client.profile.*`) - Gestión de perfil de usuario
 
 ### Headers Requeridos
 ```
@@ -923,7 +932,239 @@ XP Total: 1250
 
 ---
 
-## 📊 Modelos de Datos
+## � Shop Router (`client.shop`)
+
+### `shop.getCatalog` (Query) 🔒 Protected
+Obtiene el catálogo completo de la tienda con todos los items disponibles para comprar.
+
+**Input:** Ninguno
+
+**Output:**
+```typescript
+Array<{
+  id: string;           // ID único del item (ej: "avatar_male_1")
+  name: string;         // Nombre descriptivo (ej: "Estudiante Cool")
+  price: number;        // Precio en monedas (ej: 200)
+  type: string;         // Tipo de item: "AVATAR" | "CONSUMABLE"
+  category: string;     // Categoría: "MALE" | "FEMALE" | "ENERGY"
+}>
+```
+
+**Catálogo Actual:**
+
+| ID | Nombre | Precio | Tipo | Categoría |
+|----|--------|--------|------|-----------|
+| `avatar_male_1` | Estudiante Cool | 200 | AVATAR | MALE |
+| `avatar_male_2` | Hacker | 500 | AVATAR | MALE |
+| `avatar_male_3` | Cachimbo Legendario | 1000 | AVATAR | MALE |
+| `avatar_female_1` | Estudiante Aplicada | 200 | AVATAR | FEMALE |
+| `avatar_female_2` | Ingeniera | 500 | AVATAR | FEMALE |
+| `avatar_female_3` | Genio | 1000 | AVATAR | FEMALE |
+| `energy_pack_5` | Pack de Energía (+5) | 100 | CONSUMABLE | ENERGY |
+
+**Ejemplo de Uso:**
+```typescript
+const catalog = await client.shop.getCatalog.query();
+
+console.log('🛒 CATÁLOGO DE LA TIENDA 🛒\n');
+catalog.forEach(item => {
+  const icon = item.type === 'AVATAR' ? '👤' : '⚡';
+  console.log(`${icon} ${item.name}`);
+  console.log(`   Precio: ${item.price} monedas`);
+  console.log(`   ID: ${item.id}\n`);
+});
+```
+
+**Output de Ejemplo:**
+```
+🛒 CATÁLOGO DE LA TIENDA 🛒
+
+👤 Estudiante Cool
+   Precio: 200 monedas
+   ID: avatar_male_1
+
+👤 Hacker
+   Precio: 500 monedas
+   ID: avatar_male_2
+
+⚡ Pack de Energía (+5)
+   Precio: 100 monedas
+   ID: energy_pack_5
+```
+
+**Errores Posibles:**
+- `UNAUTHORIZED (401)`: Token inválido o expirado
+
+**Casos de Uso:**
+- Mostrar tienda en la UI
+- Filtrar items por categoría (masculino/femenino)
+- Mostrar precios y disponibilidad
+- Verificar qué items puede comprar el usuario
+
+---
+
+### `shop.buyItem` (Mutation) 💰 TRANSACCIÓN 🔒 Protected
+Permite al usuario comprar un item de la tienda usando sus monedas.
+
+**Input:**
+```typescript
+{
+  itemId: string;  // ID del item a comprar (ej: "avatar_male_1")
+}
+```
+
+**Output:**
+```typescript
+{
+  success: boolean;       // true si la compra fue exitosa
+  message: string;        // Mensaje de confirmación (ej: "¡Compraste Estudiante Cool!")
+  user: {
+    coins: number;        // Monedas restantes después de la compra
+    inventory: string[];  // Inventario actualizado (solo para avatares)
+    energy: number;       // Energía actualizada (si compró un consumible)
+  }
+}
+```
+
+**Lógica de Negocio:**
+
+1. **Validación del Item:**
+   - Verifica que el `itemId` existe en el catálogo
+   - Error `NOT_FOUND` si no existe
+
+2. **Validación de Propiedad (Avatares):**
+   - Para items tipo `AVATAR`: Verifica que el usuario NO lo tenga ya
+   - Error `BAD_REQUEST` si ya lo tiene: "¡Ya tienes este avatar!"
+
+3. **Validación de Monedas:**
+   - Verifica que el usuario tenga suficientes monedas
+   - Error `BAD_REQUEST` si no alcanza: "Te faltan X monedas"
+
+4. **Ejecución de la Compra:**
+   - **Para AVATARES:**
+     - Resta el precio de las monedas del usuario
+     - Agrega el `itemId` al array `inventory`
+   - **Para CONSUMIBLES:**
+     - Resta el precio de las monedas
+     - Aplica el efecto (ej: `energy_pack_5` → +5 energía)
+
+5. **Retorno del Estado Actualizado:**
+   - Devuelve las monedas, inventario y energía actualizados
+   - El frontend puede actualizar la UI inmediatamente
+
+**Ejemplo de Uso:**
+```typescript
+// 1. Verificar monedas del usuario
+const user = await client.auth.me.query();
+console.log(`💰 Monedas actuales: ${user.coins}`);
+
+// 2. Ver catálogo
+const catalog = await client.shop.getCatalog.query();
+const itemToBy = catalog.find(item => item.id === 'avatar_male_1');
+
+if (user.coins < itemToBy.price) {
+  console.log(`❌ No tienes suficientes monedas. Te faltan ${itemToBy.price - user.coins}`);
+} else {
+  // 3. Comprar el item
+  try {
+    const result = await client.shop.buyItem.mutate({
+      itemId: 'avatar_male_1'
+    });
+
+    console.log(`✅ ${result.message}`);
+    console.log(`💰 Monedas restantes: ${result.user.coins}`);
+    console.log(`🎒 Inventario: ${result.user.inventory.join(', ')}`);
+  } catch (error) {
+    console.error(`❌ Error: ${error.message}`);
+  }
+}
+```
+
+**Flujo Completo de Compra:**
+```typescript
+// Flujo de compra de avatar
+async function comprarAvatar(itemId: string) {
+  try {
+    const result = await client.shop.buyItem.mutate({ itemId });
+    
+    // Actualizar UI con los nuevos datos
+    updateCoins(result.user.coins);
+    updateInventory(result.user.inventory);
+    showSuccessMessage(result.message);
+    
+    return result;
+  } catch (error) {
+    if (error.code === 'BAD_REQUEST') {
+      if (error.message.includes('Ya tienes')) {
+        showWarning('Ya posees este avatar');
+      } else if (error.message.includes('faltan')) {
+        showError(error.message);
+      }
+    }
+    throw error;
+  }
+}
+
+// Flujo de compra de consumible (energía)
+async function comprarEnergia() {
+  const result = await client.shop.buyItem.mutate({ 
+    itemId: 'energy_pack_5' 
+  });
+  
+  console.log(`⚡ Nueva energía: ${result.user.energy}`);
+  return result;
+}
+```
+
+**Errores Posibles:**
+- `UNAUTHORIZED (401)`: Token inválido o expirado
+- `NOT_FOUND (404)`: El item no existe en el catálogo
+- `BAD_REQUEST (400)`: 
+  - "¡Ya tienes este avatar!" (solo para avatares)
+  - "Te faltan X monedas" (sin fondos suficientes)
+
+**Casos de Uso:**
+- Sistema de personalización de avatares
+- Tienda de consumibles (energía, power-ups)
+- Economía del juego (ganar monedas jugando, gastarlas en la tienda)
+- Monetización indirecta (ganar monedas gratis o comprarlas)
+- Progresión y recompensas
+
+**Nota sobre Monedas:**
+- Los usuarios empiezan con **100 monedas** de regalo (definido en el schema)
+- Se pueden ganar monedas respondiendo preguntas (futuro)
+- Las monedas se descuentan automáticamente al comprar
+
+---
+
+##  Learning Router
+
+El Learning Router gestiona el sistema de práctica de preguntas con recompensas (XP y monedas). Permite obtener preguntas aleatorias y enviar respuestas para ganar puntos.
+
+### learning.getRandomQuestion (Query) 🔒 Protected
+Obtiene una pregunta aleatoria de un tema específico para practicar.
+
+**Input:**
+```typescript
+{
+  topicId: string;  // UUID del tema
+}
+```
+
+**Output:**
+```typescript
+{
+  id: string;          // UUID de la pregunta
+  statement: string;   // Enunciado de la pregunta
+  options: Array<{     // Opciones de respuesta (SIN indicar cuál es correcta)
+    text: string;
+    isCorrect: boolean;
+  }>;
+  imageUrl: string | null;     // URL de imagen opcional
+  difficulty: "EASY" | "MEDIUM" | "HARD";
+}
+```
+
 
 ### Usuario (User)
 ```typescript
@@ -951,6 +1192,10 @@ XP Total: 1250
   totalXp: number;            // Puntaje total (usado en ranking)
   streak: number;             // Días consecutivos jugando
   lastInteraction: Date;      // Última vez que el usuario jugó (para calcular streak)
+  
+  // Economía y Tienda
+  coins: number;              // Monedas virtuales (inicia con 100)
+  inventory: string[];        // IDs de items comprados (avatares, etc.)
   
   // Premium
   isPremium: boolean;

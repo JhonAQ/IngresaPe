@@ -17,7 +17,6 @@ export class ProfileRouter {
   ) {}
 
   public router = this.trpc.router({
-    // 1. OBTENER MI PERFIL
     getMe: this.trpc.protectedProcedure.query(async ({ ctx }) => {
       const user = await this.prisma.user.findUnique({
         where: { id: ctx.user.userId },
@@ -38,8 +37,8 @@ export class ProfileRouter {
             },
           },
           energy: true,
-          coins: true,      // 👈 Agregado: para que el front sepa cuánto dinero tiene
-          inventory: true,  // 👈 Agregado: para saber qué items tiene
+          coins: true,
+          inventory: true,
           lastRefill: true,
           totalXp: true,
           streak: true,
@@ -53,25 +52,18 @@ export class ProfileRouter {
       return user;
     }),
 
-    // 2. ACTUALIZAR DATOS (Con protección de Inventario)
     update: this.trpc.protectedProcedure
       .input(updateProfileSchema)
       .mutation(async ({ ctx, input }) => {
-        
-        // --- 🛡️ INICIO LÓGICA ANTI-TRAMPAS ---
         if (input.image) {
-          // Si la imagen NO empieza con http/https, asumimos que es un ID de la tienda (ej: 'avatar_male_1')
-          // Si es una URL (ej: google user content), la dejamos pasar.
           const isShopItem = !input.image.startsWith('http');
 
           if (isShopItem) {
-            // Buscamos si el usuario tiene ese item en su inventario
             const user = await this.prisma.user.findUnique({
               where: { id: ctx.user.userId },
               select: { inventory: true },
             });
 
-            // Si el usuario no existe O el item no está en su array de inventario
             if (!user || !user.inventory.includes(input.image)) {
               throw new TRPCError({ 
                 code: 'FORBIDDEN', 
