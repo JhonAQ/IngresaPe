@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { TrpcService } from '../trpc.service';
 import { PrismaService } from '../prisma.service';
 import { TRPCError } from '@trpc/server';
-import { Role } from '@prisma/client'; // 👈 IMPORTANTE: Importar el Enum generado
+import { Role } from '@prisma/client';
 
 // Esquema para crear pregunta
 const createQuestionSchema = z.object({

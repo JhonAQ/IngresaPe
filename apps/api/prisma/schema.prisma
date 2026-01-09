@@ -73,6 +73,8 @@ model User {
 
   // --- Gamificación (Stats rápidas para el Ranking) ---
   energy        Int       @default(25)     // Moneda de juego (Max 25)
+  coins           Int       @default(100)        // Monedas (Empieza con 100 de regalo)
+  inventory       String[]  @default(["default"]) // Lista de IDs de items comprados
   lastRefill    DateTime  @default(now())  // Hora de última recarga automática
   totalXp       Int       @default(0)      // Puntaje total (Leaderboard)
   streak        Int       @default(0)      // Racha de días consecutivos
