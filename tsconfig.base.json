@@ -15,12 +15,14 @@
     "noUnusedLocals": true,
     "skipLibCheck": true,
     "strict": true,
+    "useDefineForClassFields": false,
     "target": "es2022",
-    "customConditions": ["@org/source"]
-  },
-  "paths": {
-  "@ingresa-pe/domain": ["libs/domain/src/index.ts"],
-  "@ingresa-pe/ui": ["libs/ui/src/index.ts"],
-  "@ingresa-pe/api": ["apps/api/src/index.ts"] 
+    "baseUrl": ".",
+    "customConditions": ["@org/source"],
+    "paths": {
+      "@ingresa-pe/domain": ["libs/domain/src/index.ts"],
+      "@ingresa-pe/ui": ["libs/ui/src/index.ts"],
+      "@ingresa-pe/api": ["apps/api/src/index.ts"]
+    }
   }
 }

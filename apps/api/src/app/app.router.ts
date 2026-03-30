@@ -31,6 +31,16 @@ export class AppRouter {
     // 1. Health Check (Para saber si el server vive)
     healthCheck: this.trpc.publicProcedure.query(() => 'OK'),
 
+    // Ruta de prueba "hello" solicitada por el cliente
+    hello: this.trpc.router({
+      getQuestions: this.trpc.publicProcedure.query(() => {
+        return {
+          message: '¡Petición exitosa desde el Backend (tRPC)!',
+          timestamp: new Date().toISOString(),
+        };
+      }),
+    }),
+
     // 2. Módulos del Sistema (Namespaced)
     auth: this.auth.router,       // Acceso: client.auth.login
     content: this.content.router, // Acceso: client.content.getQuestions

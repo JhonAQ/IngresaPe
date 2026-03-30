@@ -2,7 +2,8 @@
 import { trpc } from '../utils/trpc';
 
 export default function Index() {
-  const hello = trpc.hello.useQuery({ name: 'Ingresa.pe Team' });
+const hello = trpc.hello.getQuestions.useQuery();
+
 
   return (
     <div className="wrapper p-10">
