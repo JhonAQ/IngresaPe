@@ -98,13 +98,13 @@ export class AuthRouter {
         const user = await this.prisma.user.findUnique({
           where: { id: ctx.user.userId },
           select: { 
-             id: true, 
-             name: true, 
-             email: true, 
-             role: true, 
-             image: true,
-             energy: true, 
-             totalXp: true 
+            id: true, 
+            name: true, 
+            email: true, 
+            role: true, 
+            image: true,
+            energy: true, 
+            totalXp: true 
           }
         });
         

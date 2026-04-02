@@ -5,6 +5,8 @@ import { AppRouter } from './app/app.router';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { createContext } from './app/trpc.context';
 import { json, urlencoded, Request, Response, NextFunction } from 'express'; 
+import * as dotenv from 'dotenv';
+dotenv.config({ override: true }); // Ignora las variables globales del sistema si cruzan
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
