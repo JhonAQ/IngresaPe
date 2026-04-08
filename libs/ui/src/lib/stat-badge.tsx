@@ -12,36 +12,30 @@ export interface StatBadgeProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const typeColorClasses: Record<StatBadgeType, string> = {
-  streak: 'text-warning-500 fill-warning-500', // Naranja/Fuego = Warning
-  gem: 'text-primary-500 fill-primary-500', // Gemas azules = Primary
-  heart: 'text-error-500 fill-error-500', // Vidas rojas = Error
-  xp: 'text-success-500 fill-success-500', // XP Verde = Success (o podría ser warning también según prefieras)
+  streak: 'text-warning-500', // Naranja/Fuego
+  gem: 'text-[#1CB0F6]', // Cyan brillante de Duolingo (Info)
+  heart: 'text-error-500', // Vidas rojas
+  xp: 'text-success-500', // XP Verde
 };
 
 export const StatBadge = forwardRef<HTMLDivElement, StatBadgeProps>(
   ({ type, value, icon, className = '', ...props }, ref) => {
-    // Convertimos números largos a un formato legible si se requiere (ej. 1500 -> 1.5k)
-    // Para escalar a Duolingo style si los números crecen mucho
+    // Convertimos números largos a un formato legible
     const displayValue =
       value >= 10000 ? `${(value / 1000).toFixed(1)}k` : value;
 
     return (
       <div
         ref={ref}
-        className={`flex items-center gap-1.5 font-bold ${className}`}
+        className={`flex items-center justify-center gap-[6px] px-2.5 py-1.5 rounded-2xl hover:bg-surface-100 transition-colors cursor-pointer select-none active:scale-95 ${className}`}
         {...props}
       >
-        {/* Envolvemos el ícono forzando a que herede el color por la clase combinada (fill y text) */}
-        <div
-          className={`flex items-center justify-center ${typeColorClasses[type]}`}
-        >
+        <div className="flex items-center justify-center shrink-0 w-7 h-7">
           {icon}
         </div>
-        {/* El texto según tus reglas usa color negro de superficie o adopta el color semántico (usaremos el semántico como Duolingo) */}
         <span
-          className={`text-lg font-black tracking-tight ${
-            typeColorClasses[type].split(' ')[0]
-          }`}
+          className={`text-[16px] font-extrabold tracking-tight ${typeColorClasses[type]}`}
+          style={{ letterSpacing: '-0.02em', paddingRight: '2px' }}
         >
           {displayValue}
         </span>
