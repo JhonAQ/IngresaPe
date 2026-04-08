@@ -11,11 +11,13 @@ export interface Card3DProps extends HTMLAttributes<HTMLDivElement> {
 const variantClasses: Record<Card3DVariant, string> = {
   // Surface: Tarjeta blanca clásica flotante para contenido (listas interactuables, formularios)
   surface:
-    'bg-white border-2 border-surface-100 shadow-surface-200 text-surface-800',
+    'bg-white border-2 border-surface-200 border-b-[6px] text-surface-800 active:border-b-2 active:translate-y-[4px]',
   // Primary: Tarjeta de marca (ej. resumen de lección)
-  primary: 'bg-primary-500 text-white shadow-primary-600 border-none',
+  primary:
+    'bg-primary-500 text-white border-primary-600 border-x-2 border-t-2 border-b-[6px] active:border-b-2 active:translate-y-[4px]',
   // Success: Tarjeta de logro/felicitación
-  success: 'bg-success-500 text-white shadow-success-600 border-none',
+  success:
+    'bg-success-500 text-white border-success-600 border-x-2 border-t-2 border-b-[6px] active:border-b-2 active:translate-y-[4px]',
 };
 
 const paddingClasses: Record<Card3DPadding, string> = {
@@ -30,9 +32,9 @@ export const Card3D = forwardRef<HTMLDivElement, Card3DProps>(
     { variant = 'surface', padding = 'md', className = '', children, ...props },
     ref
   ) => {
-    // Base de la tarjeta: Radio grande (24px) y Sombra Larga (6px) para dar sensación de bloque estático pero profundo
+    // Base de la tarjeta: Radio grande (24px) y sin box-shadows CSS, dependemos de border-bottom
     const baseClasses =
-      'rounded-card shadow-3d-lg relative overflow-hidden transition-all';
+      'rounded-card relative overflow-hidden transition-all duration-100 ease-out cursor-pointer';
 
     const classes = [
       baseClasses,

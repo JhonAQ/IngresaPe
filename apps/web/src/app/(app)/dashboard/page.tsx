@@ -23,7 +23,7 @@ export default function DashboardPage() {
 
   return (
     <div
-      className="w-full max-w-md mx-auto relative bg-white flex flex-col shadow-2xl overflow-hidden sm:border-x-2 border-slate-800/30 font-sans"
+      className="w-full max-w-md mx-auto relative flex flex-col overflow-hidden font-sans"
       style={{ height: '100dvh' }}
     >
       {/* Top Section */}
@@ -33,7 +33,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto p-5 pb-32 hide-scrollbar relative bg-app-canvas">
+      <main className="flex-1 overflow-y-auto p-5 pb-32 hide-scrollbar relative bg-slate-50" style={{ backgroundImage: "linear-gradient(to right, #cbd5e1 1px, transparent 1px), linear-gradient(to bottom, #cbd5e1 1px, transparent 1px)", backgroundSize: "24px 24px" }}>
         <TopicList temario={data.temario} onOpenSummary={setResumenActivo} />
       </main>
 

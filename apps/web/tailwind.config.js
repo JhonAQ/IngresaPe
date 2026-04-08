@@ -13,18 +13,18 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Brand / Primary (Azul vibrante/Cyan)
+        // Brand / Primary (Rojo Granate Vibrante UNSA)
         primary: {
-          50: '#e0f6ff',
-          100: '#b8ebff',
-          200: '#8adfff',
-          300: '#5cd3ff',
-          400: '#2ec8ff',
-          500: '#1cb0f6', // Base
-          600: '#1899d6', // Shadow
-          700: '#1481b5',
-          800: '#0f6891',
-          900: '#0c5275',
+          50: '#ffe4e8',
+          100: '#ffb3c0',
+          200: '#ff8097',
+          300: '#ff4d6f',
+          400: '#ff1a46',
+          500: '#bd1720', // Base Vibrant Garnet (UNSA)
+          600: '#911019', // Shadow Depth
+          700: '#670a11',
+          800: '#3e0609',
+          900: '#160203',
         },
         // Secondary / Accent (Morado/Violeta para gemas/destacados)
         secondary: {

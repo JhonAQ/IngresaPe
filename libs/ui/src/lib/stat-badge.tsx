@@ -27,15 +27,15 @@ export const StatBadge = forwardRef<HTMLDivElement, StatBadgeProps>(
     return (
       <div
         ref={ref}
-        className={`flex items-center justify-center gap-[6px] px-2.5 py-1.5 rounded-2xl hover:bg-surface-100 transition-colors cursor-pointer select-none active:scale-95 ${className}`}
+        className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.1)] dark:shadow-[0_2px_8px_-4px_rgba(0,0,0,0.5)] hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.12)] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer select-none active:scale-95 active:translate-y-0 active:shadow-sm ${className}`}
         {...props}
       >
-        <div className="flex items-center justify-center shrink-0 w-7 h-7">
+        <div className="flex items-center justify-center shrink-0 w-6 h-6">
           {icon}
         </div>
         <span
-          className={`text-[16px] font-extrabold tracking-tight ${typeColorClasses[type]}`}
-          style={{ letterSpacing: '-0.02em', paddingRight: '2px' }}
+          className={`text-[15px] font-extrabold tracking-tight ${typeColorClasses[type]}`}
+          style={{ letterSpacing: '-0.02em' }}
         >
           {displayValue}
         </span>

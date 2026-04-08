@@ -9,7 +9,7 @@ export const temarioMock: TemaData[] = [
     tema: 1,
     titulo: "La Célula Eucariota",
     descripcion: "Organelas y funciones básicas",
-    variant: "success",
+    variant: "primary",
     actividades: [
       { id: 101, name: "Teoría", state: "completed", icon: BookOpen },
       { id: 102, name: "Modo Swipe", state: "completed", icon: Smartphone },
