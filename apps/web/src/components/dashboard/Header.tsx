@@ -12,9 +12,9 @@ export function DashboardHeader({ stats }: HeaderProps) {
       <div className="max-w-xl mx-auto flex items-center justify-between">
         <h1 className="font-bold text-xl text-primary-950 tracking-tight">Biología</h1>
         <div className="flex bg-surface-50 p-1.5 rounded-full gap-2 border-2 border-surface-border">
-          <StatBadge icon={Flame} value={stats.racha} variant="warning" />
-          <StatBadge icon={Zap} value={stats.xp} variant="primary" />
-          <StatBadge icon={Hexagon} value={stats.gemas} variant="info" />
+          <StatBadge icon={<Flame size={22} className="fill-current" />} value={stats.racha} type="streak" />
+          <StatBadge icon={<Zap size={22} className="fill-current" />} value={stats.xp} type="xp" />
+          <StatBadge icon={<Hexagon size={22} className="fill-current" />} value={stats.gemas} type="gem" />
         </div>
       </div>
     </header>
