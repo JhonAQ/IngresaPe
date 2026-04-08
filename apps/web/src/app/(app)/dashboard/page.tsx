@@ -33,11 +33,12 @@ export default function DashboardPage() {
       </div>
 
       {/* Main Content Area */}
-      <main 
+      <main
         className="flex-1 overflow-y-auto p-5 pb-32 hide-scrollbar bg-slate-50"
-        style={{ 
-          backgroundImage: "linear-gradient(to right, #e2e8f0 2px, transparent 2px), linear-gradient(to bottom, #e2e8f0 2px, transparent 2px)", 
-          backgroundSize: "40px 40px" 
+        style={{
+          backgroundImage:
+            'linear-gradient(to right, #e2e8f0 2px, transparent 2px), linear-gradient(to bottom, #e2e8f0 2px, transparent 2px)',
+          backgroundSize: '40px 40px',
         }}
       >
         <TopicList temario={data.temario} onOpenSummary={setResumenActivo} />
