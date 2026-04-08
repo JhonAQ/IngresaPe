@@ -22,6 +22,13 @@ export interface ResumenData {
   tipExamen: string;
 }
 
+export interface UserStats {
+  racha: number;
+  vidas: number;
+  gemas: number;
+  xp: number;
+}
+
 export interface TemaData {
   id: number;
   tema: number;
