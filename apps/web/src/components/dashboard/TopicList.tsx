@@ -19,7 +19,7 @@ export function TopicList({ temario, onOpenSummary }: TopicListProps) {
       {temario.map((unidad) => (
         <div key={unidad.id} className="relative">
           <div
-            className={`p-5 rounded-3xl mb-14 text-white ${unidad.color} border-b-4 ${unidad.shadow} shadow-lg relative overflow-hidden`}
+            className={`p-5 rounded-3xl mb-14 text-white ${unidad.color} border-b-[6px] ${unidad.shadow} shadow-lg relative overflow-hidden`}
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
             <div className="flex justify-between items-start relative z-10">
@@ -33,7 +33,7 @@ export function TopicList({ temario, onOpenSummary }: TopicListProps) {
               </div>
               <button
                 onClick={() => onOpenSummary(unidad)}
-                className="bg-white/20 hover:bg-white/30 border-2 border-white/30 px-3 py-2 rounded-xl flex flex-col items-center gap-1 transition-colors active:scale-95"
+                className="bg-white/20 hover:bg-white/30 border-2 border-white/30 border-b-[4px] active:border-b-2 active:translate-y-[2px] px-3 py-2 rounded-xl flex flex-col items-center gap-1 transition-all"
               >
                 <FileText size={16} />
                 <span className="text-[8px] font-black uppercase tracking-wider">
@@ -53,7 +53,7 @@ export function TopicList({ temario, onOpenSummary }: TopicListProps) {
               <path
                 d="M 150 50 C 150 100, 100 100, 100 150 C 100 200, 170 200, 170 250 C 170 300, 150 300, 150 350"
                 fill="none"
-                stroke="#E2E8F0"
+                stroke="#cbd5e1"
                 strokeWidth="22"
                 strokeLinecap="round"
                 transform="translate(0, 4)"
@@ -61,7 +61,7 @@ export function TopicList({ temario, onOpenSummary }: TopicListProps) {
               <path
                 d="M 150 50 C 150 100, 100 100, 100 150 C 100 200, 170 200, 170 250 C 170 300, 150 300, 150 350"
                 fill="none"
-                stroke="#F1F5F9"
+                stroke="#f1f5f9"
                 strokeWidth="22"
                 strokeLinecap="round"
               />
@@ -74,26 +74,16 @@ export function TopicList({ temario, onOpenSummary }: TopicListProps) {
               const pos = pathPositions[idx];
               const Icon = act.icon;
 
-              let btnStyle = { boxShadow: '0 5px 0 0 #D1D5DB' };
-              let btnBase = 'bg-[#F3F4F6]';
+              let btnBase = 'bg-[#f1f5f9] border-[#cbd5e1]';
               let iconColor = 'text-[#9CA3AF]';
 
               if (isCompleted) {
-                btnBase = unidad.color;
-                btnStyle = {
-                  boxShadow: `0 5px 0 0 ${unidad.shadow.replace(
-                    'border-',
-                    ''
-                  )}`,
-                };
+                btnBase = `${unidad.color} ${unidad.shadow}`;
                 iconColor = 'text-white';
               } else if (isCurrent) {
-                btnBase = act.color || 'bg-[#F97316]';
-                btnStyle = {
-                  boxShadow: `0 5px 0 0 ${
-                    act.border ? act.border.replace('border-', '') : '#C2410C'
-                  }`,
-                };
+                btnBase = `${act.color || 'bg-[#F97316]'} ${
+                  act.border || 'border-[#C2410C]'
+                }`;
                 iconColor = 'text-white';
               }
 
@@ -111,8 +101,7 @@ export function TopicList({ temario, onOpenSummary }: TopicListProps) {
                       </>
                     )}
                     <button
-                      className={`relative z-10 w-[68px] h-[68px] rounded-full flex items-center justify-center transition-all duration-100 active:translate-y-[4px] active:shadow-none ${btnBase}`}
-                      style={btnStyle}
+                      className={`relative z-10 w-[68px] h-[68px] rounded-full flex items-center justify-center transition-all duration-100 border-b-[6px] active:border-b-0 active:translate-y-[6px] active:shadow-none ${btnBase}`}
                       disabled={isLocked}
                     >
                       {isCompleted ? (
