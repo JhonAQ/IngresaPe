@@ -1,6 +1,5 @@
 import { UserStats } from '../../types/dashboard';
 import { StatBadge } from '@ingresa-pe/ui';
-import { ChevronDown } from 'lucide-react';
 
 // Flat SVG Icons que lucen nativos de juegos (Estilo Flat / Duolingo)
 const FlameIcon = () => (
@@ -34,13 +33,15 @@ const XPIcon = () => (
     <rect x="2" y="4" width="20" height="13" rx="4" fill="#58CC02" />
     <text
       x="12"
-      y="13"
+      y="10.5"
       fontFamily="Arial, sans-serif"
-      fontSize="10"
+      fontSize="8.5"
       fontWeight="900"
       fontStyle="italic"
       fill="#FFFFFF"
       textAnchor="middle"
+      dominantBaseline="central"
+      alignmentBaseline="central"
       letterSpacing="0.5"
     >
       XP
@@ -74,7 +75,7 @@ export function DashboardHeader({ stats }: HeaderProps) {
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b-2 border-surface-200 px-4 py-2">
       <div className="max-w-xl mx-auto flex items-center justify-between">
         {/* Selector de Universidad (Pill con Logo y Texto) */}
-        <button className="flex items-center gap-2 px-3 py-1.5 rounded-2xl border-2 border-surface-200 bg-white hover:bg-surface-50 shadow-sm transition-all cursor-pointer select-none active:translate-y-[2px] active:shadow-none group shrink-0">
+        <div className="flex items-center gap-2 py-1.5 shrink-0 select-none">
           {/* Contenedor y dimensiones de imagen bloqueados por hardware (inline styles de React) */}
           <div
             className="flex flex-col items-center justify-center shrink-0 rounded-full overflow-hidden"
@@ -104,11 +105,7 @@ export function DashboardHeader({ stats }: HeaderProps) {
           <span className="font-extrabold text-surface-600 tracking-tight text-[16px] uppercase pt-[2px]">
             UNSA
           </span>
-          <ChevronDown
-            strokeWidth={3.5}
-            className="text-surface-400 w-4 h-4 shrink-0 transition-colors group-hover:text-surface-600 ml-0.5"
-          />
-        </button>
+        </div>
 
         {/* Panel derecho de estadísticas */}
         <div className="flex items-center gap-1">

@@ -27,9 +27,11 @@ export default function DashboardPage() {
       style={{ height: '100dvh' }}
     >
       {/* Top Section */}
-      <div className="bg-white border-b-2 border-slate-200 shrink-0 z-40 relative flex flex-col">
+      <div className="bg-white border-b-2 border-slate-200 shrink-0 z-40 relative flex flex-col shadow-sm pt-2">
         <DashboardHeader stats={data.stats} />
-        <CourseProgress />
+        <div className="px-4 pb-4 mt-2">
+          <CourseProgress />
+        </div>
       </div>
 
       {/* Main Content Area */}
