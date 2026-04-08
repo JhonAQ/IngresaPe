@@ -1,12 +1,12 @@
 import { LucideIcon } from 'lucide-react';
+import type { Card3DVariant, MapNodeColor } from '@ingresa-pe/ui';
 
 export interface Actividad {
   id: number;
   name: string;
   state: "completed" | "current" | "locked";
   icon: LucideIcon;
-  color?: string;
-  border?: string;
+  color?: MapNodeColor;
 }
 
 export interface DetalleResumen {
@@ -34,8 +34,7 @@ export interface TemaData {
   tema: number;
   titulo: string;
   descripcion: string;
-  color: string;
-  shadow: string;
+  variant: Card3DVariant;
   actividades: Actividad[];
   resumenData: ResumenData;
 }
