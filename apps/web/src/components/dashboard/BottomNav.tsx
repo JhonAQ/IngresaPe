@@ -1,4 +1,4 @@
-import { Home, BookOpen, FileText, Swords, User } from "lucide-react";
+import { Home, BookOpen, FileText, Swords, User } from 'lucide-react';
 
 export function BottomNav() {
   return (

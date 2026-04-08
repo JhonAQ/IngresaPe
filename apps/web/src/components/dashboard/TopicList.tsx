@@ -1,5 +1,5 @@
-import { FileText, Check, Lock } from "lucide-react";
-import { TemaData } from "../../types/dashboard";
+import { FileText, Check, Lock } from 'lucide-react';
+import { TemaData } from '../../types/dashboard';
 
 interface TopicListProps {
   temario: TemaData[];
@@ -68,30 +68,33 @@ export function TopicList({ temario, onOpenSummary }: TopicListProps) {
             </svg>
 
             {unidad.actividades.map((act, idx) => {
-              const isCompleted = act.state === "completed";
-              const isCurrent = act.state === "current";
-              const isLocked = act.state === "locked";
+              const isCompleted = act.state === 'completed';
+              const isCurrent = act.state === 'current';
+              const isLocked = act.state === 'locked';
               const pos = pathPositions[idx];
               const Icon = act.icon;
 
-              let btnStyle = { boxShadow: "0 5px 0 0 #D1D5DB" };
-              let btnBase = "bg-[#F3F4F6]";
-              let iconColor = "text-[#9CA3AF]";
+              let btnStyle = { boxShadow: '0 5px 0 0 #D1D5DB' };
+              let btnBase = 'bg-[#F3F4F6]';
+              let iconColor = 'text-[#9CA3AF]';
 
               if (isCompleted) {
                 btnBase = unidad.color;
                 btnStyle = {
-                  boxShadow: `0 5px 0 0 ${unidad.shadow.replace("border-", "")}`,
+                  boxShadow: `0 5px 0 0 ${unidad.shadow.replace(
+                    'border-',
+                    ''
+                  )}`,
                 };
-                iconColor = "text-white";
+                iconColor = 'text-white';
               } else if (isCurrent) {
-                btnBase = act.color || "bg-[#F97316]";
+                btnBase = act.color || 'bg-[#F97316]';
                 btnStyle = {
                   boxShadow: `0 5px 0 0 ${
-                    act.border ? act.border.replace("border-", "") : "#C2410C"
+                    act.border ? act.border.replace('border-', '') : '#C2410C'
                   }`,
                 };
-                iconColor = "text-white";
+                iconColor = 'text-white';
               }
 
               return (
@@ -113,11 +116,23 @@ export function TopicList({ temario, onOpenSummary }: TopicListProps) {
                       disabled={isLocked}
                     >
                       {isCompleted ? (
-                        <Check size={36} className="text-white" strokeWidth={3.5} />
+                        <Check
+                          size={36}
+                          className="text-white"
+                          strokeWidth={3.5}
+                        />
                       ) : isLocked ? (
-                        <Lock size={26} className={iconColor} strokeWidth={2.5} />
+                        <Lock
+                          size={26}
+                          className={iconColor}
+                          strokeWidth={2.5}
+                        />
                       ) : (
-                        <Icon size={32} className={iconColor} strokeWidth={2.5} />
+                        <Icon
+                          size={32}
+                          className={iconColor}
+                          strokeWidth={2.5}
+                        />
                       )}
                     </button>
                   </div>

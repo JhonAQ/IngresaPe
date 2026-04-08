@@ -1,5 +1,11 @@
-import { ChevronLeft, X, CheckCircle2, Lightbulb, Image as ImageIcon } from "lucide-react";
-import { TemaData } from "../../types/dashboard";
+import {
+  ChevronLeft,
+  X,
+  CheckCircle2,
+  Lightbulb,
+  Image as ImageIcon,
+} from 'lucide-react';
+import { TemaData } from '../../types/dashboard';
 
 interface SummaryModalProps {
   resumenActivo: TemaData | null;
@@ -10,9 +16,7 @@ export function SummaryModal({ resumenActivo, onClose }: SummaryModalProps) {
   if (!resumenActivo) return null;
 
   return (
-    <div
-      className="absolute inset-0 bg-white z-[100] flex flex-col transition-transform duration-300 ease-in-out translate-y-0"
-    >
+    <div className="absolute inset-0 bg-white z-[100] flex flex-col transition-transform duration-300 ease-in-out translate-y-0">
       <div className="px-4 pt-6 pb-4 border-b-2 border-slate-200 flex items-center justify-between sticky top-0 bg-white z-20 shrink-0">
         <button
           onClick={onClose}
@@ -46,8 +50,14 @@ export function SummaryModal({ resumenActivo, onClose }: SummaryModalProps) {
 
           {resumenActivo.resumenData.imagenExplicativa && (
             <div className="w-full h-48 bg-slate-200 rounded-2xl border-2 border-slate-300 border-dashed flex flex-col items-center justify-center text-slate-400">
-              <ImageIcon size={40} strokeWidth={1.5} className="mb-2 opacity-50" />
-              <span className="text-xs font-bold">[Diagrama de {resumenActivo.titulo}]</span>
+              <ImageIcon
+                size={40}
+                strokeWidth={1.5}
+                className="mb-2 opacity-50"
+              />
+              <span className="text-xs font-bold">
+                [Diagrama de {resumenActivo.titulo}]
+              </span>
             </div>
           )}
 
@@ -96,7 +106,9 @@ export function SummaryModal({ resumenActivo, onClose }: SummaryModalProps) {
               <Lightbulb size={24} strokeWidth={2.5} />
             </div>
             <div>
-              <h4 className="font-black text-amber-800 text-sm mb-0.5">Tip de Examen</h4>
+              <h4 className="font-black text-amber-800 text-sm mb-0.5">
+                Tip de Examen
+              </h4>
               <p className="text-amber-700 text-sm font-medium leading-snug">
                 {resumenActivo.resumenData.tipExamen}
               </p>

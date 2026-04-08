@@ -1,4 +1,4 @@
-import { ChevronLeft, Flame, Hexagon } from "lucide-react";
+import { ChevronLeft, Flame, Hexagon } from 'lucide-react';
 
 interface HeaderProps {
   racha: number;

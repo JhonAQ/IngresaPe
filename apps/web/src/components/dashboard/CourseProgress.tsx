@@ -1,4 +1,4 @@
-import { BookOpen, ChevronDown } from "lucide-react";
+import { BookOpen, ChevronDown } from 'lucide-react';
 
 export function CourseProgress() {
   return (
