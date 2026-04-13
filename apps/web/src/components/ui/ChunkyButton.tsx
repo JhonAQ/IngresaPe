@@ -16,7 +16,7 @@ interface ChunkyButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement
 
 const VARIANTS = {
   primary:
-    "bg-[#ff4b4b] border-[#cc3636] text-white active:bg-[#ff4b4b]/90 shadow-red-500/20",
+    "bg-error-500 border-[#cc3636] text-white active:bg-error-500/90 shadow-red-500/20",
   secondary:
     "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 active:bg-slate-100",
   danger: "bg-rose-500 border-rose-700 text-white active:bg-rose-600",
