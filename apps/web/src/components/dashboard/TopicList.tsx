@@ -2,6 +2,7 @@ import { FileText, NotebookText, Check, Lock } from 'lucide-react';
 import { TemaData } from '../../types/dashboard';
 import { Card3D, Button3D, MapNode } from '@ingresa-pe/ui';
 import { TopicHeader } from './TopicHeader';
+import { TopicDivider } from './TopicDivider';
 
 interface TopicListProps {
   temario: TemaData[];
@@ -25,7 +26,7 @@ const topicVariantStyles: Record<string, string> = {
 export function TopicList({ temario, onOpenSummary }: TopicListProps) {
   return (
     <div className="space-y-12 py-6 relative z-10">
-      {temario.map((unidad) => {
+      {temario.map((unidad, index) => {
         const themeClass =
           topicVariantStyles[unidad.variant || 'primary'] ||
           topicVariantStyles.primary;
@@ -36,6 +37,11 @@ export function TopicList({ temario, onOpenSummary }: TopicListProps) {
             key={unidad.id}
             className="relative z-20 flex flex-col items-center"
           >
+            {/* Si no es el primer tema, mostramos la línea divisoria usando su descripción u otro texto */}
+            {index > 0 && (
+              <TopicDivider label={unidad.descripcion || 'Siguiente tema'} />
+            )}
+
             <div className="w-full mb-4 flex justify-center">
               <TopicHeader
                 subtitle={`TEMA ${unidad.tema}`}
