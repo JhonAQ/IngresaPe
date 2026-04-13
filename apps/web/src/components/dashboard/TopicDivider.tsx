@@ -9,9 +9,9 @@ interface TopicDividerProps {
 
 export const TopicDivider: React.FC<TopicDividerProps> = ({ label }) => {
   return (
-    <div className="flex w-full max-w-lg items-center justify-center py-6 px-4">
+    <div className="flex w-full h-[100px] max-w-lg items-center justify-center pb-4 px-4">
       {/* Línea izquierda */}
-      <div className="h-[2px] w-[80px] sm:w-[120px] rounded-full bg-slate-200 dark:bg-slate-700/50"></div>
+      <div className="h-[2px] w-[80px] rounded-full bg-slate-700/50"></div>
 
       {/* Texto */}
       <span className="mx-4 text-center text-[15px] font-bold text-slate-400 dark:text-slate-500">
@@ -19,7 +19,7 @@ export const TopicDivider: React.FC<TopicDividerProps> = ({ label }) => {
       </span>
 
       {/* Línea derecha */}
-      <div className="h-[2px] w-[80px] sm:w-[120px] rounded-full bg-slate-200 dark:bg-slate-700/50"></div>
+      <div className="h-[4px] w-[80px] rounded-full bg-slate-700/30"></div>
     </div>
   );
 };
