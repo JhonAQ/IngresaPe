@@ -3,14 +3,8 @@ const { join } = require('path');
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    join(__dirname, 'src/**/*!(*.stories|*.spec).{ts,tsx,html}').replace(
-      /\\/g,
-      '/'
-    ),
-    join(
-      __dirname,
-      '../../libs/**/src/**/*!(*.stories|*.spec).{ts,tsx,html}'
-    ).replace(/\\/g, '/'),
+    join(__dirname, 'src/**/*.{js,ts,jsx,tsx,html}').replace(/\\/g, '/'),
+    join(__dirname, '../../libs/**/src/**/*.{js,ts,jsx,tsx,html}').replace(/\\/g, '/'),
   ],
   theme: {
     extend: {
