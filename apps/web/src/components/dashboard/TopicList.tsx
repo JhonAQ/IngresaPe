@@ -36,7 +36,7 @@ export function TopicList({ temario, onOpenSummary }: TopicListProps) {
             key={unidad.id}
             className="relative z-20 flex flex-col items-center"
           >
-            <div className="w-full px-4 sm:px-6 mb-4 flex justify-center">
+            <div className="w-full mb-4 flex justify-center">
               <TopicHeader
                 subtitle={`TEMA ${unidad.tema}`}
                 title={unidad.titulo}
