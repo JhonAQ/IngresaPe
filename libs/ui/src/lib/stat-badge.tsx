@@ -49,7 +49,9 @@ export const StatBadge = forwardRef<HTMLDivElement, StatBadgeProps>(
         </div>
         <span
           className={`text-[15px] font-extrabold tracking-tight ${
-            type === 'streak' && value === 0 ? 'text-slate-400' : typeColorClasses[type]
+            type === 'streak' && value === 0
+              ? 'text-slate-400'
+              : typeColorClasses[type]
           }`}
           style={{ letterSpacing: '-0.02em' }}
         >
