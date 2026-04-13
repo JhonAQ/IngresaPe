@@ -1,4 +1,5 @@
 import { HTMLAttributes, forwardRef, ReactNode } from 'react';
+import { FlameIcon } from './icons/FlameIcon';
 
 export type StatBadgeType = 'streak' | 'gem' | 'heart' | 'xp';
 
@@ -8,7 +9,7 @@ export interface StatBadgeProps extends HTMLAttributes<HTMLDivElement> {
   /** El valor numérico a mostrar (ej. 450, 12, 5) */
   value: number;
   /** Permite pasar un ícono personalizado (ej. un componente Lucide o un SVG propio) */
-  icon: ReactNode;
+  icon?: ReactNode;
 }
 
 const typeColorClasses: Record<StatBadgeType, string> = {
@@ -24,6 +25,19 @@ export const StatBadge = forwardRef<HTMLDivElement, StatBadgeProps>(
     const displayValue =
       value >= 10000 ? `${(value / 1000).toFixed(1)}k` : value;
 
+    // Lógica para renderizar un icono por defecto basado en el `type` si no se envía uno por props.
+    // Si la racha es > 0, le pasamos active=true a la flama, ¡si es 0 se verá gris/apagada!
+    const renderIcon = () => {
+      if (icon) return icon;
+
+      switch (type) {
+        case 'streak':
+          return <FlameIcon active={value > 0} />;
+        default:
+          return null; // A futuro puedes agregar GemIcon, HeartIcon, etc. aquí
+      }
+    };
+
     return (
       <div
         ref={ref}
@@ -31,10 +45,12 @@ export const StatBadge = forwardRef<HTMLDivElement, StatBadgeProps>(
         {...props}
       >
         <div className="flex items-center justify-center shrink-0 w-6 h-6">
-          {icon}
+          {renderIcon()}
         </div>
         <span
-          className={`text-[15px] font-extrabold tracking-tight ${typeColorClasses[type]}`}
+          className={`text-[15px] font-extrabold tracking-tight ${
+            type === 'streak' && value === 0 ? 'text-slate-400' : typeColorClasses[type]
+          }`}
           style={{ letterSpacing: '-0.02em' }}
         >
           {displayValue}

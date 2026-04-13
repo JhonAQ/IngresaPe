@@ -2,25 +2,6 @@ import { UserStats } from '../../types/dashboard';
 import { StatBadge } from '@ingresa-pe/ui';
 
 // Flat SVG Icons que lucen nativos de juegos (Estilo Flat / Duolingo)
-const FlameIcon = () => (
-  <svg
-    width="26"
-    height="26"
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M12 2C12 2 5 7 5 14C5 18 8 22 12 22C16 22 19 18 19 14C19 9 14 5 14 5C14 5 15 9 12 11C12 11 11 5 12 2Z"
-      fill="#FF9600"
-    />
-    <path
-      d="M12 11C12 11 10 13 10 15C10 16.6569 11.3431 18 13 18C14.6569 18 16 16.6569 16 15C16 12 12 11 12 11Z"
-      fill="#FFC800"
-    />
-  </svg>
-);
-
 const XPIcon = () => (
   <svg
     width="26"
@@ -109,7 +90,7 @@ export function DashboardHeader({ stats }: HeaderProps) {
 
         {/* Panel derecho de estadísticas */}
         <div className="flex items-center gap-1">
-          <StatBadge icon={<FlameIcon />} value={stats.racha} type="streak" />
+          <StatBadge value={stats.racha} type="streak" />
           <StatBadge icon={<XPIcon />} value={stats.xp} type="xp" />
           <StatBadge icon={<GemIcon />} value={stats.gemas} type="gem" />
         </div>
