@@ -29,10 +29,10 @@ export const TopicHeader: React.FC<TopicHeaderProps> = ({
     >
       {/* Sección principal de texto */}
       <div className="flex flex-1 flex-col justify-center px-5 py-4">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-white/80">
+        <h2 className="text-xs font-bold uppercase tracking-wide text-white/80">
           {subtitle}
         </h2>
-        <h1 className="mt-[2px] text-[1.4rem] font-extrabold leading-tight tracking-tight">
+        <h1 className="mt-[2px] text-[1.2rem] font-extrabold leading-tight tracking-tight">
           {title}
         </h1>
       </div>
