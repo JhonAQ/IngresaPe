@@ -11,7 +11,7 @@ export const TopicDivider: React.FC<TopicDividerProps> = ({ label }) => {
   return (
     <div className="flex w-full h-[120px] max-w-lg items-center justify-center pb-4 px-4">
       {/* Línea izquierda */}
-      <div className="h-[2px] w-[120px] rounded-full bg-slate-700/50"></div>
+      <div className="h-[4px] w-[150px] rounded-full bg-slate-700/40"></div>
 
       {/* Texto */}
       <span className="mx-4 text-center text-[15px] font-bold text-slate-500">
@@ -19,7 +19,7 @@ export const TopicDivider: React.FC<TopicDividerProps> = ({ label }) => {
       </span>
 
       {/* Línea derecha */}
-      <div className="h-[3px] w-[120px] rounded-full bg-slate-700/50"></div>
+      <div className="h-[4px] w-[150px] rounded-full bg-slate-700/40"></div>
     </div>
   );
 };

@@ -4,7 +4,10 @@ const { join } = require('path');
 module.exports = {
   content: [
     join(__dirname, 'src/**/*.{js,ts,jsx,tsx,html}').replace(/\\/g, '/'),
-    join(__dirname, '../../libs/**/src/**/*.{js,ts,jsx,tsx,html}').replace(/\\/g, '/'),
+    join(__dirname, '../../libs/**/src/**/*.{js,ts,jsx,tsx,html}').replace(
+      /\\/g,
+      '/'
+    ),
   ],
   theme: {
     extend: {
