@@ -4,10 +4,7 @@ const { join } = require('path');
 module.exports = {
   content: [
     join(__dirname, 'src/**/*!(*.stories|*.spec).{ts,tsx,html}'),
-    join(
-      __dirname,
-      '../../libs/**/src/**/*!(*.stories|*.spec).{ts,tsx,html}'
-    ),
+    join(__dirname, '../../libs/**/src/**/*!(*.stories|*.spec).{ts,tsx,html}'),
   ],
   theme: {
     extend: {
@@ -99,9 +96,9 @@ module.exports = {
       },
       borderRadius: {
         // Radios semánticos "Bubbly"
-        'button': '1rem', // 16px
-        'card': '1.5rem', // 24px
-        'pill': '9999px', // Redondo perfecto
+        button: '1rem', // 16px
+        card: '1.5rem', // 24px
+        pill: '9999px', // Redondo perfecto
       },
       fontFamily: {
         sans: ['var(--font-nunito)', 'Nunito', 'sans-serif'],
