@@ -27,22 +27,25 @@ export default function DashboardPage() {
       style={{ height: '100dvh' }}
     >
       {/* Top Section */}
-      <div className="bg-white border-b-2 border-slate-200 shrink-0 z-40 relative flex flex-col shadow-sm pt-2">
+      <div className="bg-white border-b-2 border-slate-200 shrink-0 z-40 relative flex flex-col pt-0">
         <DashboardHeader stats={data.stats} />
-        <div className="px-4 pb-4 mt-2">
-          <CourseProgress />
-        </div>
       </div>
 
       {/* Main Content Area */}
       <main
-        className="flex-1 overflow-y-auto p-5 pb-32 hide-scrollbar bg-slate-50"
+        className="flex-1 flex flex-col gap-6 overflow-y-auto px-5 pb-32 hide-scrollbar bg-slate-50 relative"
         style={{
           backgroundImage:
             'linear-gradient(to right, #e2e8f0 2px, transparent 2px), linear-gradient(to bottom, #e2e8f0 2px, transparent 2px)',
           backgroundSize: '40px 40px',
+          backgroundPosition: 'left top',
         }}
       >
+        {/* CourseProgress ahora viaja dentro del main para estar sobre el grid global y tiene sticky top */}
+        <div className="sticky top-0 z-40 pt-4 -mx-1 px-1 pb-2">
+          <CourseProgress />
+        </div>
+
         <TopicList temario={data.temario} onOpenSummary={setResumenActivo} />
       </main>
 

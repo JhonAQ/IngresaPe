@@ -50,8 +50,11 @@ export function TopicList({ temario, onOpenSummary }: TopicListProps) {
             <svg
               width="300"
               height="400"
-              className="absolute top-0 left-0 pointer-events-none filter drop-shadow-md"
-              style={{ zIndex: 0 }}
+              className="absolute top-0 left-0 pointer-events-none"
+              style={{
+                zIndex: 0,
+                filter: 'drop-shadow(0px 10px 15px rgba(0, 0, 0, 0.2))',
+              }}
             >
               <path
                 d="M 150 50 C 150 100, 100 100, 100 150 C 100 200, 170 200, 170 250 C 170 300, 150 300, 150 350"
