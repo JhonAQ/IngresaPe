@@ -1,6 +1,9 @@
 import React from 'react';
 
-export const TemarioIcon = ({ className, ...props }: React.SVGProps<SVGSVGElement>) => (
+export const TemarioIcon = ({
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement>) => (
   <svg
     viewBox="0 0 46 46"
     version="1.1"
