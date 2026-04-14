@@ -8,3 +8,5 @@ export * from './lib/icons/FlameIcon';
 export * from './lib/icons/GemIcon';
 export * from './lib/icons/XpIcon';
 export * from './lib/icons/CourseIcon';
+export * from './lib/icons/ProfileIcon';
+

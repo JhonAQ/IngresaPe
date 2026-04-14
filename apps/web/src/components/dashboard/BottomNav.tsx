@@ -1,4 +1,5 @@
-import { Home, BookOpen, FileText, Swords, User } from 'lucide-react';
+import { Home, BookOpen, FileText, Swords } from 'lucide-react';
+import { ProfileIcon } from '@ingresa-pe/ui';
 
 export function BottomNav() {
   return (
@@ -20,7 +21,7 @@ export function BottomNav() {
         <span className="text-[10px] font-bold uppercase">Entrenar</span>
       </button>
       <button className="flex-1 flex flex-col items-center justify-center gap-1 text-slate-400">
-        <User size={26} strokeWidth={2.5} />
+        <ProfileIcon className="w-6 h-[26px]" />
         <span className="text-[10px] font-bold uppercase">Perfil</span>
       </button>
     </nav>
