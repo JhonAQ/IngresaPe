@@ -9,4 +9,6 @@ export * from './lib/icons/GemIcon';
 export * from './lib/icons/XpIcon';
 export * from './lib/icons/CourseIcon';
 export * from './lib/icons/ProfileIcon';
+export * from './lib/icons/HomeIcon';
+
 
