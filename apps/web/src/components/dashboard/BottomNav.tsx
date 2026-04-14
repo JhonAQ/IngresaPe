@@ -1,5 +1,5 @@
-import { FileText, Swords } from 'lucide-react';
-import { ProfileIcon, HomeIcon, TemarioIcon } from '@ingresa-pe/ui';
+import { FileText } from 'lucide-react';
+import { ProfileIcon, HomeIcon, TemarioIcon, EntrenarIcon } from '@ingresa-pe/ui';
 
 export function BottomNav() {
   return (
@@ -17,7 +17,7 @@ export function BottomNav() {
         <span className="text-[10px] font-bold uppercase">Simulacro</span>
       </button>
       <button className="flex-1 flex flex-col items-center justify-center gap-1 text-slate-400">
-        <Swords size={26} strokeWidth={2.5} />
+        <EntrenarIcon className="w-8 h-6" />
         <span className="text-[10px] font-bold uppercase">Entrenar</span>
       </button>
       <button className="flex-1 flex flex-col items-center justify-center gap-1 text-slate-400">
