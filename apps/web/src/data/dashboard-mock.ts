@@ -3,6 +3,19 @@ import { TemaData, UserStats } from "../types/dashboard";
 
 export const userStats: UserStats = { racha: 12, vidas: 5, gemas: 450, xp: 2850 };
 
+export interface Course {
+  id: string;
+  title: string;
+  progress: number;
+}
+
+export const mockCourses: Course[] = [
+  { id: '1', title: 'Biología Celular', progress: 35 },
+  { id: '2', title: 'Álgebra Lineal', progress: 12 },
+  { id: '3', title: 'Historia del Perú', progress: 80 },
+  { id: '4', title: 'Física Clásica', progress: 50 },
+];
+
 export const temarioMock: TemaData[] = [
   {
     id: 1,
