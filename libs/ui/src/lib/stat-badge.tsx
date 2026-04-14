@@ -1,5 +1,6 @@
 import { HTMLAttributes, forwardRef, ReactNode } from 'react';
 import { FlameIcon } from './icons/FlameIcon';
+import { GemIcon } from './icons/GemIcon';
 
 export type StatBadgeType = 'streak' | 'gem' | 'heart' | 'xp';
 
@@ -33,8 +34,10 @@ export const StatBadge = forwardRef<HTMLDivElement, StatBadgeProps>(
       switch (type) {
         case 'streak':
           return <FlameIcon active={value > 0} />;
+        case 'gem':
+          return <GemIcon />;
         default:
-          return null; // A futuro puedes agregar GemIcon, HeartIcon, etc. aquí
+          return null; // A futuro puedes agregar HeartIcon, etc. aquí
       }
     };
 

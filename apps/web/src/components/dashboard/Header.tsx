@@ -92,7 +92,7 @@ export function DashboardHeader({ stats }: HeaderProps) {
         <div className="flex items-center gap-1">
           <StatBadge value={stats.racha} type="streak" />
           <StatBadge icon={<XPIcon />} value={stats.xp} type="xp" />
-          <StatBadge icon={<GemIcon />} value={stats.gemas} type="gem" />
+          <StatBadge value={stats.gemas} type="gem" />
         </div>
       </div>
     </header>

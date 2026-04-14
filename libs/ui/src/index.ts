@@ -5,3 +5,4 @@ export * from './lib/map-node';
 export * from './lib/progress-bar';
 export * from './lib/stat-badge';
 export * from './lib/icons/FlameIcon';
+export * from './lib/icons/GemIcon';
