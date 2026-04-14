@@ -1,6 +1,7 @@
 import { HTMLAttributes, forwardRef, ReactNode } from 'react';
 import { FlameIcon } from './icons/FlameIcon';
 import { GemIcon } from './icons/GemIcon';
+import { XpIcon } from './icons/XpIcon';
 
 export type StatBadgeType = 'streak' | 'gem' | 'heart' | 'xp';
 
@@ -17,7 +18,7 @@ const typeColorClasses: Record<StatBadgeType, string> = {
   streak: 'text-warning-500', // Naranja/Fuego
   gem: 'text-[#1CB0F6]', // Cyan brillante de Duolingo (Info)
   heart: 'text-error-500', // Vidas rojas
-  xp: 'text-success-500', // XP Verde
+  xp: 'text-[#FFC800]', // Nuevo amarillo dorado importado para XP
 };
 
 export const StatBadge = forwardRef<HTMLDivElement, StatBadgeProps>(
@@ -36,6 +37,8 @@ export const StatBadge = forwardRef<HTMLDivElement, StatBadgeProps>(
           return <FlameIcon active={value > 0} />;
         case 'gem':
           return <GemIcon />;
+        case 'xp':
+          return <XpIcon />;
         default:
           return null; // A futuro puedes agregar HeartIcon, etc. aquí
       }
