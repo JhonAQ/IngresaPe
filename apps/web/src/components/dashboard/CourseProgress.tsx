@@ -10,7 +10,10 @@ export function CourseProgress() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
@@ -20,7 +23,7 @@ export function CourseProgress() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button 
+      <button
         onClick={() => setIsOpen(!isOpen)}
         className="px-4 py-3 flex items-center justify-between bg-white transition-all w-full text-left rounded-2xl shadow-lg active:translate-y-[2px] active:shadow-sm ring-1 ring-black/5"
       >
@@ -34,14 +37,20 @@ export function CourseProgress() {
             <span className="text-lg font-black text-primary-950 leading-none mb-2">
               {selectedCourse.title}
             </span>
-            <ProgressBar progress={selectedCourse.progress} variant="success" size="sm" />
+            <ProgressBar
+              progress={selectedCourse.progress}
+              variant="success"
+              size="sm"
+            />
           </div>
         </div>
         <div className="w-8 h-8 bg-surface-100 rounded-full flex items-center justify-center border-2 border-surface-200 shrink-0 ml-2">
-          <ChevronDown 
-            size={20} 
-            className={`text-surface-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
-            strokeWidth={3} 
+          <ChevronDown
+            size={20}
+            className={`text-surface-500 transition-transform duration-200 ${
+              isOpen ? 'rotate-180' : ''
+            }`}
+            strokeWidth={3}
           />
         </div>
       </button>
@@ -57,8 +66,8 @@ export function CourseProgress() {
                   setIsOpen(false);
                 }}
                 className={`w-full flex items-center justify-between p-3 rounded-xl transition-colors ${
-                  selectedCourse.id === course.id 
-                    ? 'bg-primary-50 text-primary-900 border-2 border-primary-200' 
+                  selectedCourse.id === course.id
+                    ? 'bg-primary-50 text-primary-900 border-2 border-primary-200'
                     : 'hover:bg-surface-50 text-surface-700 border-2 border-transparent border-b-surface-100'
                 }`}
               >
@@ -68,11 +77,17 @@ export function CourseProgress() {
                   </div>
                   <div>
                     <h3 className="font-bold text-sm">{course.title}</h3>
-                    <p className="text-xs text-surface-400 font-medium">Progreso: {course.progress}%</p>
+                    <p className="text-xs text-surface-400 font-medium">
+                      Progreso: {course.progress}%
+                    </p>
                   </div>
                 </div>
                 {selectedCourse.id === course.id && (
-                  <Check size={20} className="text-primary-600" strokeWidth={3} />
+                  <Check
+                    size={20}
+                    className="text-primary-600"
+                    strokeWidth={3}
+                  />
                 )}
               </button>
             ))}
