@@ -1,9 +1,9 @@
-import { FileText } from 'lucide-react';
 import {
   ProfileIcon,
   HomeIcon,
   TemarioIcon,
   EntrenarIcon,
+  SimulacroIcon,
 } from '@ingresa-pe/ui';
 
 export function BottomNav() {
@@ -18,7 +18,7 @@ export function BottomNav() {
         <span className="text-[10px] font-bold uppercase">Temario</span>
       </button>
       <button className="flex-1 flex flex-col items-center justify-center gap-1 text-slate-400">
-        <FileText size={26} strokeWidth={2.5} />
+        <SimulacroIcon className="w-[23px] h-[28px]" />
         <span className="text-[10px] font-bold uppercase">Simulacro</span>
       </button>
       <button className="flex-1 flex flex-col items-center justify-center gap-1 text-slate-400">

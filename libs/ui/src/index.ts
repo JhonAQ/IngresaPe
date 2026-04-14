@@ -12,6 +12,8 @@ export * from './lib/icons/ProfileIcon';
 export * from './lib/icons/HomeIcon';
 export * from './lib/icons/TemarioIcon';
 export * from './lib/icons/EntrenarIcon';
+export * from './lib/icons/SimulacroIcon';
+
 
 
 
