@@ -1,5 +1,5 @@
-import { BookOpen, FileText, Swords } from 'lucide-react';
-import { ProfileIcon, HomeIcon } from '@ingresa-pe/ui';
+import { FileText, Swords } from 'lucide-react';
+import { ProfileIcon, HomeIcon, TemarioIcon } from '@ingresa-pe/ui';
 
 export function BottomNav() {
   return (
@@ -9,7 +9,7 @@ export function BottomNav() {
         <span className="text-[10px] font-black uppercase">Inicio</span>
       </button>
       <button className="flex-1 flex flex-col items-center justify-center gap-1 text-slate-400">
-        <BookOpen size={26} strokeWidth={2.5} />
+        <TemarioIcon className="w-8 h-8" />
         <span className="text-[10px] font-bold uppercase">Temario</span>
       </button>
       <button className="flex-1 flex flex-col items-center justify-center gap-1 text-slate-400">

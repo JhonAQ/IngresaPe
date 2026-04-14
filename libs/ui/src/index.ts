@@ -10,5 +10,7 @@ export * from './lib/icons/XpIcon';
 export * from './lib/icons/CourseIcon';
 export * from './lib/icons/ProfileIcon';
 export * from './lib/icons/HomeIcon';
+export * from './lib/icons/TemarioIcon';
+
 
 
