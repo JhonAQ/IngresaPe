@@ -1,5 +1,10 @@
 import { FileText } from 'lucide-react';
-import { ProfileIcon, HomeIcon, TemarioIcon, EntrenarIcon } from '@ingresa-pe/ui';
+import {
+  ProfileIcon,
+  HomeIcon,
+  TemarioIcon,
+  EntrenarIcon,
+} from '@ingresa-pe/ui';
 
 export function BottomNav() {
   return (

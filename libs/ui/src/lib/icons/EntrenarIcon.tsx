@@ -1,6 +1,9 @@
 import React from 'react';
 
-export const EntrenarIcon = ({ className, ...props }: React.SVGProps<SVGSVGElement>) => (
+export const EntrenarIcon = ({
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement>) => (
   <svg
     viewBox="0 0 31 25"
     fill="none"
