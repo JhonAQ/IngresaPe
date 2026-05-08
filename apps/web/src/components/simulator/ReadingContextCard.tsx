@@ -21,18 +21,30 @@ export const ReadingContextCard = ({ contexto }: ReadingContextCardProps) => {
             <BookOpen size={20} strokeWidth={2.5} />
           </div>
           <div>
-            <h3 className="font-black text-slate-800 text-[15px]">Texto de Lectura</h3>
+            <h3 className="font-black text-slate-800 text-[15px]">
+              Texto de Lectura
+            </h3>
             <p className="text-slate-400 font-bold text-[11px] uppercase tracking-wider mt-0.5">
               {isExpanded ? 'Toca para ocultar' : 'Toca para expandir'}
             </p>
           </div>
         </div>
-        <div className={`w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
+        <div
+          className={`w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 transition-transform duration-300 ${
+            isExpanded ? 'rotate-180' : ''
+          }`}
+        >
           <ChevronDown size={20} strokeWidth={3} />
         </div>
       </button>
 
-      <div className={`grid transition-all duration-300 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100 mt-4' : 'grid-rows-[0fr] opacity-0'}`}>
+      <div
+        className={`grid transition-all duration-300 ease-in-out ${
+          isExpanded
+            ? 'grid-rows-[1fr] opacity-100 mt-4'
+            : 'grid-rows-[0fr] opacity-0'
+        }`}
+      >
         <div className="overflow-hidden">
           <div className="pt-4 border-t-2 border-slate-100">
             <div className="max-h-52 overflow-y-auto pr-2">

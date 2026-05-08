@@ -12,14 +12,26 @@ interface QuestionCardProps {
   resaltar?: string;
 }
 
-export const QuestionCard = ({ texto, opciones, etiqueta, resaltar }: QuestionCardProps) => {
-  const renderizarTextoConResalte = (textoCompleto: string, palabra?: string) => {
+export const QuestionCard = ({
+  texto,
+  opciones,
+  etiqueta,
+  resaltar,
+}: QuestionCardProps) => {
+  const renderizarTextoConResalte = (
+    textoCompleto: string,
+    palabra?: string
+  ) => {
     if (!palabra) return textoCompleto;
     const regex = new RegExp(`(${palabra})`, 'gi');
-    return textoCompleto.split(regex).map((part, index) => 
-      part.toUpperCase() === palabra.toUpperCase() 
-        ? <span key={index} className="uppercase font-black text-[#0f172a]">{part}</span> 
-        : part
+    return textoCompleto.split(regex).map((part, index) =>
+      part.toUpperCase() === palabra.toUpperCase() ? (
+        <span key={index} className="uppercase font-black text-[#0f172a]">
+          {part}
+        </span>
+      ) : (
+        part
+      )
     );
   };
 

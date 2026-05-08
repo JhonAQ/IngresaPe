@@ -6,7 +6,11 @@ interface AnswerBubblesProps {
   onSelect: (letra: string) => void;
 }
 
-export const AnswerBubbles = ({ preguntaActual, respuestaSeleccionada, onSelect }: AnswerBubblesProps) => (
+export const AnswerBubbles = ({
+  preguntaActual,
+  respuestaSeleccionada,
+  onSelect,
+}: AnswerBubblesProps) => (
   <div className="bg-white px-6 py-5 flex items-center gap-5 justify-center pb-safe">
     <span className="text-[#ef4444] font-black text-2xl tracking-tighter">
       {preguntaActual.toString().padStart(3, '0')}.
@@ -19,9 +23,10 @@ export const AnswerBubbles = ({ preguntaActual, respuestaSeleccionada, onSelect 
             key={letra}
             onClick={() => onSelect(letra)}
             className={`w-11 h-11 rounded-full flex items-center justify-center font-black text-lg transition-all active:scale-90
-              ${isSelected 
-                ? 'bg-slate-800 text-white border-2 border-slate-800' 
-                : 'bg-white text-[#ef4444] border-2 border-[#ef4444] hover:bg-red-50'
+              ${
+                isSelected
+                  ? 'bg-slate-800 text-white border-2 border-slate-800'
+                  : 'bg-white text-[#ef4444] border-2 border-[#ef4444] hover:bg-red-50'
               }
             `}
           >
