@@ -14,7 +14,9 @@ interface HistoryArchiveProps {
   pastExams: PastExam[];
 }
 
-export const HistoryArchive: React.FC<HistoryArchiveProps> = ({ pastExams }) => {
+export const HistoryArchive: React.FC<HistoryArchiveProps> = ({
+  pastExams,
+}) => {
   return (
     <div className="mb-8">
       <div className="flex justify-between items-end px-7 mb-3">
@@ -25,12 +27,12 @@ export const HistoryArchive: React.FC<HistoryArchiveProps> = ({ pastExams }) => 
           Ver todo <ChevronRight size={14} />
         </button>
       </div>
-      <div className="mx-5 overflow-hidden"> 
+      <div className="mx-5 overflow-hidden">
         <div className="flex overflow-x-auto hide-scrollbar gap-4 px-1 pb-4 snap-x">
-          {pastExams.map(exam => (
-            <motion.div 
-              key={exam.id} 
-              whileTap={{ scale: 0.95 }} 
+          {pastExams.map((exam) => (
+            <motion.div
+              key={exam.id}
+              whileTap={{ scale: 0.95 }}
               className="snap-start shrink-0 w-[135px] h-[180px] bg-white rounded-[1.5rem] border-2 border-slate-200 border-b-[6px] border-b-slate-300 p-3.5 flex flex-col shadow-sm cursor-pointer group"
             >
               <div className="w-8 h-8 bg-rose-50 text-rose-500 rounded-xl flex items-center justify-center mb-2 border border-rose-100">
@@ -46,7 +48,8 @@ export const HistoryArchive: React.FC<HistoryArchiveProps> = ({ pastExams }) => 
               </div>
               <div className="mt-auto pt-2 border-t border-slate-100">
                 <div className="flex items-center gap-1 text-slate-400 font-bold text-[9px] mb-2">
-                  <LayoutGrid size={10} strokeWidth={3} /> {exam.questions} Pregs
+                  <LayoutGrid size={10} strokeWidth={3} /> {exam.questions}{' '}
+                  Pregs
                 </div>
                 <div className="w-full py-1.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center text-[9px] font-black text-slate-500 uppercase tracking-widest group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
                   Iniciar

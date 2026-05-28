@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   TopBar,
   ProgressBar,
@@ -13,6 +14,7 @@ import {
 } from '../../components/simulator';
 
 export default function SimulatorPage() {
+  const router = useRouter();
   const TOTAL_PREGUNTAS = 80;
 
   const [preguntaActual, setPreguntaActual] = useState(1);
@@ -160,7 +162,7 @@ export default function SimulatorPage() {
     <div className="w-full max-w-md mx-auto relative bg-[#f8f9fc] h-[100dvh] flex flex-col shadow-2xl overflow-hidden border-x border-slate-200">
       <TopBar
         tiempoRestante={tiempoRestante}
-        onClose={() => alert('Salir del simulacro')}
+        onClose={() => router.push('/simulacros')}
       />
 
       <ProgressBar
