@@ -17,7 +17,10 @@ export function MinigameCard({ game, tickets, onPlay }: MinigameCardProps) {
   return (
     <div className="relative w-full rounded-[1.5rem] border-2 border-[#e5e5e5] border-b-[6px] bg-white p-5 pt-8 flex flex-col mt-2">
       <div className="absolute -top-3.5 left-6 z-20">
-        <span className="inline-block font-black text-[11px] uppercase tracking-widest px-4 py-1.5 rounded-full bg-white" style={{ color: game.color }}>
+        <span
+          className="inline-block font-black text-[11px] uppercase tracking-widest px-4 py-1.5 rounded-full bg-white"
+          style={{ color: game.color }}
+        >
           {game.subtitle}
         </span>
       </div>
@@ -35,25 +38,29 @@ export function MinigameCard({ game, tickets, onPlay }: MinigameCardProps) {
         <Icon />
       </div>
 
-      <button 
+      <button
         onClick={onPlay}
         disabled={!hasTickets}
         className="relative z-20 w-full font-black text-[16px] uppercase tracking-widest py-4 rounded-2xl active:translate-y-[5px] transition-all flex justify-center items-center gap-1.5"
-        style={hasTickets ? { 
-          backgroundColor: game.color,
-          color: 'white',
-          borderBottom: `5px solid ${game.shadow}`,
-        } : {
-          backgroundColor: '#e5e5e5',
-          color: '#afafaf',
-          borderBottom: '5px solid #cfcfcf',
-          cursor: 'not-allowed'
-        }}
+        style={
+          hasTickets
+            ? {
+                backgroundColor: game.color,
+                color: 'white',
+                borderBottom: `5px solid ${game.shadow}`,
+              }
+            : {
+                backgroundColor: '#e5e5e5',
+                color: '#afafaf',
+                borderBottom: '5px solid #cfcfcf',
+                cursor: 'not-allowed',
+              }
+        }
       >
-        JUGAR 
+        JUGAR
         {hasTickets && (
           <div className="flex items-center gap-1 ml-1 drop-shadow-sm">
-            <DuoTicket className="w-5 h-5"/>
+            <DuoTicket className="w-5 h-5" />
             <span className="text-white text-[15px] -mt-0.5">-{game.cost}</span>
           </div>
         )}
