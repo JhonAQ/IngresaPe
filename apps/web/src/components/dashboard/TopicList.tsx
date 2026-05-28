@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { FileText, NotebookText, Check, Lock } from 'lucide-react';
 import { TemaData } from '../../types/dashboard';
 import { Card3D, Button3D, MapNode } from '@ingresa-pe/ui';
@@ -91,17 +92,27 @@ export function TopicList({ temario, onOpenSummary }: TopicListProps) {
                   <Icon size={32} strokeWidth={2.5} />
                 );
 
+                const nodeContent = (
+                  <MapNode
+                    status={act.state}
+                    currentColor={act.color ?? 'warning'}
+                    icon={RenderedIcon}
+                  />
+                );
+
                 return (
                   <div
                     key={act.id}
                     className="absolute transform -translate-x-1/2 -translate-y-1/2"
                     style={{ left: pos.x, top: pos.y, zIndex: 10 }}
                   >
-                    <MapNode
-                      status={act.state}
-                      currentColor={act.color ?? 'warning'}
-                      icon={RenderedIcon}
-                    />
+                    {isLocked ? (
+                      nodeContent
+                    ) : (
+                      <Link href="/engine" className="block relative">
+                        {nodeContent}
+                      </Link>
+                    )}
                   </div>
                 );
               })}
