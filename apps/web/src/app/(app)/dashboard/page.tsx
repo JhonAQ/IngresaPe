@@ -17,9 +17,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <main
-        className="flex-1 flex flex-col gap-2 overflow-y-auto px-5 pb-32 hide-scrollbar bg-slate-50/50"
-      >
+      <main className="flex-1 flex flex-col gap-2 overflow-y-auto px-5 pb-32 hide-scrollbar bg-slate-50/50">
         <div className="sticky top-0 z-40 pt-2 -mx-1 px-1">
           <CourseProgress />
         </div>

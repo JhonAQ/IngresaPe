@@ -110,11 +110,15 @@ export const AIExamCard: React.FC<AIExamCardProps> = ({
             </div>
           </div>
 
-          <Button3D variant="neon" className="!py-3.5" onClick={() => router.push('/simulator')}>
+          <Button3D
+            variant="neon"
+            className="!py-3.5"
+            onClick={() => router.push('/simulator')}
+          >
             GENERAR AHORA <Play size={16} fill="currentColor" />
           </Button3D>
         </div>
       </div>
     </div>
   );
-};;
+};

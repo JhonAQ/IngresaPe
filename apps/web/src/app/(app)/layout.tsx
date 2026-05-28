@@ -22,7 +22,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       style={{ height: '100dvh' }}
     >
       <div className="absolute inset-0 bg-grid-pattern z-0 pointer-events-none opacity-50"></div>
-      
+
       {/* Top Section */}
       <div className="bg-white border-b-2 border-slate-200 shrink-0 z-40 relative flex flex-col pt-0">
         <DashboardHeader stats={data.stats} />
