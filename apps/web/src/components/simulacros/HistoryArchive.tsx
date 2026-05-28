@@ -24,7 +24,10 @@ export const HistoryArchive: React.FC<HistoryArchiveProps> = ({
         <h3 className="font-black text-slate-400 text-[11px] uppercase tracking-[0.25em] flex items-center gap-2">
           <History size={14} /> Archivo Histórico
         </h3>
-        <Link href="/simulacros/archivo" className="text-blue-500 font-black text-[11px] uppercase flex items-center gap-0.5">
+        <Link
+          href="/simulacros/archivo"
+          className="text-blue-500 font-black text-[11px] uppercase flex items-center gap-0.5"
+        >
           Ver todo <ChevronRight size={14} />
         </Link>
       </div>

@@ -3,49 +3,151 @@ import React from 'react';
 // ============================================================================
 // COMPONENTE SVG CUSTOM: CUADERNO ESTILO DUOLINGO
 // ============================================================================
-export const DuoNotebook = ({ type, status }: { type: string; status: string }) => {
+export const DuoNotebook = ({
+  type,
+  status,
+}: {
+  type: string;
+  status: string;
+}) => {
   let primary, dark, accent, icon;
 
   if (status === 'locked') {
-    primary = '#e5e5e5'; dark = '#cfcfcf'; accent = '#afafaf';
+    primary = '#e5e5e5';
+    dark = '#cfcfcf';
+    accent = '#afafaf';
     icon = (
       <g transform="translate(42, 47)">
         <rect x="0" y="6" width="16" height="12" rx="4" fill="#ffffff" />
-        <path d="M4 6 V4 C4 -1 12 -1 12 4 V6" stroke="#ffffff" strokeWidth="3" fill="none" strokeLinecap="round"/>
+        <path
+          d="M4 6 V4 C4 -1 12 -1 12 4 V6"
+          stroke="#ffffff"
+          strokeWidth="3"
+          fill="none"
+          strokeLinecap="round"
+        />
       </g>
     );
   } else if (status === 'completed') {
-    primary = '#ffc800'; dark = '#cc9f00'; accent = '#58cc02';
+    primary = '#ffc800';
+    dark = '#cc9f00';
+    accent = '#58cc02';
     icon = (
       <g transform="translate(40, 50)">
-        <path d="M2 8 L8 14 L18 2" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <path
+          d="M2 8 L8 14 L18 2"
+          stroke="#ffffff"
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
       </g>
     );
   } else if (type === 'CEPRUNSA') {
-    primary = '#ce82ff'; dark = '#a568cc'; accent = '#ffc800';
+    primary = '#ce82ff';
+    dark = '#a568cc';
+    accent = '#ffc800';
     icon = (
       <g transform="translate(38, 48)">
-        <rect x="0" y="0" width="24" height="5" rx="2.5" fill="#ffffff" opacity="0.9"/>
-        <rect x="0" y="10" width="16" height="5" rx="2.5" fill="#ffffff" opacity="0.9"/>
-        <rect x="0" y="20" width="24" height="5" rx="2.5" fill="#ffffff" opacity="0.9"/>
+        <rect
+          x="0"
+          y="0"
+          width="24"
+          height="5"
+          rx="2.5"
+          fill="#ffffff"
+          opacity="0.9"
+        />
+        <rect
+          x="0"
+          y="10"
+          width="16"
+          height="5"
+          rx="2.5"
+          fill="#ffffff"
+          opacity="0.9"
+        />
+        <rect
+          x="0"
+          y="20"
+          width="24"
+          height="5"
+          rx="2.5"
+          fill="#ffffff"
+          opacity="0.9"
+        />
       </g>
     );
   } else if (type === 'EXTRA') {
-    primary = '#ff9600'; dark = '#cc7800'; accent = '#1cb0f6';
+    primary = '#ff9600';
+    dark = '#cc7800';
+    accent = '#1cb0f6';
     icon = (
       <g transform="translate(38, 48)">
-        <rect x="0" y="0" width="24" height="5" rx="2.5" fill="#ffffff" opacity="0.9"/>
-        <rect x="0" y="10" width="16" height="5" rx="2.5" fill="#ffffff" opacity="0.9"/>
-        <rect x="0" y="20" width="24" height="5" rx="2.5" fill="#ffffff" opacity="0.9"/>
+        <rect
+          x="0"
+          y="0"
+          width="24"
+          height="5"
+          rx="2.5"
+          fill="#ffffff"
+          opacity="0.9"
+        />
+        <rect
+          x="0"
+          y="10"
+          width="16"
+          height="5"
+          rx="2.5"
+          fill="#ffffff"
+          opacity="0.9"
+        />
+        <rect
+          x="0"
+          y="20"
+          width="24"
+          height="5"
+          rx="2.5"
+          fill="#ffffff"
+          opacity="0.9"
+        />
       </g>
     );
-  } else { // ORDINARIO
-    primary = '#1cb0f6'; dark = '#1899d6'; accent = '#ff4b4b';
+  } else {
+    // ORDINARIO
+    primary = '#1cb0f6';
+    dark = '#1899d6';
+    accent = '#ff4b4b';
     icon = (
-       <g transform="translate(38, 48)">
-        <rect x="0" y="0" width="24" height="5" rx="2.5" fill="#ffffff" opacity="0.9"/>
-        <rect x="0" y="10" width="16" height="5" rx="2.5" fill="#ffffff" opacity="0.9"/>
-        <rect x="0" y="20" width="24" height="5" rx="2.5" fill="#ffffff" opacity="0.9"/>
+      <g transform="translate(38, 48)">
+        <rect
+          x="0"
+          y="0"
+          width="24"
+          height="5"
+          rx="2.5"
+          fill="#ffffff"
+          opacity="0.9"
+        />
+        <rect
+          x="0"
+          y="10"
+          width="16"
+          height="5"
+          rx="2.5"
+          fill="#ffffff"
+          opacity="0.9"
+        />
+        <rect
+          x="0"
+          y="20"
+          width="24"
+          height="5"
+          rx="2.5"
+          fill="#ffffff"
+          opacity="0.9"
+        />
       </g>
     );
   }
