@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { History, ChevronRight, FileText, LayoutGrid } from 'lucide-react';
 
@@ -23,9 +24,9 @@ export const HistoryArchive: React.FC<HistoryArchiveProps> = ({
         <h3 className="font-black text-slate-400 text-[11px] uppercase tracking-[0.25em] flex items-center gap-2">
           <History size={14} /> Archivo Histórico
         </h3>
-        <button className="text-blue-500 font-black text-[11px] uppercase flex items-center gap-0.5">
+        <Link href="/simulacros/archivo" className="text-blue-500 font-black text-[11px] uppercase flex items-center gap-0.5">
           Ver todo <ChevronRight size={14} />
-        </button>
+        </Link>
       </div>
       <div className="mx-5 overflow-hidden">
         <div className="flex overflow-x-auto hide-scrollbar gap-4 px-1 pb-4 snap-x">
