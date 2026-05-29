@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy } from 'lucide-react';
 import {
@@ -81,6 +82,7 @@ const coursesData: CourseData[] = [
 ];
 
 export default function CursosPage() {
+  const router = useRouter();
   const [activeCourseId, setActiveCourseId] = useState('alg');
   const activeCourse = coursesData.find((c) => c.id === activeCourseId);
 
@@ -184,8 +186,7 @@ export default function CursosPage() {
 
       {/* Floating Continue Button */}
       <div className="sticky bottom-0 bg-white border-t-2 border-duo-border px-4 py-4 z-30">
-        <button
-          className="w-full text-white font-black text-[16px] uppercase tracking-widest py-3.5 rounded-2xl border-b-[5px] active:border-b-0 active:translate-y-[5px] transition-all flex justify-center items-center gap-2"
+        <button          onClick={() => router.push('/dashboard')}          className="w-full text-white font-black text-[16px] uppercase tracking-widest py-3.5 rounded-2xl border-b-[5px] active:border-b-0 active:translate-y-[5px] transition-all flex justify-center items-center gap-2"
           style={{
             backgroundColor: activeCourse?.colorHex || '#1cb0f6',
             borderColor: 'rgba(0,0,0,0.15)',

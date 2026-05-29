@@ -12,7 +12,6 @@ const tabs = [
     icon: HomeIcon,
     iconProps: { className: 'w-[28px] h-[24px]' },
   },
-  { href: '/cursos', label: 'Cursos', iconLucide: BookOpen, size: 26 },
   {
     href: '/simulacros',
     label: 'Simulacro',
