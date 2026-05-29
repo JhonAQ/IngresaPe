@@ -5,7 +5,6 @@ import { ProfileHeader } from '../../../components/perfil/ProfileHeader';
 import { StatsRow } from '../../../components/perfil/StatsRow';
 import { AcademicDNA } from '../../../components/perfil/AcademicDNA';
 import { TrophyRoom } from '../../../components/perfil/TrophyRoom';
-import { Settings } from 'lucide-react';
 
 export default function PerfilPage() {
   return (

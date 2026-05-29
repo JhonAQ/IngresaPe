@@ -1,4 +1,4 @@
-import { domain } from './domain.js';
+import { domain } from './domain';
 
 describe('domain', () => {
   it('should work', () => {

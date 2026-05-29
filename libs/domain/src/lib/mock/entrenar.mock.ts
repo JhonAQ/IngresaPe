@@ -1,4 +1,4 @@
-import type { MinigameData } from '../types/index.js';
+import type { MinigameData } from '../types/index';
 
 export const MINIGAMES: MinigameData[] = [
   {

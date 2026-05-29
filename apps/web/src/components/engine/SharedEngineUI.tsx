@@ -320,24 +320,28 @@ export function DuoMaxModal({
   const [displayedText, setDisplayedText] = useState('');
 
   useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout>;
     if (isOpen) {
       setAiState('thinking');
       setDisplayedText('');
-      const timeout = setTimeout(() => setAiState('typing'), 1200);
-      return () => clearTimeout(timeout);
+      timeout = setTimeout(() => setAiState('typing'), 1200);
     } else {
       setAiState('idle');
       setDisplayedText('');
     }
+    return () => {
+      if (timeout) clearTimeout(timeout);
+    };
   }, [isOpen]);
 
   useEffect(() => {
+    let typingInterval: ReturnType<typeof setInterval>;
     if (aiState === 'typing') {
       let i = 0;
       setDisplayedText('');
       const textToType = explanation;
 
-      const typingInterval = setInterval(() => {
+      typingInterval = setInterval(() => {
         setDisplayedText(textToType.substring(0, i + 1));
         i++;
         if (i >= textToType.length) {
@@ -345,9 +349,10 @@ export function DuoMaxModal({
           setTimeout(() => setAiState('finished'), 400);
         }
       }, 15); // Velocidad rápida
-
-      return () => clearInterval(typingInterval);
     }
+    return () => {
+      if (typingInterval) clearInterval(typingInterval);
+    };
   }, [aiState, explanation]);
 
   return (

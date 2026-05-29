@@ -1,4 +1,4 @@
-import { UserStats } from '../../types/dashboard';
+import { UserStats } from '@ingresa-pe/domain';
 import { StatBadge } from '@ingresa-pe/ui';
 
 interface HeaderProps {

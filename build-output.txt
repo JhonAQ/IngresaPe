@@ -1,0 +1,72 @@
+
+ NX   Running target build for project @org/web and 3 tasks it depends on:
+
+
+
+> nx run @ingresa-pe/domain:build  [existing outputs match the cache, left as is]
+
+
+> nx run @ingresa-pe/ui:build  [existing outputs match the cache, left as is]
+
+
+> nx run api:build  [existing outputs match the cache, left as is]
+
+
+> nx run @org/web:build
+
+> next build
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   [1m[38;2;173;127;168mÔû▓ Next.js 16.0.11[39m[22m (Turbopack)
+
+ [37m[1m [22m[39m Creating an optimized production build ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ [32m[1mÔ£ô[22m[39m Compiled successfully in 5.8s
+ [37m[1m [22m[39m Running TypeScript ...
+ ÔÜá TypeScript project references are not fully supported. Attempting to build in incremental mode.
+ [37m[1m [22m[39m Collecting page data using 11 workers ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ [37m[1m [22m[39m Generating static pages using 11 workers (0/14) ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ [37m[1m [22m[39m Generating static pages using 11 workers (3/14) 
+ [37m[1m [22m[39m Generating static pages using 11 workers (6/14) 
+ [37m[1m [22m[39m Generating static pages using 11 workers (10/14) 
+ [32m[1mÔ£ô[22m[39m Generating static pages using 11 workers (14/14) in 1103.5ms
+ [37m[1m [22m[39m Finalizing page optimization ...
+
+[4mRoute (app)[24m
+Ôöî Ôùï /
+Ôö£ Ôùï /_not-found
+Ôö£ ãÆ /api/hello
+Ôö£ Ôùï /auth-callback
+Ôö£ Ôùï /cursos
+Ôö£ Ôùï /dashboard
+Ôö£ Ôùï /engine
+Ôö£ Ôùï /entrenar
+Ôö£ Ôùï /login
+Ôö£ Ôùï /perfil
+Ôö£ Ôùï /simulacros
+Ôö£ Ôùï /simulacros/archivo
+Ôöö Ôùï /simulator
+
+
+Ôùï  (Static)   prerendered as static content
+ãÆ  (Dynamic)  server-rendered on demand
+
+
+
+
+ NX   Successfully ran target build for project @org/web and 3 tasks it depends on
+
+Nx read the output from the cache instead of running the command for 3 out of 4 tasks.
+

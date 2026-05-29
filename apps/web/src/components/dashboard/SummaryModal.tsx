@@ -5,7 +5,7 @@ import {
   Lightbulb,
   Image as ImageIcon,
 } from 'lucide-react';
-import { TemaData } from '../../types/dashboard';
+import { TemaData } from '@ingresa-pe/domain';
 
 interface SummaryModalProps {
   resumenActivo: TemaData | null;

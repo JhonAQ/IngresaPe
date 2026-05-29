@@ -1,3 +1,3 @@
-export * from './dashboard.mock.js';
-export * from './entrenar.mock.js';
-export * from './courses.mock.js';
+export * from './dashboard.mock';
+export * from './entrenar.mock';
+export * from './courses.mock';

@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import {
   ProfileIcon,
   HomeIcon,
-  EntrenarIcon,
   SimulacroIcon,
 } from '@ingresa-pe/ui';
 import { BookOpen, Gamepad2 } from 'lucide-react';

@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 
-export type Card3DVariant = 'primary' | 'success' | 'surface' | 'error' | 'warning';
-export type MapNodeColor = 'primary' | 'success' | 'warning' | 'error' | 'surface';
+export type Card3DVariant = 'primary' | 'success' | 'surface';
+export type MapNodeColor = 'primary' | 'success' | 'warning' | 'error';
 
 export interface Actividad {
   id: number;

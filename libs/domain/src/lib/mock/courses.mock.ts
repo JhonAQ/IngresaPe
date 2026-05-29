@@ -1,5 +1,5 @@
 import { Dna, Calculator, BookA, Zap, FlaskConical } from 'lucide-react';
-import type { CourseData } from '../types/index.js';
+import type { CourseData } from '../types/index';
 
 export const coursesData: CourseData[] = [
   {

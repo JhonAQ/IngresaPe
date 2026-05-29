@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, Lock, ChevronRight, Loader2 } from 'lucide-react';
-import { trpc } from '../../../utils/trpc';
 import { ChunkyButton } from '../../../components/ui/ChunkyButton';
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -42,6 +41,8 @@ export default function LoginPage() {
       const formData = new FormData(e.currentTarget);
       const email = formData.get('email') as string;
       const password = formData.get('password') as string;
+
+      console.log('Login attempt:', { email, password });
 
       // TODO: Implementar Endpoint tRPC (e.g. login.mutateAsync({ email, password }))
       // Por ahora simularemos la falla para avisar al usuario.
@@ -193,5 +194,13 @@ export default function LoginPage() {
         </ChunkyButton>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex justify-center items-center"><Loader2 className="w-10 h-10 text-blue-500 animate-spin" /></div>}>
+      <LoginContent />
+    </Suspense>
   );
 }

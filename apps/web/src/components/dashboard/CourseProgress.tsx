@@ -39,7 +39,7 @@ export function CourseProgress() {
             </span>
             <ProgressBar
               progress={selectedCourse.progress}
-              variant="success"
+              indicatorColor="success"
               size="sm"
             />
           </div>

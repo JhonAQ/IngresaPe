@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { FileText, NotebookText, Check, Lock } from 'lucide-react';
-import { TemaData } from '../../types/dashboard';
-import { Card3D, Button3D, MapNode } from '@ingresa-pe/ui';
+import { Check, Lock } from 'lucide-react';
+import { TemaData } from '@ingresa-pe/domain';
+import { MapNode } from '@ingresa-pe/ui';
 import { TopicHeader } from './TopicHeader';
 import { TopicDivider } from './TopicDivider';
 
@@ -17,22 +17,10 @@ const pathPositions = [
   { x: 150, y: 350 },
 ];
 
-const topicVariantStyles: Record<string, string> = {
-  primary: 'bg-[#bd1720] border-[#911019] text-white',
-  success: 'bg-[#58cc02] border-[#58a700] text-white',
-  surface: 'bg-white border-[#cbd5e1] text-slate-800',
-  error: 'bg-[#ff4b4b] border-[#ea1515] text-white',
-};
-
 export function TopicList({ temario, onOpenSummary }: TopicListProps) {
   return (
     <div className="space-y-12 py-6 relative z-10">
       {temario.map((unidad, index) => {
-        const themeClass =
-          topicVariantStyles[unidad.variant || 'primary'] ||
-          topicVariantStyles.primary;
-        const isLight = unidad.variant === 'surface';
-
         return (
           <div
             key={unidad.id}
