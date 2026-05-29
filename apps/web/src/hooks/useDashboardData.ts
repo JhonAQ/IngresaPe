@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { userStats, temarioMock } from '../data/dashboard-mock';
-import type { UserStats, TemaData } from '../types/dashboard';
+import { userStats, temarioMock } from '@ingresa-pe/domain';
+import type { UserStats, TemaData } from '@ingresa-pe/domain';
 
 export function useDashboardData() {
   const [stats, setStats] = useState<UserStats | null>(null);

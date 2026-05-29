@@ -5,7 +5,7 @@ import { CourseProgress } from '../../../components/dashboard/CourseProgress';
 import { TopicList } from '../../../components/dashboard/TopicList';
 import { SummaryModal } from '../../../components/dashboard/SummaryModal';
 import { useDashboardData } from '../../../hooks/useDashboardData';
-import { TemaData } from '../../../types/dashboard';
+import type { TemaData } from '@ingresa-pe/domain';
 
 export default function DashboardPage() {
   const [resumenActivo, setResumenActivo] = useState<TemaData | null>(null);

@@ -51,6 +51,9 @@
     },
     {
       "path": "../../libs/ui"
+    },
+    {
+      "path": "../../libs/domain"
     }
   ]
 }

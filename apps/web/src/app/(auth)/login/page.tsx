@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, Lock, ChevronRight, Loader2 } from 'lucide-react';
-import { trpc } from '../../utils/trpc';
-import { ChunkyButton } from '../../components/ui/ChunkyButton';
+import { trpc } from '../../../utils/trpc';
+import { ChunkyButton } from '../../../components/ui/ChunkyButton';
 
 export default function LoginPage() {
   const router = useRouter();

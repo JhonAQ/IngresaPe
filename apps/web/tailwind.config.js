@@ -90,6 +90,18 @@ module.exports = {
           800: '#1e293b',
           900: '#0f172a',
         },
+        // Duolingo Accent Colors (used across the app)
+        duo: {
+          green: '#58cc02',
+          blue: '#1cb0f6',
+          red: '#ff4b4b',
+          orange: '#ff9600',
+          purple: '#ce82ff',
+          gold: '#ffc800',
+          gray: '#afafaf',
+          dark: '#3c3c3c',
+          border: '#e5e5e5',
+        },
       },
       boxShadow: {
         // Elevaciones direccionales sólidas (3D) que heredan el var(--tw-shadow-color) de la clase de Tailwind

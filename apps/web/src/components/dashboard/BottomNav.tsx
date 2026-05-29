@@ -5,65 +5,44 @@ import { usePathname } from 'next/navigation';
 import {
   ProfileIcon,
   HomeIcon,
-  TemarioIcon,
   EntrenarIcon,
   SimulacroIcon,
 } from '@ingresa-pe/ui';
+import { BookOpen, Gamepad2 } from 'lucide-react';
+
+const tabs = [
+  { href: '/dashboard', label: 'Inicio', icon: HomeIcon, iconProps: { className: 'w-[28px] h-[24px]' } },
+  { href: '/cursos', label: 'Cursos', iconLucide: BookOpen, size: 26 },
+  { href: '/simulacros', label: 'Simulacro', icon: SimulacroIcon, iconProps: { className: 'w-[22px] h-[26px]' } },
+  { href: '/entrenar', label: 'Entrenar', iconLucide: Gamepad2, size: 26 },
+  { href: '/perfil', label: 'Perfil', icon: ProfileIcon, iconProps: { className: 'w-6 h-[24px]' } },
+];
 
 export function BottomNav() {
   const pathname = usePathname();
 
-  const getTargetColor = (path: string) => {
-    return pathname?.startsWith(path) ? 'text-error-500' : 'text-slate-400';
-  };
-
   return (
-    <nav className="absolute inset-x-0 bottom-0 bg-white border-t-2 border-slate-200 pb-safe z-50 flex justify-between items-center h-[72px] px-2">
-      <Link
-        href="/dashboard"
-        className={`flex-1 flex flex-col items-center justify-center gap-1 ${getTargetColor(
-          '/dashboard'
-        )}`}
-      >
-        <HomeIcon className="w-[30px] h-[26px]" />
-        <span className="text-[10px] font-black uppercase">Inicio</span>
-      </Link>
-      <Link
-        href="/temario"
-        className={`flex-1 flex flex-col items-center justify-center gap-1 ${getTargetColor(
-          '/temario'
-        )}`}
-      >
-        <TemarioIcon className="w-8 h-8" />
-        <span className="text-[10px] font-bold uppercase">Temario</span>
-      </Link>
-      <Link
-        href="/simulacros"
-        className={`flex-1 flex flex-col items-center justify-center gap-1 ${getTargetColor(
-          '/simulacros'
-        )}`}
-      >
-        <SimulacroIcon className="w-[23px] h-[28px]" />
-        <span className="text-[10px] font-bold uppercase">Simulacro</span>
-      </Link>
-      <Link
-        href="/entrenar"
-        className={`flex-1 flex flex-col items-center justify-center gap-1 ${getTargetColor(
-          '/entrenar'
-        )}`}
-      >
-        <EntrenarIcon className="w-8 h-6" />
-        <span className="text-[10px] font-bold uppercase">Entrenar</span>
-      </Link>
-      <Link
-        href="/perfil"
-        className={`flex-1 flex flex-col items-center justify-center gap-1 ${getTargetColor(
-          '/perfil'
-        )}`}
-      >
-        <ProfileIcon className="w-6 h-[26px]" />
-        <span className="text-[10px] font-bold uppercase">Perfil</span>
-      </Link>
+    <nav className="bg-white border-t-2 border-slate-200 pb-safe z-50 flex justify-between items-center h-[72px] px-2 shrink-0">
+      {tabs.map((tab) => {
+        const isActive = pathname?.startsWith(tab.href);
+        const colorClass = isActive ? 'text-error-500' : 'text-slate-400';
+        const fontClass = isActive ? 'font-black' : 'font-bold';
+
+        return (
+          <Link
+            key={tab.href}
+            href={tab.href}
+            className={`flex-1 flex flex-col items-center justify-center gap-1 transition-colors ${colorClass}`}
+          >
+            {tab.icon ? (
+              <tab.icon {...(tab.iconProps || {})} />
+            ) : tab.iconLucide ? (
+              <tab.iconLucide size={tab.size || 26} strokeWidth={2.5} />
+            ) : null}
+            <span className={`text-[10px] uppercase ${fontClass}`}>{tab.label}</span>
+          </Link>
+        );
+      })}
     </nav>
   );
 }
