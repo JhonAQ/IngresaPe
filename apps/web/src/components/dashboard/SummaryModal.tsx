@@ -41,7 +41,7 @@ export function SummaryModal({ resumenActivo, onClose }: SummaryModalProps) {
             <span
               className={`inline-block text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md mb-2 text-yellow-600 shadow-sm ${resumenActivo.color}`}
             >
-              Resumen Oficial 
+              Resumen Oficial
             </span>
             <h2 className="text-3xl font-black text-slate-800 leading-tight">
               {resumenActivo.titulo}

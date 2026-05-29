@@ -17,13 +17,9 @@ export default function PerfilPage() {
         xpToNext={300}
         isPro={true}
       />
-      
+
       <div className="px-5 -mt-6 relative z-10">
-        <StatsRow
-          racha={12}
-          expTotal={4500}
-          liga="Oro"
-        />
+        <StatsRow racha={12} expTotal={4500} liga="Oro" />
       </div>
 
       <div className="px-5 mt-6">
@@ -31,12 +27,12 @@ export default function PerfilPage() {
           scores={{
             'R. Lógico': 85,
             'Aptitud Acad.': 70,
-            'Matemática': 78,
+            Matemática: 78,
             'C. Sociales': 45,
             'C. y Tecnología': 50,
-            'DPCC': 40,
-            'Comunicación': 55,
-            'Idiomas': 60,
+            DPCC: 40,
+            Comunicación: 55,
+            Idiomas: 60,
           }}
           strongIn="Números y Lógica"
           prioritize="Letras y Sociales"

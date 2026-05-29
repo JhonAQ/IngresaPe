@@ -2,19 +2,30 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  ProfileIcon,
-  HomeIcon,
-  SimulacroIcon,
-} from '@ingresa-pe/ui';
+import { ProfileIcon, HomeIcon, SimulacroIcon } from '@ingresa-pe/ui';
 import { BookOpen, Gamepad2 } from 'lucide-react';
 
 const tabs = [
-  { href: '/dashboard', label: 'Inicio', icon: HomeIcon, iconProps: { className: 'w-[28px] h-[24px]' } },
+  {
+    href: '/dashboard',
+    label: 'Inicio',
+    icon: HomeIcon,
+    iconProps: { className: 'w-[28px] h-[24px]' },
+  },
   { href: '/cursos', label: 'Cursos', iconLucide: BookOpen, size: 26 },
-  { href: '/simulacros', label: 'Simulacro', icon: SimulacroIcon, iconProps: { className: 'w-[22px] h-[26px]' } },
+  {
+    href: '/simulacros',
+    label: 'Simulacro',
+    icon: SimulacroIcon,
+    iconProps: { className: 'w-[22px] h-[26px]' },
+  },
   { href: '/entrenar', label: 'Entrenar', iconLucide: Gamepad2, size: 26 },
-  { href: '/perfil', label: 'Perfil', icon: ProfileIcon, iconProps: { className: 'w-6 h-[24px]' } },
+  {
+    href: '/perfil',
+    label: 'Perfil',
+    icon: ProfileIcon,
+    iconProps: { className: 'w-6 h-[24px]' },
+  },
 ];
 
 export function BottomNav() {
@@ -38,7 +49,9 @@ export function BottomNav() {
             ) : tab.iconLucide ? (
               <tab.iconLucide size={tab.size || 26} strokeWidth={2.5} />
             ) : null}
-            <span className={`text-[10px] uppercase ${fontClass}`}>{tab.label}</span>
+            <span className={`text-[10px] uppercase ${fontClass}`}>
+              {tab.label}
+            </span>
           </Link>
         );
       })}

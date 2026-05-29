@@ -199,7 +199,13 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex justify-center items-center"><Loader2 className="w-10 h-10 text-blue-500 animate-spin" /></div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-50 flex justify-center items-center">
+          <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
+        </div>
+      }
+    >
       <LoginContent />
     </Suspense>
   );
