@@ -5,6 +5,13 @@ import { PrismaService } from '../prisma.service';
 import { AuthService } from '../services/auth.service';
 import * as bcrypt from 'bcryptjs';
 import { TRPCError } from '@trpc/server';
+import type { Request, Response } from 'express';
+
+const mockContext = () => ({
+  req: {} as Request,
+  res: {} as Response,
+  user: null,
+});
 
 describe('AuthRouter', () => {
   let router: AuthRouter;
@@ -35,6 +42,8 @@ describe('AuthRouter', () => {
     router = module.get<AuthRouter>(AuthRouter);
   });
 
+  const createCaller = () => router.router.createCaller(mockContext());
+
   describe('register', () => {
     it('debería registrar un nuevo usuario y devolver token', async () => {
       const input = {
@@ -51,7 +60,7 @@ describe('AuthRouter', () => {
         role: 'USER',
       });
 
-      const caller = router.router.createCaller({});
+      const caller = createCaller();
       const result = await caller.register(input);
 
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
@@ -80,7 +89,7 @@ describe('AuthRouter', () => {
         role: 'USER',
       });
 
-      const caller = router.router.createCaller({});
+      const caller = createCaller();
       await caller.register({
         name: 'Test',
         email: 'Mixed@Example.COM',
@@ -95,7 +104,7 @@ describe('AuthRouter', () => {
     it('debería rechazar registro si el email ya existe', async () => {
       prisma.user.findUnique.mockResolvedValue({ id: 'existing-id', email: 'test@example.com' });
 
-      const caller = router.router.createCaller({});
+      const caller = createCaller();
 
       await expect(
         caller.register({
@@ -113,7 +122,7 @@ describe('AuthRouter', () => {
         ...args.data,
       }));
 
-      const caller = router.router.createCaller({});
+      const caller = createCaller();
       await caller.register({
         name: 'Test',
         email: 'test@example.com',
@@ -143,7 +152,7 @@ describe('AuthRouter', () => {
         role: 'USER',
       });
 
-      const caller = router.router.createCaller({});
+      const caller = createCaller();
       const result = await caller.login(input);
 
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
@@ -156,7 +165,7 @@ describe('AuthRouter', () => {
     it('debería normalizar email a minúsculas en login', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
 
-      const caller = router.router.createCaller({});
+      const caller = createCaller();
       await expect(
         caller.login({ email: 'TEST@EXAMPLE.COM', password: 'secure123' })
       ).rejects.toThrow();
@@ -169,7 +178,7 @@ describe('AuthRouter', () => {
     it('debería rechazar si el usuario no existe', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
 
-      const caller = router.router.createCaller({});
+      const caller = createCaller();
       await expect(
         caller.login({ email: 'missing@example.com', password: 'secure123' })
       ).rejects.toThrow(TRPCError);
@@ -187,7 +196,7 @@ describe('AuthRouter', () => {
         password: await bcrypt.hash('correct-password', 12),
       });
 
-      const caller = router.router.createCaller({});
+      const caller = createCaller();
       await expect(caller.login(input)).rejects.toThrow(TRPCError);
     });
 
@@ -198,7 +207,7 @@ describe('AuthRouter', () => {
         password: null,
       });
 
-      const caller = router.router.createCaller({});
+      const caller = createCaller();
       await expect(
         caller.login({ email: 'oauth@example.com', password: 'any' })
       ).rejects.toThrow(TRPCError);

@@ -1,5 +1,6 @@
 import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import type { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
 
 @Controller('auth') // Ruta base: /api/auth
@@ -9,16 +10,16 @@ export class AuthController {
   // 1. El usuario hace clic aquí para iniciar el viaje
   @Get('google')
   @UseGuards(AuthGuard('google'))
-  async googleAuth(@Req() req) {
+  async googleAuth(@Req() _req: Request) {
     // Guarda inicia el flujo automáticamente
   }
 
   // 2. Google nos devuelve al usuario aquí
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req, @Res() res) {
+  async googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
     // Si llegamos aquí, el usuario ya fue validado por la Strategy
-    const user = req.user;
+    const user = (req as any).user;
 
     // Generamos el Token
     const token = this.authService.generateToken(user);

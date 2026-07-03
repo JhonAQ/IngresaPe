@@ -4,16 +4,15 @@ import { TrpcService } from '../trpc.service';
 import { PrismaService } from '../prisma.service';
 import { TRPCError } from '@trpc/server';
 import { Role } from '@prisma/client';
+import { questionContentSchema, QuestionType, QuestionContent } from '@ingresa-pe/domain';
 
 const createQuestionSchema = z.object({
   statement: z.string().min(5, 'El enunciado debe tener al menos 5 caracteres'),
   imageUrl: z.string().url().optional(),
   difficulty: z.enum(['EASY', 'MEDIUM', 'HARD']),
   topicId: z.string().uuid('El topicId debe ser un UUID válido'),
-  options: z.array(z.object({
-    text: z.string(),
-    isCorrect: z.boolean(),
-  })).min(2, 'Debe haber al menos 2 opciones').max(5, 'Máximo 5 opciones'),
+  type: z.nativeEnum(QuestionType),
+  content: questionContentSchema,
   explanation: z.string().optional(),
 });
 
@@ -35,18 +34,33 @@ export class AdminRouter {
           });
         }
 
-        const correctOptions = input.options.filter(opt => opt.isCorrect);
-        if (correctOptions.length !== 1) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Debe haber exactamente una opción correcta'
-          });
+        // Validaciones de integridad según el tipo de pregunta
+        const content = input.content as QuestionContent;
+
+        if (content.type === QuestionType.MULTIPLE_CHOICE) {
+          const correctCount = content.options.filter((o) => o.isCorrect).length;
+          if (correctCount !== 1) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Debe haber exactamente una opción correcta',
+            });
+          }
+        } else if (content.type === QuestionType.ORDERING) {
+          const itemIds = content.items.map((i) => i.id);
+          const hasAllIds = content.correctOrder.every((id) => itemIds.includes(id));
+          const noDuplicates = new Set(content.correctOrder).size === content.correctOrder.length;
+          if (!hasAllIds || !noDuplicates || content.correctOrder.length !== itemIds.length) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'El orden correcto debe contener todos los items sin duplicados',
+            });
+          }
         }
 
         const topic = await this.prisma.topic.findUnique({
           where: { id: input.topicId },
         });
-        
+
         if (!topic) {
           throw new TRPCError({
             code: 'NOT_FOUND',
@@ -60,7 +74,8 @@ export class AdminRouter {
             imageUrl: input.imageUrl,
             difficulty: input.difficulty,
             topicId: input.topicId,
-            options: input.options,
+            type: input.type,
+            content: content as any,
             explanation: input.explanation,
           },
           include: {

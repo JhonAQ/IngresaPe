@@ -213,7 +213,7 @@ const health = trpc.healthCheck.useQuery();
 | **Auth** | 🔒 Protegido |
 | **Input** | Ninguno |
 | **Output** | `Course[]` con conteo de temas |
-| **Frontend** | ❌ No conectado (cursos/page.tsx usa datos hardcoded) |
+| **Frontend** | ✅ Conectado en `cursos/page.tsx` vía `trpc.content.getCourses.useQuery()` |
 
 **Output:**
 ```typescript
@@ -239,7 +239,7 @@ const health = trpc.healthCheck.useQuery();
 | **Auth** | 🔒 Protegido |
 | **Input** | `{ courseId: string }` |
 | **Output** | Temas con progreso del usuario |
-| **Frontend** | ❌ No conectado |
+| **Frontend** | ✅ Conectado en `dashboard/page.tsx` vía `trpc.content.getTopics.useQuery({ courseId })` |
 
 **Output:**
 ```typescript
@@ -271,8 +271,8 @@ const health = trpc.healthCheck.useQuery();
 | **Tipo** | `query` |
 | **Auth** | 🔒 Protegido |
 | **Input** | Filtros opcionales |
-| **Output** | `Question[]` (random) |
-| **Frontend** | ❌ No conectado (engine usa mock data) |
+| **Output** | `QuestionDto[]` (random, sin respuestas correctas) |
+| **Frontend** | ✅ Conectado en `useEngine` vía `trpc.content.getQuestions.useQuery()` |
 
 **Input Schema:**
 ```typescript
@@ -292,17 +292,23 @@ const health = trpc.healthCheck.useQuery();
     statement: "Calcula el valor de X en: 2x + 5 = 17",
     imageUrl: string | null,
     difficulty: "MEDIUM",
-    options: [
-      { text: "x = 4", isCorrect: false },
-      { text: "x = 6", isCorrect: true },
-      // ...
-    ],
+    type: "MULTIPLE_CHOICE",
     explanation: "Paso 1: Resta 5 de ambos lados...",
-    topicId: "uuid"
+    content: {
+      type: "MULTIPLE_CHOICE",
+      options: [
+        { id: "a", text: "x = 4" },
+        { id: "b", text: "x = 6" },
+        // ...
+      ]
+    }
   },
   // ... más preguntas (orden aleatorio)
 ]
 ```
+
+**Tipos soportados:** `MULTIPLE_CHOICE`, `TRUE_FALSE_SWIPE`, `FLASHCARD`, `ORDERING`.
+El `content` es una discriminated union según `type` y **nunca incluye respuestas correctas**.
 
 **Nota técnica:** Usa `$queryRaw` con `ORDER BY RANDOM()` para aleatoriedad real en PostgreSQL.
 
@@ -316,35 +322,43 @@ const health = trpc.healthCheck.useQuery();
 |-----------|-------|
 | **Tipo** | `mutation` |
 | **Auth** | 🔒 Protegido |
-| **Input** | `{ questionId: string, selectedOptionIndex: number }` |
+| **Input** | `{ questionId: string, answer: AnswerSubmission }` |
 | **Output** | Resultado detallado |
-| **Frontend** | ❌ No conectado |
+| **Frontend** | ✅ Conectado en `useEngine` vía `trpc.game.submitAnswer.useMutation()` |
 | **Archivo** | `game.router.ts` → delega a `GameService` |
+
+**Input `AnswerSubmission` (discriminated union por `type`):**
+```typescript
+{ type: "MULTIPLE_CHOICE", selectedOptionId: string }
+| { type: "TRUE_FALSE_SWIPE", isTrue: boolean }
+| { type: "FLASHCARD", remembered: boolean }
+| { type: "ORDERING", itemIds: string[] }
+```
 
 **Output:**
 ```typescript
 {
   success: true,
   isCorrect: boolean,
-  correctOptionIndex: number,
+  correctAnswerText: string,
   explanation: string | null,
+  rewards: { xp: number, coins: number },
   userStats: {
     energy: number,
     totalXp: number,
-    streak: number,
-    coins: number
+    streak: number
   }
 }
 ```
 
 **Lógica de GameService:**
-- ✅ Correcto: +20 XP
+- ✅ Correcto: +10/20/30 XP según dificultad
 - ❌ Incorrecto: +5 XP (consolación)
-- ⚡ Costo: -1 energía por respuesta
-- 🔥 Racha: Se mantiene si respondió en las últimas 24h, sino se resetea
-- 💾 Guarda `AnswerLog` con `isCorrect` y `selectedOption`
-
-**⚠️ Problema:** No hay mecanismo de recarga de energía. Los usuarios se quedarán en 0 energía permanentemente.
+- 💰 Correcto: +5/10/15 coins según dificultad
+- ⚡ Costo: -1 energía por respuesta (Premium no consume)
+- 🔥 Racha: Se recalcula según `lastInteraction`
+- 💾 Guarda `AnswerLog` con `isCorrect` y `answer` genérico
+- ⚡ Recarga de energía: +1 energía por cada 30 minutos transcurridos desde `lastRefill` (tope 25)
 
 ---
 
@@ -573,7 +587,7 @@ const health = trpc.healthCheck.useQuery();
 | **Input** | Datos de la pregunta |
 | **Output** | Pregunta creada con relaciones |
 | **Frontend** | ❌ No existe UI |
-| **⚠️ Estado** | 🔴 **ROTO** — El role check siempre falla (ver Seguridad) |
+| **⚠️ Estado** | ✅ Funcional — El role check ya funciona porque el JWT incluye `role` |
 
 **Input:**
 ```typescript
@@ -582,13 +596,26 @@ const health = trpc.healthCheck.useQuery();
   imageUrl?: string,           // Imagen opcional
   difficulty: "EASY" | "MEDIUM" | "HARD",
   topicId: string,             // UUID del tema
-  options: Array<{
-    text: string,
-    isCorrect: boolean
-  }>,
+  type: "MULTIPLE_CHOICE" | "TRUE_FALSE_SWIPE" | "FLASHCARD" | "ORDERING",
+  content: QuestionContent,    // Payload específico por tipo (incluye respuestas correctas)
   explanation?: string         // Explicación post-respuesta
 }
 ```
+
+**Ejemplo `content` para opción múltiple:**
+```typescript
+{
+  type: "MULTIPLE_CHOICE",
+  options: [
+    { id: "a", text: "x = 4", isCorrect: false },
+    { id: "b", text: "x = 6", isCorrect: true }
+  ]
+}
+```
+
+**Validaciones por tipo:**
+- `MULTIPLE_CHOICE`: exactamente una opción correcta.
+- `ORDERING`: `correctOrder` debe contener todos los `item.id` sin duplicados.
 
 ---
 
@@ -658,10 +685,8 @@ const health = trpc.healthCheck.useQuery();
 |-----------|-------|
 | **Auth** | Passport Guard (google) |
 | **Acción** | Recibe código de Google → crea/actualiza usuario → genera JWT → redirige |
-| **Redirect** | `http://localhost:4200/login?token={jwt}` |
-| **Frontend** | ⚠️ Parcial — El frontend corre en `localhost:4200` (Nx default) o `localhost:3001`? La URL de redirect puede no coincidir |
-
-**⚠️ Problema de redirect:** El callback redirige a `localhost:4200/login` pero el frontend Next.js podría estar en otro puerto.
+| **Redirect** | `${FRONTEND_URL}/auth-callback?token={jwt}` (default `http://localhost:4200/auth-callback?token={jwt}`) |
+| **Frontend** | ✅ Terminado — `/auth-callback` extrae el token y lo guarda vía `useAuth().login(token)` |
 
 ---
 
@@ -669,25 +694,25 @@ const health = trpc.healthCheck.useQuery();
 
 | Endpoint | ¿Frontend lo llama? | ¿Qué usa el frontend en su lugar? |
 |----------|---------------------|-----------------------------------|
-| `auth.register` | ❌ No | No existe UI de registro |
-| `auth.login` | ❌ No | `throw new Error(...)` fake |
-| `auth.me` | ❌ No | No se consulta el usuario actual |
-| `content.getCourses` | ❌ No | Array `coursesData` hardcodeado en page |
-| `content.getTopics` | ❌ No | `temarioMock` de `@ingresa-pe/domain` |
-| `content.getQuestions` | ❌ No | `quizData` hardcodeado en BasicQuizEngine |
-| `game.submitAnswer` | ❌ No | Lógica local en useState |
+| `auth.register` | ✅ Sí | Página `/register` |
+| `auth.login` | ✅ Sí | Página `/login` |
+| `auth.me` | ✅ Sí | `useAuth()` consulta `profile.getMe` |
+| `content.getCourses` | ✅ Sí | `cursos/page.tsx` |
+| `content.getTopics` | ✅ Sí | `dashboard/page.tsx` con `courseId` |
+| `content.getQuestions` | ✅ Sí | `useEngine` en `/engine` |
+| `game.submitAnswer` | ✅ Sí | `useEngine` en `/engine` |
 | `learning.*` | ❌ No | No existe UI que lo use |
-| `stats.getDashboard` | ❌ No | `useDashboardData` con mock |
-| `ranking.*` | ❌ No | No existe UI |
-| `profile.getMe` | ❌ No | Datos hardcodeados en perfil page |
+| `stats.getDashboard` | ❌ No | `useDashboardData` con fallback mock |
+| `ranking.*` | ⚠️ Parcial | `ranking.getMyPosition` usado en `/perfil` |
+| `profile.getMe` | ✅ Sí | `useAuth` y `/perfil` |
 | `profile.update` | ❌ No | No existe UI de edición |
 | `shop.*` | ❌ No | No existe UI |
 | `admin.*` | ❌ No | No existe UI |
 | `subscription.*` | ❌ No | No existe UI |
 | `GET /api/auth/google` | ✅ Sí | `window.location.href` redirect |
-| `GET /api/auth/google/callback` | ⚠️ Parcial | Redirect pero URL puede no coincidir |
+| `GET /api/auth/google/callback` | ✅ Sí | Redirige a `/auth-callback?token=...` usando `FRONTEND_URL` |
 
-**Conclusión: 1 de 24 endpoints está realmente conectado al frontend (4%).**
+**Conclusión: Los flujos críticos de autenticación, cursos, temas y engine ya están conectados.**
 
 ---
 

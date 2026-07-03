@@ -1,18 +1,62 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { CourseProgress } from '../../../components/dashboard/CourseProgress';
 import { TopicList } from '../../../components/dashboard/TopicList';
 import { SummaryModal } from '../../../components/dashboard/SummaryModal';
 import { useDashboardData } from '../../../hooks/useDashboardData';
+import { trpc } from '../../../utils/trpc';
 import type { TemaData } from '@ingresa-pe/domain';
 
-export default function DashboardPage() {
+function DashboardContent() {
   const [resumenActivo, setResumenActivo] = useState<TemaData | null>(null);
-  const { data, isLoading } = useDashboardData();
+  const params = useSearchParams();
+  const courseId = params.get('courseId');
 
-  if (isLoading || !data.temario) {
-    return null; // Layout handles the loading state
+  const { data: dashboardData, isLoading: isDashboardLoading } =
+    useDashboardData();
+
+  const {
+    data: topics = [],
+    isLoading: isTopicsLoading,
+    isError: isTopicsError,
+    error: topicsError,
+  } = trpc.content.getTopics.useQuery(
+    { courseId: courseId ?? '' },
+    { enabled: !!courseId, retry: false, refetchOnWindowFocus: false }
+  );
+
+  if (isDashboardLoading || isTopicsLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="font-black text-[#58cc02]">Cargando dashboard…</div>
+      </div>
+    );
+  }
+
+  if (!courseId) {
+    return (
+      <div className="flex-1 flex items-center justify-center px-6 text-center">
+        <div>
+          <h1 className="font-black text-[22px] text-[#3c3c3c] mb-2">Selecciona un curso</h1>
+          <p className="text-[#777777] mb-6">
+            Elige un curso desde la pantalla de cursos para ver sus temas.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isTopicsError) {
+    return (
+      <div className="flex-1 flex items-center justify-center px-6 text-center">
+        <div>
+          <h1 className="font-black text-[22px] text-[#ea2b2b] mb-2">Ups</h1>
+          <p className="text-[#777777]">{topicsError?.message ?? 'No se pudieron cargar los temas'}</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -22,7 +66,12 @@ export default function DashboardPage() {
           <CourseProgress />
         </div>
 
-        <TopicList temario={data.temario} onOpenSummary={setResumenActivo} />
+        <TopicList
+          courseId={courseId}
+          topics={topics}
+          temario={dashboardData.temario ?? []}
+          onOpenSummary={setResumenActivo}
+        />
       </main>
 
       <SummaryModal
@@ -30,5 +79,19 @@ export default function DashboardPage() {
         onClose={() => setResumenActivo(null)}
       />
     </>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex-1 flex items-center justify-center">
+          <div className="font-black text-[#58cc02]">Cargando dashboard…</div>
+        </div>
+      }
+    >
+      <DashboardContent />
+    </Suspense>
   );
 }

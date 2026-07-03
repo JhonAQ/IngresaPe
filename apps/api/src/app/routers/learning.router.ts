@@ -3,12 +3,15 @@ import { z } from 'zod';
 import { TrpcService } from '../trpc.service';
 import { PrismaService } from '../prisma.service';
 import { TRPCError } from '@trpc/server';
+import { QuestionGraderService } from '../services/question-grader.service';
+import { answerSubmissionSchema, AnswerSubmission } from '@ingresa-pe/domain';
 
 @Injectable()
 export class LearningRouter {
   constructor(
     private readonly trpc: TrpcService,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
+    private readonly grader: QuestionGraderService
   ) {}
 
   public router = this.trpc.router({
@@ -37,33 +40,25 @@ export class LearningRouter {
     submitAnswer: this.trpc.protectedProcedure
       .input(z.object({
         questionId: z.string(),
-        selectedOptionIndex: z.number(), // 0, 1, 2...
+        answer: answerSubmissionSchema,
       }))
       .mutation(async ({ ctx, input }) => {
         const question = await this.prisma.question.findUnique({
           where: { id: input.questionId },
         });
 
-        if (!question) throw new TRPCError({ code: 'NOT_FOUND' });
+        if (!question) throw new TRPCError({ code: 'NOT_FOUND', message: 'Pregunta no encontrada' });
 
-        const options = question.options as { text: string; isCorrect: boolean }[];
-        const selectedOpt = options[input.selectedOptionIndex];
-        
-        if (!selectedOpt) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Opción inválida' });
+        const gradeResult = this.grader.grade(question, input.answer as AnswerSubmission);
+        const { isCorrect, correctAnswerText, explanation } = gradeResult;
+        const { xp: xpEarned, coins: coinsEarned } = this.grader.computeRewards(
+          question.difficulty,
+          isCorrect
+        );
 
-        const isCorrect = selectedOpt.isCorrect === true;
-
-        let xpEarned = 0;
-        let coinsEarned = 0;
-
-        if (isCorrect) {
-          xpEarned = question.difficulty === 'EASY' ? 10 : question.difficulty === 'MEDIUM' ? 20 : 30;
-          coinsEarned = Math.floor(xpEarned / 2);
-        }
-        
         const now = new Date();
         const user = await this.prisma.user.findUnique({ where: { id: ctx.user.userId } });
-        
+
         await this.prisma.user.update({
           where: { id: ctx.user.userId },
           data: {
@@ -78,14 +73,14 @@ export class LearningRouter {
             userId: ctx.user.userId,
             questionId: question.id,
             isCorrect: isCorrect,
-            selectedOption: input.selectedOptionIndex,
+            answer: input.answer as any,
           }
         });
 
         return {
           correct: isCorrect,
-          correctOptionIndex: options.findIndex(o => o.isCorrect),
-          explanation: question.explanation,
+          correctAnswerText,
+          explanation: explanation ?? question.explanation,
           rewards: { xp: xpEarned, coins: coinsEarned },
           newTotalCoins: (user?.coins || 0) + coinsEarned
         };

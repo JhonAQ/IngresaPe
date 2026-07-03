@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { TrpcService } from '../trpc.service';
 import { GameService } from '../services/game.service'; // <--- Importamos el Servicio
 import { z } from 'zod';
+import { answerSubmissionSchema, AnswerSubmission } from '@ingresa-pe/domain';
 
 @Injectable()
 export class GameRouter {
@@ -15,7 +16,7 @@ export class GameRouter {
       .input(
         z.object({
           questionId: z.string(),
-          selectedOptionIndex: z.number().min(0),
+          answer: answerSubmissionSchema,
         })
       )
       .mutation(async ({ ctx, input }) => {
@@ -23,7 +24,7 @@ export class GameRouter {
         return await this.gameService.submitAnswer({
             userId: ctx.user.userId,
             questionId: input.questionId,
-            selectedOptionIndex: input.selectedOptionIndex
+            answer: input.answer as AnswerSubmission
         });
       }),
   });

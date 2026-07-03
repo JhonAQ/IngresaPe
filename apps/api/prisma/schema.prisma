@@ -34,6 +34,14 @@ enum Difficulty {
   HARD
 }
 
+// Tipos de pregunta soportados por el motor extensible
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE_SWIPE
+  FLASHCARD
+  ORDERING
+}
+
 // Planes de suscripción (Modelo de Negocio)
 enum PlanType {
   MONTHLY  // Plan "T-Rex" (S/ 9.90)
@@ -127,14 +135,20 @@ model Topic {
 }
 
 model Question {
-  id          String     @id @default(uuid())
+  id          String       @id @default(uuid())
+  type        QuestionType @default(MULTIPLE_CHOICE)
   statement   String     // Enunciado (Soporta LaTeX $x^2$)
   imageUrl    String?    // Imagen opcional
   difficulty  Difficulty @default(MEDIUM)
   
   // --- OPCIONES (JSONB) ---
   // Estructura: [{ "text": "A) 5", "isCorrect": false }, { "text": "B) 10", "isCorrect": true }]
-  options     Json       
+  options     Json?
+
+  // --- CONTENT (JSONB) ---
+  // Payload especifico por tipo de pregunta (discriminated union).
+  // Ejemplo: { type: "MULTIPLE_CHOICE", options: [{ id, text, isCorrect }] }
+  content     Json?       
   
   // --- FEEDBACK ---
   explanation String?    // Explicación generada por IA para cuando fallan
@@ -179,7 +193,8 @@ model AnswerLog {
   question    Question @relation(fields: [questionId], references: [id])
   
   isCorrect   Boolean  // ¿Acertó?
-  selectedOption Int?   // Índice de la opción seleccionada (0, 1, 2...)
+  selectedOption Int?   // LEGACY: indice de la opcion seleccionada (0, 1, 2...)
+  answer      Json?    // Respuesta generica por tipo de pregunta
   timeTaken   Int?     // Segundos que tardó en responder
 }
 

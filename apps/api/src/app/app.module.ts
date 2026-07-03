@@ -6,6 +6,10 @@ import { TrpcService } from './trpc.service';
 import { PrismaService } from './prisma.service';
 import { AppRouter } from './app.router';
 
+// Question engine services
+import { QuestionGraderService } from './services/question-grader.service';
+import { QuestionViewService } from './services/question-view.service';
+
 // Routers (tRPC)
 import { AuthRouter } from './routers/auth.router';
 import { ContentRouter } from './routers/content.router';
@@ -40,7 +44,11 @@ import { GameService } from './services/game.service';
     TrpcService,
     PrismaService,
     AppRouter,
-    
+
+    // Question engine services
+    QuestionGraderService,
+    QuestionViewService,
+
     // Routers tRPC (Inyectables)
     AuthRouter,
     ContentRouter,

@@ -1,11 +1,28 @@
 import Link from 'next/link';
-import { Check, Lock } from 'lucide-react';
+import { Check, Lock, BookOpen } from 'lucide-react';
 import { TemaData } from '@ingresa-pe/domain';
-import { MapNode } from '@ingresa-pe/ui';
+import { MapNode, MapNodeColor } from '@ingresa-pe/ui';
 import { TopicHeader } from './TopicHeader';
 import { TopicDivider } from './TopicDivider';
 
+interface TopicFromApi {
+  id: string;
+  name: string;
+  slug: string;
+  order: number;
+  totalQuestions?: number;
+  userProgress?: {
+    correctCount: number;
+    goal: number;
+    percentage: number;
+    isGold: boolean;
+    isCompleted: boolean;
+  };
+}
+
 interface TopicListProps {
+  courseId: string;
+  topics: TopicFromApi[];
   temario: TemaData[];
   onOpenSummary: (tema: TemaData) => void;
 }
@@ -17,16 +34,54 @@ const pathPositions = [
   { x: 150, y: 350 },
 ];
 
-export function TopicList({ temario, onOpenSummary }: TopicListProps) {
+export function TopicList({
+  courseId,
+  topics,
+  temario,
+  onOpenSummary,
+}: TopicListProps) {
+  // Mezclamos topics reales con el temario mock existente para no romper el diseño.
+  // Cada topic real se renderiza como un nodo clickeable en el mapa.
+  const mergedUnits =
+    topics.length > 0
+      ? topics.map((topic, index) => ({
+          id: topic.id,
+          tema: index + 1,
+          titulo: topic.name,
+          descripcion: topic.slug,
+          variant: 'primary' as const,
+          actividades: [
+            {
+              id: index,
+              name: topic.name,
+              state: topic.userProgress?.isGold
+                ? ('completed' as const)
+                : ('current' as const),
+              icon: BookOpen,
+              color: (topic.userProgress?.isGold
+                ? 'success'
+                : 'warning') as MapNodeColor,
+            },
+          ],
+          resumenData: {
+            introduccion: `Resumen de ${topic.name}`,
+            imagenExplicativa: false,
+            puntosClave: [],
+            formulaDestacada: '',
+            tipExamen: '',
+          },
+          color: topic.userProgress?.isGold ? '#58cc02' : '#1cb0f6',
+        }))
+      : temario;
+
   return (
     <div className="space-y-12 py-6 relative z-10">
-      {temario.map((unidad, index) => {
+      {mergedUnits.map((unidad, index) => {
         return (
           <div
             key={unidad.id}
             className="relative z-20 flex flex-col items-center"
           >
-            {/* Si no es el primer tema, mostramos la línea divisoria usando su descripción u otro texto */}
             {index > 0 && (
               <TopicDivider label={unidad.descripcion || 'Siguiente tema'} />
             )}
@@ -35,7 +90,7 @@ export function TopicList({ temario, onOpenSummary }: TopicListProps) {
               <TopicHeader
                 subtitle={`TEMA ${unidad.tema}`}
                 title={unidad.titulo}
-                onGuideClick={() => onOpenSummary(unidad)}
+                onGuideClick={() => onOpenSummary(unidad as TemaData)}
               />
             </div>
 
@@ -52,7 +107,7 @@ export function TopicList({ temario, onOpenSummary }: TopicListProps) {
                 <path
                   d="M 150 50 C 150 100, 100 100, 100 150 C 100 200, 170 200, 170 250 C 170 300, 150 300, 150 350"
                   fill="none"
-                  stroke="#e2e8f0" // surface-200 para la rama base
+                  stroke="#e2e8f0"
                   strokeWidth="22"
                   strokeLinecap="round"
                   transform="translate(0, 4)"
@@ -60,7 +115,7 @@ export function TopicList({ temario, onOpenSummary }: TopicListProps) {
                 <path
                   d="M 150 50 C 150 100, 100 100, 100 150 C 100 200, 170 200, 170 250 C 170 300, 150 300, 150 350"
                   fill="none"
-                  stroke="#f8fafc" // surface-50 para el interior
+                  stroke="#f8fafc"
                   strokeWidth="22"
                   strokeLinecap="round"
                 />
@@ -97,7 +152,10 @@ export function TopicList({ temario, onOpenSummary }: TopicListProps) {
                     {isLocked ? (
                       nodeContent
                     ) : (
-                      <Link href="/engine" className="block relative">
+                      <Link
+                        href={`/engine?topicId=${unidad.id}&courseId=${courseId}`}
+                        className="block relative"
+                      >
                         {nodeContent}
                       </Link>
                     )}

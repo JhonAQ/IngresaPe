@@ -1,6 +1,10 @@
-import { PrismaClient, Area, Difficulty } from '@prisma/client';
+import { PrismaClient, Area, Difficulty, QuestionType } from '@prisma/client';
 
 const prisma = new PrismaClient();
+
+function makeOptionId(index: number): string {
+  return String.fromCharCode(97 + index); // a, b, c, d, e
+}
 
 async function main() {
   console.log('🌱 Iniciando sembrado masivo de datos...');
@@ -108,12 +112,23 @@ async function main() {
   // ---------------------------------------------------------
   console.log('📚 Creando Cursos y Contenido Académico...');
 
-  // Tipo para las preguntas del seed
+  // Tipo para las preguntas del seed (solo opción múltiple por ahora)
   interface PreguntaSeed {
     difficulty: Difficulty;
     statement: string;
     options: { text: string; isCorrect: boolean }[];
     explanation: string;
+  }
+
+  function buildMultipleChoiceContent(options: PreguntaSeed['options']) {
+    return {
+      type: QuestionType.MULTIPLE_CHOICE,
+      options: options.map((o, i) => ({
+        id: makeOptionId(i),
+        text: o.text,
+        isCorrect: o.isCorrect,
+      })),
+    };
   }
 
   // Función helper para crear cursos con temas y preguntas
@@ -156,7 +171,8 @@ async function main() {
             topicId: topicCreated.id,
             difficulty: pregunta.difficulty,
             statement: pregunta.statement,
-            options: pregunta.options,
+            type: QuestionType.MULTIPLE_CHOICE,
+            content: buildMultipleChoiceContent(pregunta.options),
             explanation: pregunta.explanation,
           },
         });

@@ -16,7 +16,7 @@
 | **Endpoints REST** | 2 (Google OAuth) |
 | **Modelos Prisma** | 7 |
 | **Páginas Frontend** | 11 rutas navegables |
-| **Conexión Front ↔ Back** | ⚠️ ~15–20% (auth y perfil ya conectados; el resto sigue en mock) |
+| **Conexión Front ↔ Back** | ⚠️ ~35–40% (auth, perfil, cursos, temas, engine y game.submitAnswer ya conectados) |
 | **Tests** | 17 tests reales de autenticación (13 API + 4 web) |
 | **Deuda técnica** | 🟡 Media-Alta |
 
@@ -55,8 +55,8 @@
 |------------|--------|---------|
 | Layout con Header + BottomNav | ✅ Terminado | Funciona bien, diseño estilo Duolingo |
 | Header con estadísticas | ⚠️ Parcial | Ahora consume `profile.getMe` real y mapea `energy/coins/totalXp/streak` a `vidas/gemas/xp/racha`. Tiene fallback a mock si no hay usuario |
-| `useDashboardData` hook | ⚠️ Parcial | `profile.getMe` es real, pero `temario` sigue siendo `temarioMock` de `@ingresa-pe/domain` |
-| Lista de temas (TopicList) | ⚠️ Parcial | UI bonita pero datos hardcodeados de Biología |
+| `useDashboardData` hook | ⚠️ Parcial | `profile.getMe` es real; `temario` sigue como fallback mock cuando no hay `courseId` |
+| Lista de temas (TopicList) | ✅ Terminado | Recibe `courseId` y carga topics reales vía `content.getTopics`. Cada topic linkea a `/engine?topicId=...&courseId=...` |
 | Modal de resumen | ✅ Terminado | UI completa con animaciones |
 | CourseProgress | ⚠️ Parcial | UI existe pero muestra datos mock locales |
 | Stats API (`stats.getDashboard`) | ✅ Terminado | Endpoint existe y funciona, pero el front no lo llama |
@@ -67,12 +67,12 @@
 
 | Componente | Estado | Detalle |
 |------------|--------|---------|
-| UI de selección de cursos | ⚠️ Parcial | UI bellísima con animaciones, pero datos HARDCODEADOS dentro del componente (`coursesData`) |
-| Botón "Continuar" | 🔴 Roto | Siempre navega a `/dashboard` independientemente del curso seleccionado |
+| UI de selección de cursos | ✅ Terminado | Carga cursos reales vía `content.getCourses`. Paleta de colores/iconos por nombre de curso |
+| Botón "Continuar" | ✅ Terminado | Navega a `/dashboard?courseId=<id>` del curso seleccionado |
 | Content API (`content.getCourses`) | ✅ Terminado | Endpoint devuelve cursos reales de la BD con conteo de temas |
 | Content API (`content.getTopics`) | ✅ Terminado | Devuelve temas con progreso del usuario calculado (respuestas correctas vs. meta de 15) |
 | Content API (`content.getQuestions`) | ✅ Terminado | Devuelve preguntas aleatorias filtradas por tema/dificultad, excluyendo ya respondidas |
-| Tipos `CourseData` | 🔴 Roto | Definido DUPLICADO: en `@ingresa-pe/domain` Y localmente en `cursos/page.tsx` con `// TODO` |
+| Tipos `CourseData` | ✅ Terminado | `cursos/page.tsx` ya no duplica el tipo; usa datos del API con estilo local derivado |
 | Selección de carrera del usuario | ❌ Falta | No hay endpoint ni UI para que el usuario elija su carrera |
 
 ---
@@ -81,13 +81,19 @@
 
 | Componente | Estado | Detalle |
 |------------|--------|---------|
-| `BasicQuizEngine` (UI) | ⚠️ Parcial | Funciona con 2 preguntas MOCK hardcodeadas. Motor visual completo |
+| `Engine` (orquestador) | ✅ Terminado | Lee `topicId`/`courseId` de query params, carga preguntas reales con `useEngine` y selecciona renderer por tipo |
+| `useEngine` hook | ✅ Terminado | Maneja `content.getQuestions`, `game.submitAnswer`, feedback, vidas y pantalla de completado |
+| Registry de renderers | ✅ Terminado | `questionRendererRegistry` mapea `QuestionType` → componente. Agregar un tipo nuevo solo requiere registrar su renderer |
+| Renderers existentes | ✅ Terminado | `MultipleChoiceRenderer` completo. `TrueFalseSwipeRenderer`, `FlashcardRenderer`, `OrderingRenderer` con UI base lista para ajustes |
+| `BasicQuizEngine` | ⚠️ Deprecado | Motor mock antiguo; sigue exportado por compatibilidad, ya no se usa |
 | `SharedEngineUI` (UI) | ✅ Terminado | Componentes de feedback, progress bar, IA modal. ~460 líneas pulidas |
-| `DuoMaxModal` (Explicación IA) | ⚠️ Parcial | UI de typing animation funciona, pero el texto es estático del mock. No llama a ninguna API de IA |
-| Ruta `/engine` | ✅ Terminado | Página funcional que renderiza el BasicQuizEngine |
-| Game API (`game.submitAnswer`) | ✅ Terminado | `GameService` maneja energía, XP, racha, guardado en `AnswerLog` |
+| `DuoMaxModal` (Explicación IA) | ⚠️ Parcial | UI de typing animation funciona con la explicación real de la pregunta. No llama a ninguna API de IA generativa |
+| Ruta `/engine` | ✅ Terminado | Página funcional envuelta en `Suspense`. Requiere `topicId` |
+| Game API (`game.submitAnswer`) | ✅ Terminado | `GameService` maneja energía, XP, racha, guardado en `AnswerLog`. Ahora devuelve `rewards` |
 | Learning API (`learning.submitAnswer`) | ✅ Terminado | Lógica alternativa con coins y XP por dificultad |
-| Conexión Engine ↔ API | ❌ Falta | El engine NO llama a `content.getQuestions` ni a `game.submitAnswer` / `learning.submitAnswer` |
+| Conexión Engine ↔ API | ✅ Terminado | `useEngine` consume `content.getQuestions` y `game.submitAnswer` end-to-end |
+| Tipos de preguntas extensibles | ✅ Terminado | `QuestionType` enum + `QuestionContent`/`QuestionView`/`AnswerSubmission` unions discriminadas en `@ingresa-pe/domain` |
+| Calificación genérica | ✅ Terminado | `QuestionGraderService` califica cualquier tipo soportado con `grade()` y `computeRewards()` |
 
 ---
 
@@ -207,8 +213,8 @@
 |------|--------|----------|
 | tRPC Client config | ✅ Terminado | `providers.tsx` crea el client y envía `Authorization: Bearer <token>` |
 | Token en headers | ✅ Terminado | `httpBatchLink` tiene `headers()` callback con `localStorage.getItem('auth_token')` |
-| Llamadas tRPC reales | ⚠️ Parcial | Solo `auth.login`, `auth.register`, `profile.getMe`, `ranking.getMyPosition`, `content.getCourses` se usan en el front |
-| Tipos compartidos | ⚠️ Parcial | `@ingresa-pe/domain` tiene tipos pero el front los duplica localmente en varios lugares |
+| Llamadas tRPC reales | ✅ Terminado | `auth.login/register`, `profile.getMe`, `ranking.getMyPosition`, `content.getCourses`, `content.getTopics`, `content.getQuestions` y `game.submitAnswer` ya están conectados |
+| Tipos compartidos | ✅ Terminado | `@ingresa-pe/domain` centraliza tipos de auth y preguntas. El engine usa `QuestionDto`/`AnswerSubmission` directamente |
 | `@ingresa-pe/api` (tipo router) | ✅ Terminado | `AppRouterType` se exporta y se usa en `utils/trpc.ts` |
 
 ---
@@ -233,9 +239,9 @@
 
 ```
 AUTENTICACIÓN    [█████████░] 90%  — Login/register/logout/OAuth funcionando; token en URL sigue siendo mejorable
-DASHBOARD        [████░░░░░░] 35%  — Header con datos reales, temario aún mock
-CURSOS           [████░░░░░░] 35%  — UI lista, API lista, sin conectar
-ENGINE           [████░░░░░░] 40%  — UI excelente, API lista, sin conectar
+DASHBOARD        [██████░░░░] 60%  — Temas reales conectados; CourseProgress y header aún con fallback mock
+CURSOS           [███████░░░] 70%  — Lista real y navegación a dashboard con courseId
+ENGINE           [███████░░░] 70%  — Opción múltiple real end-to-end; otros tipos tienen UI base lista
 SIMULADOR        [██████░░░░] 55%  — UI completa, datos mock
 SIMULACROS DASH  [███░░░░░░░] 30%  — UI parcial, sin backend
 ENTRENAR/ARCADE  [██░░░░░░░░] 20%  — UI parcial, sin lógica
@@ -257,14 +263,21 @@ SUSCRIPCIONES    [██░░░░░░░░] 15%  — Solo API, sin UI
 5. **`.gitignore` ahora ignora `.env`:** mitiga exposición futura de secretos.
 6. **Se eliminó `.env` de la raíz** y se crearon `.env.example` y `apps/api/.env.example`.
 7. **Recarga de energía implementada:** `GameService` regenera +1 energía cada 30 minutos.
+8. **Motor de preguntas extensible y conectado:**
+   - Nuevos tipos compartidos (`QuestionType`, `QuestionContent`, `QuestionView`, `AnswerSubmission`) en `@ingresa-pe/domain`.
+   - `QuestionGraderService` y `QuestionViewService` centralizan calificación y stripping de respuestas.
+   - `content.getQuestions` devuelve vistas seguras; `game.submitAnswer` acepta respuestas genéricas y devuelve `rewards`.
+   - Frontend: `useEngine`, `Engine`, registry y renderers para cada tipo de pregunta.
+   - Navegación real: cursos → dashboard (`courseId`) → engine (`topicId` + `courseId`).
+9. **Seed actualizado:** las preguntas del seed ahora usan `type` + `content` con IDs de opciones estables.
 
 ---
 
 ## 💡 Conclusión
 
-**El proyecto ha avanzado significativamente en la capa de autenticación.** Login, registro, logout y protección de rutas en cliente ya funcionan. El frontend comienza a consumir datos reales en el perfil, pero la mayoría de las páginas siguen siendo maquetas visuales alimentadas por mocks locales.
+**El proyecto ha avanzado significativamente.** Autenticación, perfil, cursos, dashboard de temas y motor de preguntas ya están conectados al backend. El flujo vertical login → curso → tema → responder pregunta real → ver feedback/XP/energía/racha funciona end-to-end.
 
-**Prioridad #1:** Conectar el dashboard de cursos y el motor de preguntas: reemplazar `coursesData` y `quizData` por llamadas a `content.getCourses`, `content.getTopics`, `content.getQuestions` y `game.submitAnswer`.
+**Prioridad #1:** Pulir los renderers de `TRUE_FALSE_SWIPE`, `FLASHCARD` y `ORDERING` y agregar contenido real de esos tipos.
 
 **Prioridad #2:** Implementar la lógica de niveles completa y exponerla en el backend.
 

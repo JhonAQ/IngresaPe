@@ -4,16 +4,18 @@ import { PrismaService } from '../prisma.service';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { Difficulty, Prisma } from '@prisma/client';
+import { QuestionViewService } from '../services/question-view.service';
 
 @Injectable()
 export class ContentRouter {
   constructor(
     private readonly trpc: TrpcService,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
+    private readonly viewService: QuestionViewService
   ) {}
 
   router = this.trpc.router({
-    
+
     // ------------------------------------------------------
     // 1. LISTAR CURSOS (Menú Principal)
     // ------------------------------------------------------
@@ -37,8 +39,8 @@ export class ContentRouter {
         const userId = ctx.user.userId;
 
         // A. Validar que el curso exista
-        const courseExists = await this.prisma.course.findUnique({ 
-            where: { id: input.courseId } 
+        const courseExists = await this.prisma.course.findUnique({
+            where: { id: input.courseId }
         });
         if (!courseExists) throw new TRPCError({ code: 'NOT_FOUND', message: 'Curso no encontrado' });
 
@@ -51,7 +53,7 @@ export class ContentRouter {
           },
         });
 
-        // C. Calcular Progreso "Dorado" 
+        // C. Calcular Progreso "Dorado"
         // Meta: 15 correctas para considerar el tema "Dominado" (3 Quizzes de 5)
         const GOAL_TO_GOLD = 15;
 
@@ -91,8 +93,8 @@ export class ContentRouter {
         z.object({
           topicId: z.string().optional(),
           difficulty: z.nativeEnum(Difficulty).optional(),
-          limit: z.number().min(1).max(20).default(5),
-          excludeAnswered: z.boolean().default(true), // True = Modo Infinito (No repetir)
+          limit: z.number().min(1).max(20).default(5), // True = Modo Infinito (No repetir)
+          excludeAnswered: z.boolean().default(true),
         })
       )
       .query(async ({ ctx, input }) => {
@@ -112,15 +114,15 @@ export class ContentRouter {
             )`);
         }
 
-        const whereClause = conditions.length > 0 
-            ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}` 
+        const whereClause = conditions.length > 0
+            ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
             : Prisma.empty;
 
         // Query SQL Nativa para Aleatoriedad Real
         const randomIds = await this.prisma.$queryRaw<Array<{ id: string }>>`
-            SELECT id FROM "Question" 
-            ${whereClause} 
-            ORDER BY RANDOM() 
+            SELECT id FROM "Question"
+            ${whereClause}
+            ORDER BY RANDOM()
             LIMIT ${limit};
         `;
 
@@ -131,7 +133,17 @@ export class ContentRouter {
             where: { id: { in: randomIds.map((r) => r.id) } },
         });
 
-        return questions.sort(() => Math.random() - 0.5); // Doble baraja
+        const shuffled = questions.sort(() => Math.random() - 0.5); // Doble baraja
+
+        return shuffled.map((q) => ({
+            id: q.id,
+            statement: q.statement,
+            imageUrl: q.imageUrl,
+            difficulty: q.difficulty,
+            type: q.type,
+            explanation: q.explanation,
+            content: this.viewService.toView(q),
+        }));
       }),
   });
 }
