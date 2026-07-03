@@ -1,58 +1,50 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Mail, Lock, ChevronRight, Loader2 } from 'lucide-react';
+import { useState, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
+import { Mail, Lock, User, ChevronRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { ChunkyButton } from '../../../components/ui/ChunkyButton';
 import { trpc } from '../../../utils/trpc';
 import { useAuth } from '../../../hooks/useAuth';
 
-function LoginContent() {
+function RegisterContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { login } = useAuth();
-  const loginMutation = trpc.auth.login.useMutation();
+  const registerMutation = trpc.auth.register.useMutation();
 
-  const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
-  const [isLoadingEmail, setIsLoadingEmail] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  // Efecto para verificar si volvemos desde Google OAuth en Nest
-  useEffect(() => {
-    const token = searchParams?.get('token');
-    if (token) {
-      login(token);
-      router.push('/dashboard');
-    }
-  }, [searchParams, router, login]);
-
-  const handleGoogleLogin = () => {
-    setIsLoadingGoogle(true);
-    setAuthError(null);
-    // Redirige al API Backend (Nest) que hace el Auth Guard
-    window.location.href = 'http://localhost:3000/api/auth/google';
-  };
-
-  const handleEmailLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      setIsLoadingEmail(true);
+      setIsLoading(true);
       setAuthError(null);
 
       const formData = new FormData(e.currentTarget);
+      const name = formData.get('name') as string;
       const email = formData.get('email') as string;
       const password = formData.get('password') as string;
+      const confirmPassword = formData.get('confirmPassword') as string;
 
-      const result = await loginMutation.mutateAsync({ email, password });
+      if (password !== confirmPassword) {
+        throw new Error('Las contraseñas no coinciden.');
+      }
+
+      const result = await registerMutation.mutateAsync({
+        name,
+        email,
+        password,
+      });
       login(result.token);
       router.push('/dashboard');
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : 'Error al iniciar sesión.';
+        err instanceof Error ? err.message : 'Error al crear la cuenta.';
       setAuthError(message);
     } finally {
-      setIsLoadingEmail(false);
+      setIsLoading(false);
     }
   };
 
@@ -66,6 +58,9 @@ function LoginContent() {
           <p className="text-slate-500 font-extrabold mt-1 text-[10px] sm:text-[11px] uppercase tracking-wide">
             EL DUOLINGO PARA PREUNIVERSITARIOS
           </p>
+          <p className="text-slate-400 font-bold text-sm mt-4">
+            Crea tu cuenta gratis
+          </p>
         </div>
 
         {authError && (
@@ -75,12 +70,32 @@ function LoginContent() {
         )}
 
         <form
-          onSubmit={handleEmailLogin}
+          onSubmit={handleRegister}
           className="w-full flex flex-col gap-5 sm:gap-6 mb-8"
         >
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 ml-1">
-              CORREO O USUARIO
+              NOMBRE
+            </label>
+            <div className="relative">
+              <User
+                className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 sm:w-6 sm:h-6"
+                strokeWidth={2.5}
+              />
+              <input
+                name="name"
+                type="text"
+                placeholder="Tu nombre"
+                required
+                minLength={2}
+                className="w-full bg-slate-50 border-2 border-slate-200 text-slate-700 font-bold focus:bg-white focus:border-blue-500 focus:outline-none transition-all rounded-2xl h-14 sm:h-16 pl-11 sm:pl-14 text-sm sm:text-base"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 ml-1">
+              CORREO
             </label>
             <div className="relative">
               <Mail
@@ -89,7 +104,7 @@ function LoginContent() {
               />
               <input
                 name="email"
-                type="text"
+                type="email"
                 placeholder="tu@correo.com"
                 required
                 className="w-full bg-slate-50 border-2 border-slate-200 text-slate-700 font-bold focus:bg-white focus:border-blue-500 focus:outline-none transition-all rounded-2xl h-14 sm:h-16 pl-11 sm:pl-14 text-sm sm:text-base"
@@ -98,17 +113,9 @@ function LoginContent() {
           </div>
 
           <div>
-            <div className="flex justify-between items-center mb-2 ml-1">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-0">
-                CONTRASEÑA
-              </label>
-              <button
-                type="button"
-                className="font-extrabold text-slate-400 hover:text-blue-500 transition-colors uppercase text-[10px] sm:text-[11px] tracking-wide"
-              >
-                ¿OLVIDASTE?
-              </button>
-            </div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 ml-1">
+              CONTRASEÑA
+            </label>
             <div className="relative">
               <Lock
                 className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 sm:w-6 sm:h-6"
@@ -119,6 +126,27 @@ function LoginContent() {
                 type="password"
                 placeholder="••••••••"
                 required
+                minLength={6}
+                className="w-full bg-slate-50 border-2 border-slate-200 text-slate-700 font-bold focus:bg-white focus:border-blue-500 focus:outline-none transition-all rounded-2xl h-14 sm:h-16 pl-11 sm:pl-14 text-sm sm:text-base"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 ml-1">
+              REPETIR CONTRASEÑA
+            </label>
+            <div className="relative">
+              <Lock
+                className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 sm:w-6 sm:h-6"
+                strokeWidth={2.5}
+              />
+              <input
+                name="confirmPassword"
+                type="password"
+                placeholder="••••••••"
+                required
+                minLength={6}
                 className="w-full bg-slate-50 border-2 border-slate-200 text-slate-700 font-bold focus:bg-white focus:border-blue-500 focus:outline-none transition-all rounded-2xl h-14 sm:h-16 pl-11 sm:pl-14 text-sm sm:text-base"
               />
             </div>
@@ -130,17 +158,17 @@ function LoginContent() {
               variant="primary"
               size="lg"
               fullWidth
-              disabled={isLoadingEmail || isLoadingGoogle}
+              disabled={isLoading}
               className="text-[16px] sm:text-[18px]"
             >
-              {isLoadingEmail ? (
+              {isLoading ? (
                 <span className="flex items-center gap-3">
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  ENTRANDO...
+                  CREANDO CUENTA...
                 </span>
               ) : (
                 <>
-                  <span>INICIAR SESIÓN</span>
+                  <span>CREAR CUENTA</span>
                   <ChevronRight
                     className="ml-1 w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:translate-x-1.5"
                     strokeWidth={4}
@@ -151,65 +179,23 @@ function LoginContent() {
           </div>
         </form>
 
-        <div className="w-full flex items-center justify-center gap-4 mb-6 sm:mb-8">
-          <div className="h-[2px] bg-slate-200 flex-1"></div>
-          <span className="text-slate-400 font-extrabold text-[10px] sm:text-[11px] tracking-widest whitespace-nowrap">
-            O ENTRA CON
-          </span>
-          <div className="h-[2px] bg-slate-200 flex-1"></div>
-        </div>
-
-        <div className="text-center mb-6 sm:mb-8">
+        <div className="text-center">
           <p className="text-slate-500 font-bold text-sm">
-            ¿No tienes cuenta?{' '}
+            ¿Ya tienes cuenta?{' '}
             <Link
-              href="/register"
+              href="/login"
               className="text-blue-500 hover:text-blue-600 transition-colors"
             >
-              Crear cuenta
+              Inicia sesión
             </Link>
           </p>
         </div>
-
-        <ChunkyButton
-          type="button"
-          onClick={handleGoogleLogin}
-          variant="secondary"
-          size="lg"
-          fullWidth
-          disabled={isLoadingEmail || isLoadingGoogle}
-          className="text-[15px] sm:text-[16px]"
-        >
-          {isLoadingGoogle ? (
-            <Loader2 className="w-6 h-6 animate-spin text-slate-500" />
-          ) : (
-            <svg viewBox="0 0 48 48" className="w-[26px] h-[26px] mr-2">
-              <path
-                fill="#FFC107"
-                d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
-              />
-              <path
-                fill="#FF3D00"
-                d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
-              />
-              <path
-                fill="#4CAF50"
-                d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.499-3.238-11.161-7.859l-6.65,5.184C9.57,39.63,16.208,44,24,44z"
-              />
-              <path
-                fill="#1976D2"
-                d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"
-              />
-            </svg>
-          )}
-          CONTINUAR CON GOOGLE
-        </ChunkyButton>
       </div>
     </div>
   );
 }
 
-export default function LoginPage() {
+export default function RegisterPage() {
   return (
     <Suspense
       fallback={
@@ -218,7 +204,7 @@ export default function LoginPage() {
         </div>
       }
     >
-      <LoginContent />
+      <RegisterContent />
     </Suspense>
   );
 }

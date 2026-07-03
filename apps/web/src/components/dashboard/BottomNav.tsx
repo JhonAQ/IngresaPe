@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ProfileIcon, HomeIcon, SimulacroIcon } from '@ingresa-pe/ui';
-import { BookOpen, Gamepad2 } from 'lucide-react';
+import { Gamepad2 } from 'lucide-react';
 
 const tabs = [
   {

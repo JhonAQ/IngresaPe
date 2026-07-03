@@ -8,7 +8,7 @@ import { MinigameCard } from '../../../components/entrenar/MinigameCard';
 export function EntrenarClient() {
   const [tickets, setTickets] = useState(5);
 
-  const handlePlay = (cost: number = 1) => {
+  const handlePlay = (cost = 1) => {
     if (tickets >= cost) {
       setTickets((prev) => prev - cost);
     }
