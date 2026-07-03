@@ -8,8 +8,10 @@ out-tsc
 # dependencies
 node_modules
 
-#xD tmr Diego
-*.env*
+# Environment files (ignore secrets, keep examples)
+.env
+.env.*
+!.env.example
 
 # IDEs and editors
 /.idea

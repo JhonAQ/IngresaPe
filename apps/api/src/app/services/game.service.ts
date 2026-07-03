@@ -23,12 +23,18 @@ export class GameService {
   async submitAnswer({ userId, questionId, selectedOptionIndex }: SubmitAnswerInput) {
     // 1. Validar Usuario y Energía
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    
+
     if (!user) {
         throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Usuario no encontrado' });
     }
 
-    if (!user.isPremium && user.energy <= 0) {
+    // 1.5 Recargar energía antes de validar (si ha pasado tiempo)
+    const { energy: refilledEnergy, lastRefill: newLastRefill } = this.refillEnergy(
+      user.energy,
+      user.lastRefill
+    );
+
+    if (!user.isPremium && refilledEnergy <= 0) {
       throw new TRPCError({
         code: 'FORBIDDEN',
         message: '¡Sin energía! ⚡ Espera a que se recargue o hazte Premium.',
@@ -65,14 +71,15 @@ export class GameService {
 
     // 6. Transacción Atómica: Guardar Intento y Actualizar User
     return await this.prisma.$transaction(async (tx) => {
-      // A. Actualizar Stats del Usuario (Ahora con Streak)
+      // A. Actualizar Stats del Usuario (Ahora con Streak y recarga de energía)
       const updatedUser = await tx.user.update({
         where: { id: userId },
         data: {
-          energy: { decrement: energyCost },
+          energy: { set: Math.max(0, refilledEnergy - energyCost) },
           totalXp: { increment: xpEarned },
           streak: newStreak, // <--- Actualizamos racha
           lastInteraction: shouldUpdateDate ? new Date() : undefined, // <--- Actualizamos fecha si es necesario
+          lastRefill: newLastRefill,
         },
       });
 
@@ -100,6 +107,33 @@ export class GameService {
         },
       };
     });
+  }
+
+  /**
+   * ⚡ Algoritmo de Recarga de Energía
+   * Regenera +1 de energía por cada 30 minutos transcurridos desde lastRefill,
+   * hasta un máximo de 25.
+   */
+  private refillEnergy(currentEnergy: number, lastRefill: Date) {
+    const MAX_ENERGY = 25;
+    const REFILL_INTERVAL_MINUTES = 30;
+
+    const now = new Date();
+    const last = new Date(lastRefill);
+    const minutesSinceRefill = Math.floor(
+      (now.getTime() - last.getTime()) / (1000 * 60)
+    );
+
+    const energyToAdd = Math.floor(minutesSinceRefill / REFILL_INTERVAL_MINUTES);
+
+    if (energyToAdd <= 0 || currentEnergy >= MAX_ENERGY) {
+      return { energy: currentEnergy, lastRefill: last };
+    }
+
+    return {
+      energy: Math.min(MAX_ENERGY, currentEnergy + energyToAdd),
+      lastRefill: now,
+    };
   }
 
   /**

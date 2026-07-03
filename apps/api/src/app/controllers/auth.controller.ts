@@ -19,13 +19,13 @@ export class AuthController {
   async googleAuthRedirect(@Req() req, @Res() res) {
     // Si llegamos aquí, el usuario ya fue validado por la Strategy
     const user = req.user;
-    
+
     // Generamos el Token
     const token = this.authService.generateToken(user);
 
-    // REDIRECCIÓN FINAL AL FRONTEND
-    // Enviamos el token en la URL para que el Frontend lo capture
-    // Ajusta el puerto 4200 si tu frontend usa otro
-    res.redirect(`http://localhost:4200/login?token=${token}`);
+    // Redirigimos al frontend a la página de callback para que almacene el token.
+    // FRONTEND_URL permite usar el mismo dominio incluso en dispositivos de la red local.
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
+    res.redirect(`${frontendUrl}/auth-callback?token=${token}`);
   }
 }

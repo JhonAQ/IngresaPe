@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { TrpcService } from '../trpc.service';
 import { PrismaService } from '../prisma.service';
-import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { loginSchema, registerSchema } from '@ingresa-pe/domain';
 import { TRPCError } from '@trpc/server';
+import { AuthService } from '../services/auth.service';
 
 @Injectable()
 export class AuthRouter {
   constructor(
     private readonly trpc: TrpcService,
     private readonly prisma: PrismaService,
-    private readonly jwt: JwtService // Inyectamos el servicio JWT de Nest
+    private readonly authService: AuthService
   ) {}
 
   router = this.trpc.router({
@@ -45,7 +45,7 @@ export class AuthRouter {
         });
 
         // D. Generar Token inmediato para que entre directo
-        const token = this.jwt.sign({ userId: newUser.id, email: newUser.email });
+        const token = this.authService.generateToken(newUser);
 
         return { 
             message: '¡Bienvenido a Ingresa.pe!', 
@@ -81,7 +81,7 @@ export class AuthRouter {
         }
 
         // C. Generar Token
-        const token = this.jwt.sign({ userId: user.id, email: user.email });
+        const token = this.authService.generateToken(user);
 
         return { 
             message: 'Sesión iniciada', 

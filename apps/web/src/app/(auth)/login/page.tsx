@@ -30,8 +30,11 @@ function LoginContent() {
   const handleGoogleLogin = () => {
     setIsLoadingGoogle(true);
     setAuthError(null);
-    // Redirige al API Backend (Nest) que hace el Auth Guard
-    window.location.href = 'http://localhost:3000/api/auth/google';
+    // Redirige al API Backend (Nest) que hace el Auth Guard.
+    // Usamos el mismo hostname desde el que se sirvió el frontend.
+    const apiHost =
+      typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+    window.location.href = `http://${apiHost}:3000/api/auth/google`;
   };
 
   const handleEmailLogin = async (e: React.FormEvent<HTMLFormElement>) => {
