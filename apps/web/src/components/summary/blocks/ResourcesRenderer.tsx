@@ -80,11 +80,11 @@ function ResourceCard({ item }: { item: ResourceItem }) {
         <p className="font-black text-slate-800 leading-tight truncate group-hover:text-blue-600 transition-colors">
           {item.title}
         </p>
-        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-0.5">
+        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-0.5 truncate">
           {meta.label} · {meta.domain}
         </p>
         {item.description && (
-          <p className="text-sm text-slate-500 font-medium leading-snug mt-1 line-clamp-2">{item.description}</p>
+          <p className="text-sm text-slate-500 font-medium leading-snug mt-1 line-clamp-2 break-words">{item.description}</p>
         )}
       </div>
       <ExternalLink size={18} className="text-slate-300 shrink-0" />

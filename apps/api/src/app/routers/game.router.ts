@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { TRPCError } from '@trpc/server';
 import { TrpcService } from '../trpc.service';
 import { GameService } from '../services/game.service'; // <--- Importamos el Servicio
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { answerSubmissionSchema } from '@ingresa-pe/domain';
 
 @Injectable()

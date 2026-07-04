@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { TrpcService } from '../trpc.service';
 import { PrismaService } from '../prisma.service';
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { Difficulty, Prisma } from '@prisma/client';
 import { QuestionViewService } from '../services/question-view.service';

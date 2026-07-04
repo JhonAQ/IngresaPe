@@ -142,12 +142,15 @@ export function TopicList({
     const container = scrollContainerRef.current;
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const topicId = entry.target.getAttribute('data-topic-id');
-            if (topicId) onActiveTopicChange(topicId);
-          }
-        });
+        const visible = entries.filter((entry) => entry.isIntersecting);
+        if (visible.length === 0) return;
+
+        const topmost = visible.reduce((a, b) =>
+          a.boundingClientRect.top <= b.boundingClientRect.top ? a : b
+        );
+
+        const topicId = topmost.target.getAttribute('data-topic-id');
+        if (topicId) onActiveTopicChange(topicId);
       },
       {
         root: container,

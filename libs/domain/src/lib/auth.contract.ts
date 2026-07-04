@@ -1,4 +1,4 @@
-import { z } from 'zod/v3';
+import { z } from 'zod';
 
 // 1. Esquema para Registrarse
 export const registerSchema = z.object({
