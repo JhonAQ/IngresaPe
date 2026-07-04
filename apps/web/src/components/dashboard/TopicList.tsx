@@ -27,12 +27,37 @@ interface TopicListProps {
   onOpenSummary: (tema: TemaData) => void;
 }
 
-const pathPositions = [
-  { x: 150, y: 50 },
-  { x: 100, y: 150 },
-  { x: 170, y: 250 },
-  { x: 150, y: 350 },
-];
+const SVG_WIDTH = 300;
+const TOP_MARGIN = 50;
+const BOTTOM_MARGIN = 50;
+const NODE_SPACING = 90;
+const X_LEFT = 95;
+const X_RIGHT = 205;
+
+function generatePathPositions(count: number) {
+  if (count <= 0) return [];
+  const availableHeight = 400 - TOP_MARGIN - BOTTOM_MARGIN;
+  const spacing = Math.min(NODE_SPACING, availableHeight / (count - 1 || 1));
+  const positions = [];
+  for (let i = 0; i < count; i++) {
+    const y = TOP_MARGIN + i * spacing;
+    const x = i % 2 === 0 ? X_RIGHT : X_LEFT;
+    positions.push({ x, y });
+  }
+  return positions;
+}
+
+function buildPathD(positions: { x: number; y: number }[]) {
+  if (positions.length === 0) return '';
+  let d = `M ${positions[0].x} ${positions[0].y}`;
+  for (let i = 1; i < positions.length; i++) {
+    const prev = positions[i - 1];
+    const curr = positions[i];
+    const midY = (prev.y + curr.y) / 2;
+    d += ` C ${prev.x} ${midY}, ${curr.x} ${midY}, ${curr.x} ${curr.y}`;
+  }
+  return d;
+}
 
 export function TopicList({
   courseId,
@@ -40,8 +65,6 @@ export function TopicList({
   temario,
   onOpenSummary,
 }: TopicListProps) {
-  // Mezclamos topics reales con el temario mock existente para no romper el diseño.
-  // Cada topic real se renderiza como un nodo clickeable en el mapa.
   const mergedUnits =
     topics.length > 0
       ? topics.map((topic, index) => ({
@@ -74,9 +97,19 @@ export function TopicList({
         }))
       : temario;
 
+  const pathPositions = generatePathPositions(mergedUnits.length);
+  const pathD = buildPathD(pathPositions);
+  const svgHeight =
+    mergedUnits.length > 1
+      ? pathPositions[pathPositions.length - 1].y + BOTTOM_MARGIN
+      : 400;
+
   return (
     <div className="space-y-12 py-6 relative z-10">
       {mergedUnits.map((unidad, index) => {
+        const pos = pathPositions[index];
+        if (!pos) return null;
+
         return (
           <div
             key={unidad.id}
@@ -94,10 +127,13 @@ export function TopicList({
               />
             </div>
 
-            <div className="relative w-[300px] mx-auto h-[400px]">
+            <div
+              className="relative w-[300px] mx-auto"
+              style={{ height: svgHeight }}
+            >
               <svg
-                width="300"
-                height="400"
+                width={SVG_WIDTH}
+                height={svgHeight}
                 className="absolute top-0 left-0 pointer-events-none"
                 style={{
                   zIndex: 0,
@@ -105,7 +141,7 @@ export function TopicList({
                 }}
               >
                 <path
-                  d="M 150 50 C 150 100, 100 100, 100 150 C 100 200, 170 200, 170 250 C 170 300, 150 300, 150 350"
+                  d={pathD}
                   fill="none"
                   stroke="#e2e8f0"
                   strokeWidth="22"
@@ -113,7 +149,7 @@ export function TopicList({
                   transform="translate(0, 4)"
                 />
                 <path
-                  d="M 150 50 C 150 100, 100 100, 100 150 C 100 200, 170 200, 170 250 C 170 300, 150 300, 150 350"
+                  d={pathD}
                   fill="none"
                   stroke="#f8fafc"
                   strokeWidth="22"
@@ -121,10 +157,9 @@ export function TopicList({
                 />
               </svg>
 
-              {unidad.actividades.map((act, idx) => {
+              {unidad.actividades.map((act) => {
                 const isCompleted = act.state === 'completed';
                 const isLocked = act.state === 'locked';
-                const pos = pathPositions[idx];
                 const Icon = act.icon;
 
                 const RenderedIcon = isCompleted ? (
