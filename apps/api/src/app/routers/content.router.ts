@@ -54,11 +54,12 @@ export class ContentRouter {
           },
         });
 
-        // C. Calcular Progreso
+        // C. Calcular Progreso por Nodos
+        // - Cada nodo es una lección de ~7 preguntas (rango 6-10).
         // - Dorado: 15 correctas (dominio total del tema).
-        // - Completado: el usuario respondió todas las preguntas del tema.
-        // - Nodos: se desbloquean por sesiones jugadas, no solo por aciertos.
+        // - Completado: el usuario terminó todos los nodos del tema.
         const GOAL_TO_GOLD = 15;
+        const NODE_SIZE = 7;
 
         const topicsWithProgress = await Promise.all(
             topics.map(async (topic) => {
@@ -80,6 +81,8 @@ export class ContentRouter {
                 });
 
                 const totalQuestions = topic._count.questions;
+                const nodeCount = Math.max(1, Math.ceil(totalQuestions / NODE_SIZE));
+                const completedNodes = Math.min(nodeCount, Math.floor(attemptedCount / NODE_SIZE));
 
                 return {
                     ...topic,
@@ -88,10 +91,13 @@ export class ContentRouter {
                     userProgress: {
                         attemptedCount,
                         correctCount,
+                        nodeSize: NODE_SIZE,
+                        nodeCount,
+                        completedNodes,
                         goal: GOAL_TO_GOLD,
-                        percentage: Math.min(100, Math.round((attemptedCount / Math.max(1, totalQuestions)) * 100)),
+                        percentage: Math.min(100, Math.round((completedNodes / Math.max(1, nodeCount)) * 100)),
                         isGold: correctCount >= GOAL_TO_GOLD, // True = Pintar de Dorado
-                        isCompleted: attemptedCount >= totalQuestions // True = Ya no hay preguntas nuevas
+                        isCompleted: completedNodes >= nodeCount // True = Ya no hay preguntas nuevas
                     }
                 };
             })

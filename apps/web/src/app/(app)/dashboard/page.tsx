@@ -116,14 +116,17 @@ function DashboardContent() {
     );
   }
 
+  const totalNodes = typedTopics.reduce(
+    (sum, t) => sum + (t.userProgress?.nodeCount ?? 1),
+    0
+  );
+  const completedNodes = typedTopics.reduce(
+    (sum, t) => sum + (t.userProgress?.completedNodes ?? 0),
+    0
+  );
+
   const progress = selectedCourse
-    ? Math.round(
-        (typedTopics.filter(
-          (t) => t.userProgress?.isGold || t.userProgress?.isCompleted
-        ).length /
-          (typedTopics.length || 1)) *
-          100
-      )
+    ? Math.round((completedNodes / Math.max(1, totalNodes)) * 100)
     : 0;
 
   const activeTopicIndex = typedTopics.findIndex((t) => t.id === activeTopicId);

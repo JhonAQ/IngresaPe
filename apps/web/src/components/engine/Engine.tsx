@@ -15,6 +15,8 @@ export function Engine() {
   const params = useSearchParams();
   const topicId = params.get('topicId');
   const courseId = params.get('courseId');
+  const nodeIndex = Math.max(0, parseInt(params.get('nodeIndex') ?? '0', 10));
+  const nodeSize = Math.max(1, parseInt(params.get('nodeSize') ?? '7', 10));
 
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
@@ -31,7 +33,8 @@ export function Engine() {
     continueNext,
     onClose,
   } = useEngine(topicId ?? '', courseId, {
-    limit: 5,
+    nodeIndex,
+    nodeSize,
     onClose: () => router.back(),
   });
 

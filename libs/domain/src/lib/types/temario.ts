@@ -10,6 +10,8 @@ export interface Actividad {
   state: 'completed' | 'current' | 'locked';
   icon: LucideIcon;
   color?: MapNodeColor;
+  /** Tamaño del nodo en número de preguntas (usado por el engine). */
+  nodeSize?: number;
 }
 
 export interface TemaData {

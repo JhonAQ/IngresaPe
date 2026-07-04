@@ -15,6 +15,9 @@ export interface TopicFromApi {
   userProgress?: {
     attemptedCount: number;
     correctCount: number;
+    nodeSize: number;
+    nodeCount: number;
+    completedNodes: number;
     goal: number;
     percentage: number;
     isGold: boolean;
@@ -66,45 +69,56 @@ function buildPathD(positions: { x: number; y: number }[]) {
   return d;
 }
 
+function getNodeName(index: number) {
+  return NODE_NAMES[index] ?? `Lección ${index + 1}`;
+}
+
+function getNodeIcon(index: number) {
+  return NODE_ICONS[index % NODE_ICONS.length];
+}
+
 function buildActivities(
   topic: TopicFromApi,
   topicIndex: number,
   isLocked: boolean
 ) {
   const totalQuestions = topic.totalQuestions ?? 15;
-  const nodeGoal = Math.max(1, Math.ceil(totalQuestions / 3));
-
-  const attemptedCount = topic.userProgress?.attemptedCount ?? 0;
+  const nodeSize = topic.userProgress?.nodeSize ?? 7;
+  const nodeCount =
+    topic.userProgress?.nodeCount ??
+    Math.max(1, Math.ceil(totalQuestions / nodeSize));
+  const completedNodes = topic.userProgress?.completedNodes ?? 0;
   const isCompleted = topic.userProgress?.isCompleted ?? false;
   const isGold = topic.userProgress?.isGold ?? false;
 
   // Si el tema está bloqueado, todo bloqueado.
   if (isLocked) {
-    return Array.from({ length: 3 }, (_, i) => ({
+    return Array.from({ length: nodeCount }, (_, i) => ({
       id: `${topicIndex}-${i}`,
-      name: NODE_NAMES[i],
+      name: getNodeName(i),
       state: 'locked' as const,
-      icon: NODE_ICONS[i],
+      icon: getNodeIcon(i),
+      nodeSize,
       color: 'primary' as MapNodeColor,
     }));
   }
 
   // Si el tema ya fue completado o dominado, todos los nodos completados.
   if (isCompleted || isGold) {
-    return Array.from({ length: 3 }, (_, i) => ({
+    return Array.from({ length: nodeCount }, (_, i) => ({
       id: `${topicIndex}-${i}`,
-      name: NODE_NAMES[i],
+      name: getNodeName(i),
       state: 'completed' as const,
-      icon: NODE_ICONS[i],
+      icon: getNodeIcon(i),
+      nodeSize,
       color: (isGold ? 'success' : 'primary') as MapNodeColor,
     }));
   }
 
-  // Progreso por nodos: cada nodo se completa al jugar `nodeGoal` preguntas.
-  const completedNodes = Math.min(3, Math.floor(attemptedCount / nodeGoal));
-  const currentNodeIndex = Math.min(2, completedNodes);
+  // Progreso por nodos: cada nodo se completa al jugar `nodeSize` preguntas.
+  const currentNodeIndex = completedNodes;
 
-  return Array.from({ length: 3 }, (_, i) => {
+  return Array.from({ length: nodeCount }, (_, i) => {
     let state: 'completed' | 'current' | 'locked';
     if (i < completedNodes) {
       state = 'completed';
@@ -116,9 +130,10 @@ function buildActivities(
 
     return {
       id: `${topicIndex}-${i}`,
-      name: NODE_NAMES[i],
+      name: getNodeName(i),
       state,
-      icon: NODE_ICONS[i],
+      icon: getNodeIcon(i),
+      nodeSize,
       color: (state === 'completed'
         ? 'success'
         : state === 'current'
@@ -282,7 +297,7 @@ export function TopicList({
                       nodeContent
                     ) : (
                       <Link
-                        href={`/engine?topicId=${unidad.id}&courseId=${courseId}`}
+                        href={`/engine?topicId=${unidad.id}&courseId=${courseId}&nodeIndex=${actIndex}&nodeSize=${act.nodeSize}`}
                         className="block relative"
                       >
                         {nodeContent}

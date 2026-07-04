@@ -32,9 +32,14 @@ export interface UseEngineResult {
 export function useEngine(
   topicId: string,
   courseId: string | null,
-  options: { limit?: number; onClose?: () => void } = {}
+  options: {
+    nodeIndex?: number;
+    nodeSize?: number;
+    onClose?: () => void;
+  } = {}
 ): UseEngineResult {
-  const { limit = 5, onClose } = options;
+  const { nodeIndex: _nodeIndex = 0, nodeSize = 7, onClose } = options;
+  void _nodeIndex; // reservado para futuras validaciones de nodo
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answer, setAnswerState] = useState<AnswerSubmission | null>(null);
   const [status, setStatus] = useState<EngineStatus>('loading');
@@ -50,7 +55,7 @@ export function useEngine(
     isError: isQuestionsError,
     error: questionsError,
   } = trpc.content.getQuestions.useQuery(
-    { topicId, limit, excludeAnswered: true },
+    { topicId, limit: nodeSize, excludeAnswered: true },
     {
       retry: false,
       refetchOnWindowFocus: false,
