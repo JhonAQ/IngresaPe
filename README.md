@@ -1,104 +1,184 @@
-# New Nx Repository
+# 🎓 Ingresa.pe
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+> **El Duolingo de los preuniversitarios peruanos**
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+Plataforma educativa gamificada para preparar el examen de admisión de universidades peruanas. Aprende con micro-lecciones, responde preguntas reales, sube de nivel y compite con tus amigos.
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/js?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+[![CI](https://github.com/JhonAQ/IngresaPe/actions/workflows/ci.yml/badge.svg)](https://github.com/JhonAQ/IngresaPe/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-All%20Rights%20Reserved-red.svg)](./LICENSE)
+[![Stack](https://img.shields.io/badge/stack-Nx%20%7C%20Next.js%2016%20%7C%20NestJS%2011%20%7C%20tRPC%2011-blue.svg)](https://nx.dev)
 
-## Generate a library
+---
 
-```sh
-npx nx g @nx/js:lib packages/pkg1 --publishable --importPath=@my-org/pkg1
+## 🚀 Características principales
+
+- **Autenticación flexible:** email/password y Google OAuth.
+- **Dashboard gamificado:** mapa de temas por curso, progreso visual y resúmenes oficiales con bloques enriquecidos (texto, fórmulas LaTeX, imágenes, tips, etc.).
+- **Motor de preguntas extensible:** soporta opción múltiple, verdadero/falso, flashcards y ordenamiento. Agregar un nuevo tipo de pregunta es tan fácil como registrar un renderer.
+- **Gamificación real:** energía, monedas, XP, racha diaria y sistema de niveles.
+- **Tienda y ranking:** APIs listas para avataes, consumibles y tabla de posiciones.
+- **Simulador de examen:** UI completa con ficha óptica, timer y navegación (conexión backend en progreso).
+
+---
+
+## 🛠️ Stack tecnológico
+
+| Capa | Tecnología |
+|------|------------|
+| Monorepo | [Nx](https://nx.dev) |
+| Frontend | Next.js 16 (App Router), React 19, Tailwind CSS, Framer Motion |
+| Backend | NestJS 11, tRPC 11, Prisma 5, PostgreSQL 15 |
+| APIs | tRPC type-safe + REST OAuth callback |
+| UI compartida | Librería `@ingresa-pe/ui` (Rollup) |
+| Dominio compartido | Librería `@ingresa-pe/domain` (Zod + TypeScript) |
+
+---
+
+## 📁 Estructura del monorepo
+
+```
+.
+├── apps/
+│   ├── web/            # Next.js frontend (puerto 4200)
+│   └── api/            # NestJS backend (puerto 3000)
+├── libs/
+│   ├── domain/         # Tipos, schemas Zod y mocks compartidos
+│   └── ui/             # Componentes reutilizables gamificados
+├── docs/               # Arquitectura, estado actual y roadmap
+├── prisma/             # Schema y seed (dentro de apps/api)
+├── docker-compose.yml  # PostgreSQL + Redis para desarrollo
+├── .env.example        # Variables de entorno necesarias
+└── README.md           # Este archivo
 ```
 
-## Run tasks
+---
 
-To build the library use:
+## ⚡ Quick start
 
-```sh
-npx nx build pkg1
+### Requisitos
+
+- Node.js 20 (recomendado usar `nvm use`)
+- Docker + Docker Compose (para PostgreSQL y Redis)
+- Cuenta de Google OAuth (opcional, para login social)
+
+### 1. Instalar dependencias
+
+```bash
+npm install
 ```
 
-To run any task with Nx use:
+### 2. Configurar variables de entorno
 
-```sh
-npx nx <target> <project-name>
+Copia el archivo de ejemplo en la raíz del monorepo y completa tus secretos:
+
+```bash
+cp .env.example .env
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+> ⚠️ **Importante:** el `.env` real debe estar en la **raíz del monorepo**, porque Nx ejecuta el servidor de la API desde allí.
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### 3. Levantar la base de datos
 
-## Versioning and releasing
-
-To version and release the library use
-
-```
-npx nx release
+```bash
+docker-compose up -d
 ```
 
-Pass `--dry-run` to see what would happen without actually releasing the library.
+### 4. Migrar y sembrar la base de datos
 
-[Learn more about Nx release &raquo;](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+```bash
+cd apps/api
+npx prisma migrate dev
+npx prisma db seed
+```
 
-## Keep TypeScript project references up to date
+### 5. Iniciar los servidores de desarrollo
 
-Nx automatically updates TypeScript [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) in `tsconfig.json` files to ensure they remain accurate based on your project dependencies (`import` or `require` statements). This sync is automatically done when running tasks such as `build` or `typecheck`, which require updated references to function correctly.
+Terminal 1 (frontend):
 
-To manually trigger the process to sync the project graph dependencies information to the TypeScript project references, run the following command:
+```bash
+npx nx dev web
+```
 
-```sh
+Terminal 2 (backend):
+
+```bash
+npx nx serve api
+```
+
+Abre [http://localhost:4200](http://localhost:4200).
+
+---
+
+## 🧰 Scripts útiles
+
+```bash
+# Frontend
+npx nx dev web
+npx nx build web
+npx nx lint web
+npx nx typecheck web
+npx nx test web
+
+# Backend
+npx nx serve api
+npx nx build api
+npx nx lint api
+npx nx typecheck api
+npx nx test api
+
+# Base de datos
+cd apps/api
+npx prisma migrate dev
+npx prisma db seed
+npx prisma generate
+npx prisma studio
+
+# Todo el repo
+npx nx run-many -t lint typecheck test build
+npx nx format:check
 npx nx sync
 ```
 
-You can enforce that the TypeScript project references are always in the correct state when running in CI by adding a step to your CI job configuration that runs the following command:
+---
 
-```sh
-npx nx sync:check
+## 🧪 Tests
+
+El proyecto cuenta con tests de autenticación tanto en API como en web:
+
+```bash
+npx nx test api
+npx nx test web
 ```
 
-[Learn more about nx sync](https://nx.dev/reference/nx-commands#sync)
+---
 
-## Nx Cloud
+## 🗺️ Roadmap y estado
 
-Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
+Consulta [`docs/CURRENT_STATE.md`](./docs/CURRENT_STATE.md) para un análisis detallado de:
 
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- Qué features están terminadas.
+- Qué está parcial o desconectado.
+- Qué falta implementar.
+- Prioridades actuales y deuda técnica.
 
-### Set up CI (non-Github Actions CI)
+---
 
-**Note:** This is only required if your CI provider is not GitHub Actions.
+## 🤝 Contribuir
 
-Use the following command to configure a CI workflow for your workspace:
+¡Las contribuciones son bienvenidas! Lee [`CONTRIBUTING.md`](./CONTRIBUTING.md) para conocer el flujo de trabajo, convenciones de commits y cómo abrir un PR.
 
-```sh
-npx nx g ci-workflow
-```
+---
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## 📄 Licencia
 
-## Install Nx Console
+Este proyecto es propiedad de **Ingresa.pe**. Todos los derechos reservados.
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+Ver [`LICENSE`](./LICENSE) para más detalles. Si estás interesado en una licencia de uso comercial, escríbenos a **contacto@ingresa.pe**.
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+---
 
-## Useful links
+## 📬 Contacto
 
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/nx-api/js?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- Web: [https://ingresa.pe](https://ingresa.pe)
+- Email: contacto@ingresa.pe
+- GitHub: [@JhonAQ/IngresaPe](https://github.com/JhonAQ/IngresaPe)
