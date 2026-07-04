@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, Suspense, useEffect } from 'react';
+import { useState, Suspense, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CourseProgress } from '../../../components/dashboard/CourseProgress';
-import { TopicList } from '../../../components/dashboard/TopicList';
+import { TopicList, TopicFromApi } from '../../../components/dashboard/TopicList';
+import { TopicHeader } from '../../../components/dashboard/TopicHeader';
 import { SummaryModal } from '../../../components/dashboard/SummaryModal';
 import { useDashboardData } from '../../../hooks/useDashboardData';
 import { useCourseSelector } from '../../../components/dashboard/CourseSelectorContext';
@@ -11,8 +12,29 @@ import { CourseSelector } from '../../../components/dashboard/CourseSelector';
 import { trpc } from '../../../utils/trpc';
 import type { TemaData } from '@ingresa-pe/domain';
 
+function buildTemaData(topic: TopicFromApi, index: number): TemaData {
+  return {
+    id: Number(topic.id),
+    tema: index + 1,
+    titulo: topic.name,
+    descripcion: topic.slug,
+    variant: 'primary',
+    actividades: [],
+    resumenData: {
+      introduccion: `Resumen de ${topic.name}`,
+      imagenExplicativa: false,
+      puntosClave: [],
+      formulaDestacada: '',
+      tipExamen: '',
+    },
+    color: topic.userProgress?.isGold ? '#58cc02' : '#1cb0f6',
+  } as TemaData;
+}
+
 function DashboardContent() {
   const [resumenActivo, setResumenActivo] = useState<TemaData | null>(null);
+  const [activeTopicId, setActiveTopicId] = useState<string | null>(null);
+  const mainRef = useRef<HTMLElement>(null);
   const params = useSearchParams();
   const router = useRouter();
   const urlCourseId = params.get('courseId');
@@ -51,10 +73,17 @@ function DashboardContent() {
     { enabled: !!courseId, retry: false, refetchOnWindowFocus: false }
   );
 
+  useEffect(() => {
+    if (topics.length > 0 && !activeTopicId) {
+      setActiveTopicId(topics[0].id);
+    }
+  }, [topics, activeTopicId]);
+
   const selectedCourse = courses.find((c) => c.id === courseId);
 
   const handleCourseChange = (nextCourseId: string) => {
     setCourseId(nextCourseId);
+    setActiveTopicId(null);
     router.replace(`/dashboard?courseId=${nextCourseId}`, { scroll: false });
   };
 
@@ -91,12 +120,16 @@ function DashboardContent() {
   const progress = selectedCourse
     ? Math.round(
         (topics.filter(
-          (t: any) => t.userProgress?.isGold || t.userProgress?.isCompleted
+          (t: TopicFromApi) => t.userProgress?.isGold || t.userProgress?.isCompleted
         ).length /
           (topics.length || 1)) *
           100
       )
     : 0;
+
+  const activeTopicIndex = topics.findIndex((t) => t.id === activeTopicId);
+  const activeTopic =
+    activeTopicIndex >= 0 ? buildTemaData(topics[activeTopicIndex], activeTopicIndex) : null;
 
   return (
     <>
@@ -105,8 +138,11 @@ function DashboardContent() {
         onSelect={handleCourseChange}
       />
 
-      <main className="flex-1 flex flex-col gap-2 overflow-y-auto px-5 pb-32 hide-scrollbar bg-slate-50/50">
-        <div className="sticky top-0 z-40 pt-2 -mx-1 px-1 space-y-3">
+      <main
+        ref={mainRef}
+        className="flex-1 flex flex-col gap-2 overflow-y-auto px-5 pb-32 hide-scrollbar bg-slate-50/50"
+      >
+        <div className="pt-2 -mx-1 px-1 space-y-3">
           <CourseProgress
             courseName={selectedCourse?.name ?? 'Seleccionar curso'}
             progress={progress}
@@ -114,11 +150,23 @@ function DashboardContent() {
           />
         </div>
 
+        {activeTopic && (
+          <div className="sticky top-0 z-40 -mx-1 px-1 pt-2 pb-3 bg-slate-50/95 backdrop-blur-sm">
+            <TopicHeader
+              subtitle={`TEMA ${activeTopic.tema}`}
+              title={activeTopic.titulo}
+              onGuideClick={() => setResumenActivo(activeTopic)}
+            />
+          </div>
+        )}
+
         <TopicList
           courseId={courseId ?? courses[0].id}
           topics={topics}
           temario={dashboardData.temario ?? []}
           onOpenSummary={setResumenActivo}
+          onActiveTopicChange={setActiveTopicId}
+          scrollContainerRef={mainRef}
         />
       </main>
 

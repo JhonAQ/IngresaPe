@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Trophy } from 'lucide-react';
 import {
@@ -122,10 +122,24 @@ export function CourseSelector({ selectedCourseId, onSelect }: CourseSelectorPro
     });
   }, [courses, progressByCourse]);
 
-  if (!isOpen) return null;
+  const [previewCourseId, setPreviewCourseId] = useState<string | null>(selectedCourseId);
 
-  const activeCourse =
-    coursesData.find((c) => c.id === selectedCourseId) ?? coursesData[0];
+  useEffect(() => {
+    if (isOpen) {
+      setPreviewCourseId(selectedCourseId);
+    }
+  }, [isOpen, selectedCourseId]);
+
+  const previewCourse = coursesData.find((c) => c.id === previewCourseId) ?? coursesData[0];
+
+  const handleConfirm = () => {
+    if (previewCourseId) {
+      onSelect(previewCourseId);
+      close();
+    }
+  };
+
+  if (!isOpen) return null;
 
   return (
     <div className="absolute inset-0 z-50 bg-white flex flex-col">
@@ -158,7 +172,7 @@ export function CourseSelector({ selectedCourseId, onSelect }: CourseSelectorPro
         ) : (
           <div className="flex flex-col gap-5">
             {coursesData.map((course) => {
-              const isSelected = activeCourse?.id === course.id;
+              const isSelected = previewCourseId === course.id;
               const isLocked = course.status === 'locked';
               const Icon = course.icon;
 
@@ -168,8 +182,7 @@ export function CourseSelector({ selectedCourseId, onSelect }: CourseSelectorPro
                   layout
                   onClick={() => {
                     if (isLocked) return;
-                    onSelect(course.id);
-                    close();
+                    setPreviewCourseId(course.id);
                   }}
                   className={`w-full rounded-2xl border-2 border-duo-border border-b-[5px] flex flex-col overflow-hidden cursor-pointer transition-colors
                     ${isLocked ? 'opacity-60 grayscale-[0.5]' : 'bg-white'}`}
@@ -254,6 +267,21 @@ export function CourseSelector({ selectedCourseId, onSelect }: CourseSelectorPro
           </div>
         )}
       </main>
+
+      {/* Botón Continuar sticky */}
+      <div className="sticky bottom-0 bg-white border-t-2 border-duo-border px-4 py-4 z-30">
+        <button
+          onClick={handleConfirm}
+          disabled={!previewCourseId}
+          className="w-full text-white font-black text-[16px] uppercase tracking-widest py-3.5 rounded-2xl border-b-[5px] active:border-b-0 active:translate-y-[5px] transition-all flex justify-center items-center gap-2 disabled:opacity-50 disabled:active:translate-y-0 disabled:active:border-b-[5px]"
+          style={{
+            backgroundColor: previewCourse?.colorHex || '#1cb0f6',
+            borderColor: 'rgba(0,0,0,0.15)',
+          }}
+        >
+          CONTINUAR
+        </button>
+      </div>
     </div>
   );
 }

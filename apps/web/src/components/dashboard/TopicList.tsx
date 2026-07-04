@@ -1,11 +1,11 @@
 import Link from 'next/link';
+import React, { useEffect, useRef } from 'react';
 import { Check, Lock, BookOpen } from 'lucide-react';
 import { TemaData } from '@ingresa-pe/domain';
 import { MapNode, MapNodeColor } from '@ingresa-pe/ui';
-import { TopicHeader } from './TopicHeader';
 import { TopicDivider } from './TopicDivider';
 
-interface TopicFromApi {
+export interface TopicFromApi {
   id: string;
   name: string;
   slug: string;
@@ -25,6 +25,8 @@ interface TopicListProps {
   topics: TopicFromApi[];
   temario: TemaData[];
   onOpenSummary: (tema: TemaData) => void;
+  onActiveTopicChange?: (topicId: string) => void;
+  scrollContainerRef?: React.RefObject<HTMLElement | null>;
 }
 
 const SVG_WIDTH = 300;
@@ -64,6 +66,8 @@ export function TopicList({
   topics,
   temario,
   onOpenSummary,
+  onActiveTopicChange,
+  scrollContainerRef,
 }: TopicListProps) {
   const mergedUnits =
     topics.length > 0
@@ -104,6 +108,42 @@ export function TopicList({
       ? pathPositions[pathPositions.length - 1].y + BOTTOM_MARGIN
       : 400;
 
+  const dividerRefs = useRef(new Map<string, HTMLElement>());
+
+  useEffect(() => {
+    if (!scrollContainerRef?.current || !onActiveTopicChange) return;
+
+    const container = scrollContainerRef.current;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const topicId = entry.target.getAttribute('data-topic-id');
+            if (topicId) onActiveTopicChange(topicId);
+          }
+        });
+      },
+      {
+        root: container,
+        rootMargin: '-45% 0px -45% 0px',
+        threshold: 0,
+      }
+    );
+
+    dividerRefs.current.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [mergedUnits, onActiveTopicChange, scrollContainerRef]);
+
+  const setDividerRef =
+    (topicId: string) =>
+    (el: HTMLElement | null): void => {
+      if (el) {
+        dividerRefs.current.set(topicId, el);
+      } else {
+        dividerRefs.current.delete(topicId);
+      }
+    };
+
   return (
     <div className="space-y-12 py-6 relative z-10">
       {mergedUnits.map((unidad, index) => {
@@ -116,16 +156,12 @@ export function TopicList({
             className="relative z-20 flex flex-col items-center"
           >
             {index > 0 && (
-              <TopicDivider label={unidad.descripcion || 'Siguiente tema'} />
-            )}
-
-            <div className="w-full mb-4 flex justify-center">
-              <TopicHeader
-                subtitle={`TEMA ${unidad.tema}`}
-                title={unidad.titulo}
-                onGuideClick={() => onOpenSummary(unidad as TemaData)}
+              <TopicDivider
+                ref={setDividerRef(String(unidad.id))}
+                data-topic-id={String(unidad.id)}
+                label={unidad.descripcion || 'Siguiente tema'}
               />
-            </div>
+            )}
 
             <div
               className="relative w-[300px] mx-auto"
