@@ -11,36 +11,6 @@ import { CourseSelector } from '../../../components/dashboard/CourseSelector';
 import { trpc } from '../../../utils/trpc';
 import type { TemaData } from '@ingresa-pe/domain';
 
-function CoursePill({
-  name,
-  progress,
-  color,
-  onClick,
-}: {
-  name: string;
-  progress: number;
-  color: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="w-full text-left bg-white border-2 border-duo-border border-b-[4px] rounded-2xl p-4 active:border-b-0 active:translate-y-[4px] transition-all"
-    >
-      <div className="flex justify-between items-center mb-2">
-        <span className="font-black text-[16px] text-duo-dark">{name}</span>
-        <span className="font-bold text-[13px]" style={{ color }}>{progress}%</span>
-      </div>
-      <div className="h-[10px] bg-duo-border rounded-full overflow-hidden relative">
-        <div
-          className="absolute top-0 left-0 bottom-0 rounded-full transition-all duration-500"
-          style={{ width: `${progress}%`, backgroundColor: color }}
-        />
-      </div>
-    </button>
-  );
-}
-
 function DashboardContent() {
   const [resumenActivo, setResumenActivo] = useState<TemaData | null>(null);
   const params = useSearchParams();
@@ -118,19 +88,6 @@ function DashboardContent() {
     );
   }
 
-  const courseColor = selectedCourse?.name
-    ? ({
-        Biología: '#58cc02',
-        'Álgebra': '#1cb0f6',
-        'Razonamiento Matemático': '#ce82ff',
-        Geometría: '#ff9600',
-        Física: '#ff9600',
-        Química: '#afafaf',
-        Literatura: '#ff4b4b',
-        'Historia del Perú': '#1cb0f6',
-      }[selectedCourse.name] ?? '#1cb0f6')
-    : '#1cb0f6';
-
   const progress = selectedCourse
     ? Math.round(
         (topics.filter(
@@ -150,11 +107,9 @@ function DashboardContent() {
 
       <main className="flex-1 flex flex-col gap-2 overflow-y-auto px-5 pb-32 hide-scrollbar bg-slate-50/50">
         <div className="sticky top-0 z-40 pt-2 -mx-1 px-1 space-y-3">
-          <CourseProgress />
-          <CoursePill
-            name={selectedCourse?.name ?? 'Seleccionar curso'}
+          <CourseProgress
+            courseName={selectedCourse?.name ?? 'Seleccionar curso'}
             progress={progress}
-            color={courseColor}
             onClick={open}
           />
         </div>
