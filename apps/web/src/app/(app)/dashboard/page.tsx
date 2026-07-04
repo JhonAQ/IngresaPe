@@ -69,7 +69,12 @@ function DashboardContent() {
     error: topicsError,
   } = trpc.content.getTopics.useQuery(
     { courseId: courseId ?? '' },
-    { enabled: !!courseId, retry: false, refetchOnWindowFocus: false }
+    {
+      enabled: !!courseId,
+      retry: false,
+      refetchOnWindowFocus: false,
+      refetchOnMount: 'always',
+    }
   );
 
   const typedTopics = topics as unknown as TopicFromApi[];

@@ -65,15 +65,26 @@ function buildPathD(positions: { x: number; y: number }[]) {
   return d;
 }
 
-function buildActivities(topic: TopicFromApi, topicIndex: number) {
-  const isGold = topic.userProgress?.isGold ?? false;
+function buildActivities(
+  topic: TopicFromApi,
+  topicIndex: number,
+  isLocked: boolean
+) {
+  const correctCount = topic.userProgress?.correctCount ?? 0;
   const isCompleted = topic.userProgress?.isCompleted ?? false;
+  const isGold = topic.userProgress?.isGold ?? false;
+  const totalQuestions = topic.totalQuestions ?? 15;
+  const nodeGoal = Math.max(1, Math.ceil(totalQuestions / 3));
 
   return Array.from({ length: 3 }, (_, i) => {
+    const threshold = (i + 1) * nodeGoal;
     let state: 'completed' | 'current' | 'locked';
-    if (isGold || isCompleted) {
+
+    if (isLocked) {
+      state = 'locked';
+    } else if (isCompleted || isGold || correctCount >= threshold) {
       state = 'completed';
-    } else if (i === 0) {
+    } else if (i === 0 || correctCount >= i * nodeGoal) {
       state = 'current';
     } else {
       state = 'locked';
@@ -84,7 +95,11 @@ function buildActivities(topic: TopicFromApi, topicIndex: number) {
       name: NODE_NAMES[i],
       state,
       icon: NODE_ICONS[i],
-      color: (isGold ? 'success' : state === 'current' ? 'warning' : 'primary') as MapNodeColor,
+      color: (isGold || isCompleted
+        ? 'success'
+        : state === 'current'
+        ? 'warning'
+        : 'primary') as MapNodeColor,
     };
   });
 }
@@ -99,24 +114,32 @@ export function TopicList({
 }: TopicListProps) {
   const mergedUnits =
     topics.length > 0
-      ? topics.map((topic, index) => ({
-          id: topic.id,
-          tema: index + 1,
-          titulo: topic.name,
-          descripcion: topic.slug,
-          variant: 'primary' as const,
-          actividades: buildActivities(topic, index),
-          resumenData: topic.summary || {
-            introduccion: `Resumen de ${topic.name}`,
-            puntosClave: [],
-            formulaDestacada: '',
-            tipExamen: '',
-          },
-          color: topic.userProgress?.isGold ? '#58cc02' : '#1cb0f6',
-        }))
+      ? topics.map((topic, index) => {
+          const previousTopicCompleted =
+            index === 0 ||
+            topics[index - 1].userProgress?.isCompleted === true ||
+            topics[index - 1].userProgress?.isGold === true;
+          const isLocked = !previousTopicCompleted;
+
+          return {
+            id: topic.id,
+            tema: index + 1,
+            titulo: topic.name,
+            descripcion: topic.slug,
+            variant: 'primary' as const,
+            actividades: buildActivities(topic, index, isLocked),
+            resumenData: topic.summary || {
+              introduccion: `Resumen de ${topic.name}`,
+              puntosClave: [],
+              formulaDestacada: '',
+              tipExamen: '',
+            },
+            color: topic.userProgress?.isGold ? '#58cc02' : '#1cb0f6',
+          };
+        })
       : temario;
 
-  const dividerRefs = useRef(new Map<string, HTMLElement>());
+  const topicRefs = useRef(new Map<string, HTMLElement>());
 
   useEffect(() => {
     if (!scrollContainerRef?.current || !onActiveTopicChange) return;
@@ -133,22 +156,22 @@ export function TopicList({
       },
       {
         root: container,
-        rootMargin: '-45% 0px -45% 0px',
+        rootMargin: '-15% 0px -60% 0px',
         threshold: 0,
       }
     );
 
-    dividerRefs.current.forEach((el) => observer.observe(el));
+    topicRefs.current.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
   }, [mergedUnits, onActiveTopicChange, scrollContainerRef]);
 
-  const setDividerRef =
+  const setTopicRef =
     (topicId: string) =>
     (el: HTMLElement | null): void => {
       if (el) {
-        dividerRefs.current.set(topicId, el);
+        topicRefs.current.set(topicId, el);
       } else {
-        dividerRefs.current.delete(topicId);
+        topicRefs.current.delete(topicId);
       }
     };
 
@@ -165,14 +188,12 @@ export function TopicList({
         return (
           <div
             key={unidad.id}
+            ref={setTopicRef(String(unidad.id))}
+            data-topic-id={String(unidad.id)}
             className="relative z-20 flex flex-col items-center"
           >
             {index > 0 && (
-              <TopicDivider
-                ref={setDividerRef(String(unidad.id))}
-                data-topic-id={String(unidad.id)}
-                label={unidad.descripcion || 'Siguiente tema'}
-              />
+              <TopicDivider label={unidad.descripcion || 'Siguiente tema'} />
             )}
 
             <div

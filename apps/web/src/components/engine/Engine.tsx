@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useEngine } from './useEngine';
 import { getQuestionRenderer } from './registry';
 import { EngineHeader, FeedbackDrawer, DuoMaxModal } from './SharedEngineUI';
+import { LatexText } from '../ui/LatexText';
 import type { ComponentType } from 'react';
 
 export function Engine() {
@@ -104,7 +105,7 @@ export function Engine() {
             className="flex flex-col h-full"
           >
             <h2 className="font-black text-[24px] text-[#3c3c3c] leading-tight mb-8">
-              {currentQuestion.statement}
+              <LatexText text={currentQuestion.statement} />
             </h2>
 
             <Renderer

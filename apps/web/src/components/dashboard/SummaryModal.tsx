@@ -38,8 +38,7 @@ export function SummaryModal({ resumenActivo, onClose }: SummaryModalProps) {
         <div className="space-y-6 pb-10">
           <div>
             <span
-              className="inline-block text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md mb-2 text-yellow-600 shadow-sm"
-              style={{ backgroundColor: resumenActivo.color }}
+              className="inline-block text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md mb-2 bg-red-600 text-white shadow-sm"
             >
               Resumen Oficial
             </span>

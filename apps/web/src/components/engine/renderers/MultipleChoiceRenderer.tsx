@@ -4,6 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import type { RendererProps } from '../registry';
 import type { MultipleChoiceView, MultipleChoiceAnswer } from '@ingresa-pe/domain';
+import { LatexText } from '../../ui/LatexText';
 
 export function MultipleChoiceRenderer({
   view,
@@ -44,7 +45,12 @@ export function MultipleChoiceRenderer({
                 isSelected ? 'text-[#1cb0f6]' : 'text-[#3c3c3c]'
               }`}
             >
-              {opt.text}
+              <LatexText
+                text={opt.text}
+                className={`font-bold text-[18px] ${
+                  isSelected ? 'text-[#1cb0f6]' : 'text-[#3c3c3c]'
+                }`}
+              />
             </span>
           </motion.button>
         );
