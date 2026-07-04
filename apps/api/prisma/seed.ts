@@ -127,7 +127,13 @@ async function main() {
     | { type: 'KEY_POINTS'; items: { title: string; text: string }[] }
     | { type: 'TIP'; title?: string; text: string; variant?: 'exam' | 'memory' | 'warning' }
     | { type: 'IMAGE'; src: string; alt: string; caption?: string }
-    | { type: 'CALLOUT'; title?: string; text: string; tone?: 'info' | 'success' | 'warning' | 'danger' };
+    | { type: 'CALLOUT'; title?: string; text: string; tone?: 'info' | 'success' | 'warning' | 'danger' }
+    | { type: 'RESOURCES'; title?: string; items: { title: string; url: string; description?: string }[] }
+    | { type: 'TABLE'; title?: string; headers: string[]; rows: string[][] }
+    | { type: 'STEPS'; items: { title: string; text: string }[] }
+    | { type: 'DEFINITION'; term: string; definition: string }
+    | { type: 'EXAMPLE'; title?: string; problem: string; solution: string }
+    | { type: 'QUOTE'; text: string; author?: string };
 
   interface TemaSeed {
     nombre: string;
@@ -216,14 +222,18 @@ async function main() {
           { type: 'HEADING', level: 1, text: 'Planteo de Ecuaciones' },
           { type: 'PARAGRAPH', text: 'El planteo de ecuaciones transforma situaciones cotidianas en lenguaje algebraico. Identificar la incógnita y traducir las relaciones del problema es la clave para resolverlo.' },
           { type: 'IMAGE', src: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=800&q=80', alt: 'Ecuaciones en un pizarrón', caption: 'Traducir palabras a símbolos es el primer paso.' },
-          { type: 'KEY_POINTS', items: [
-            { title: 'Identifica la incógnita', text: 'Asigna una letra (generalmente x) a lo que se pregunta.' },
-            { title: 'Traduce el enunciado', text: 'Convierte las palabras en operaciones matemáticas.' },
-            { title: 'Verifica tu respuesta', text: 'Reemplaza el valor hallado en el contexto original.' },
+          { type: 'STEPS', items: [
+            { title: 'Lee el enunciado', text: 'Entiende qué situación describe y qué te piden calcular.' },
+            { title: 'Define la incógnita', text: 'Asigna una letra a la cantidad desconocida.' },
+            { title: 'Plante la ecuación', text: 'Convierte las relaciones del problema en una igualdad algebraica.' },
+            { title: 'Resuelve y verifica', text: 'Despeja la incógnita y comprueba el resultado en el contexto.' },
           ]},
+          { type: 'EXAMPLE', title: 'Edades de padre e hijo', problem: 'Un padre tiene 32 años más que su hijo. Dentro de 10 años, el padre tendrá el doble de la edad de su hijo. ¿Cuántos años tiene el hijo ahora?', solution: 'Sea $h$ la edad del hijo. Entonces $(h+32)+10 = 2(h+10) \\Rightarrow h = 22$.' },
           { type: 'FORMULA', latex: 'x = \\frac{c - b}{a}', label: 'Fórmula clave' },
           { type: 'TIP', title: 'Tip de examen', text: 'Lee el problema dos veces: una para entender la situación y otra para extraer los datos numéricos.', variant: 'exam' },
-          { type: 'CALLOUT', title: 'Cuidado', text: 'No olvides incluir las unidades en tu respuesta final.', tone: 'warning' },
+          { type: 'RESOURCES', title: 'Aprende más', items: [
+            { title: 'Planteo de ecuaciones paso a paso', url: 'https://www.youtube.com/results?search_query=planteo+de+ecuaciones+preuniversitario', description: 'Videos explicativos de YouTube.' },
+          ]},
         ],
         preguntas: [
           {
@@ -340,16 +350,20 @@ async function main() {
         slug: 'ecuaciones-primer-grado',
         summary: [
           { type: 'HEADING', level: 1, text: 'Ecuaciones de Primer Grado' },
+          { type: 'DEFINITION', term: 'Ecuación de primer grado', definition: 'Igualdad algebraica en la que la incógnita tiene exponente 1 y se cumple para un único valor.' },
           { type: 'PARAGRAPH', text: 'Una ecuación de primer grado con una incógnita expresa una igualdad que se cumple para un único valor de la variable. Su resolución se basa en operaciones inversas.' },
           { type: 'FORMULA', latex: 'ax + b = c \\Rightarrow x = \\frac{c - b}{a}', label: 'Despeje de x' },
+          { type: 'EXAMPLE', title: 'Con paréntesis', problem: 'Resuelve $3(x - 2) = 2x + 5$.', solution: 'Distribuye: $3x - 6 = 2x + 5$. Resta $2x$ y suma 6: $x = 11$.' },
           { type: 'KEY_POINTS', items: [
             { title: 'Aislar la variable', text: 'Usa suma/resta para dejar la x en un solo lado.' },
             { title: 'Simplifica coeficientes', text: 'Divide o multiplica para obtener x = valor.' },
             { title: 'Comprueba', text: 'Sustituye en la ecuación original para validar.' },
           ]},
           { type: 'TIP', title: 'Memotécnica', text: '"Lo que suma pasa restando, lo que multiplica pasa dividiendo."', variant: 'memory' },
-          { type: 'IMAGE', src: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&q=80', alt: 'Símbolos algebraicos', caption: 'El orden de las operaciones importa.' },
           { type: 'CALLOUT', title: 'Importante', text: 'Si hay paréntesis, elimínalos primero distribuyendo antes de despejar la variable.', tone: 'info' },
+          { type: 'RESOURCES', title: 'Refuerza', items: [
+            { title: 'Ecuaciones de primer grado - Khan Academy', url: 'https://es.wikipedia.org/wiki/Ecuaci%C3%B3n_de_primer_grado', description: 'Teoría, ejemplos y ejercicios.' },
+          ]},
         ],
         preguntas: [
           {
@@ -454,16 +468,23 @@ async function main() {
         slug: 'triangulos',
         summary: [
           { type: 'HEADING', level: 1, text: 'Triángulos' },
+          { type: 'DEFINITION', term: 'Triángulo', definition: 'Polígono de tres lados y tres ángulos; es la figura geométrica más estable.' },
           { type: 'IMAGE', src: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&q=80', alt: 'Triángulos geométricos', caption: 'El polígono más simple y estable.' },
-          { type: 'PARAGRAPH', text: 'El triángulo es el polígono más simple y estable. Sus propiedades angulares y laterales son fundamentales para resolver gran parte de la geometría plana.' },
           { type: 'FORMULA', latex: '\\angle A + \\angle B + \\angle C = 180^\\circ', label: 'Suma de ángulos internos' },
+          { type: 'TABLE', title: 'Clasificación de triángulos', headers: ['Por lados', 'Por ángulos'], rows: [
+            ['Equilátero: 3 iguales', 'Acutángulo: todos < 90°'],
+            ['Isósceles: 2 iguales', 'Rectángulo: uno = 90°'],
+            ['Escaleno: todos distintos', 'Obtusángulo: uno > 90°'],
+          ]},
           { type: 'KEY_POINTS', items: [
             { title: 'Suma de ángulos internos', text: 'Siempre suman 180°.' },
             { title: 'Desigualdad triangular', text: 'Un lado siempre es menor que la suma de los otros dos.' },
-            { title: 'Clasificación', text: 'Por lados (equilátero, isósceles, escaleno) y por ángulos (acutángulo, rectángulo, obtusángulo).' },
           ]},
           { type: 'CALLOUT', title: 'Recuerda', text: 'En un triángulo rectángulo no olvides el Teorema de Pitágoras y las razones trigonométricas.', tone: 'warning' },
           { type: 'TIP', title: 'Tip de examen', text: 'Marca los ángulos y lados conocidos en la figura antes de aplicar cualquier fórmula.', variant: 'exam' },
+          { type: 'RESOURCES', title: 'Recursos visuales', items: [
+            { title: 'Triángulos en Wikipedia', url: 'https://es.wikipedia.org/wiki/Tri%C3%A1ngulo', description: 'Definiciones, clasificación y propiedades.' },
+          ]},
         ],
         preguntas: [
           {
@@ -556,16 +577,23 @@ async function main() {
         slug: 'estructura-atomica',
         summary: [
           { type: 'HEADING', level: 1, text: 'Estructura Atómica' },
+          { type: 'DEFINITION', term: 'Átomo', definition: 'Unidad más pequeña de un elemento químico que conserva sus propiedades, formado por protones, neutrones y electrones.' },
           { type: 'PARAGRAPH', text: 'La estructura atómica explica la composición de la materia a partir de protones, neutrones y electrones organizados en niveles de energía.' },
-          { type: 'CALLOUT', title: 'Fórmula básica', text: 'A = Z + N (Masa = Protones + Neutrones)', tone: 'success' },
+          { type: 'TABLE', title: 'Partículas subatómicas', headers: ['Partícula', 'Carga', 'Ubicación'], rows: [
+            ['Protón', '+1', 'Núcleo'],
+            ['Neutrón', '0', 'Núcleo'],
+            ['Electrón', '−1', 'Nube electrónica'],
+          ]},
+          { type: 'FORMULA', latex: 'A = Z + N', label: 'Número de masa' },
           { type: 'IMAGE', src: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=800&q=80', alt: 'Modelo atómico', caption: 'El núcleo concentra la mayor parte de la masa.' },
           { type: 'KEY_POINTS', items: [
-            { title: 'Partículas subatómicas', text: 'Protones (+), neutrones (0) y electrones (−).' },
             { title: 'Número de masa', text: 'Suma de protones y neutrones del núcleo.' },
             { title: 'Configuración electrónica', text: 'Distribución de electrones en niveles o subniveles.' },
           ]},
           { type: 'TIP', title: 'Memotécnica', text: 'En un átomo neutro: protones = electrones. Los iones pierden o ganan electrones, no protones.', variant: 'memory' },
-          { type: 'CALLOUT', title: 'Dato clave', text: 'El número atómico (Z) determina qué elemento es.', tone: 'info' },
+          { type: 'RESOURCES', title: 'Lee más', items: [
+            { title: 'Estructura atómica en Wikipedia', url: 'https://es.wikipedia.org/wiki/Estructura_at%C3%B3mica', description: 'Historia, modelos y partículas.' },
+          ]},
         ],
         preguntas: [
           {
@@ -658,9 +686,10 @@ async function main() {
         slug: 'cinematica',
         summary: [
           { type: 'HEADING', level: 1, text: 'Cinemática' },
+          { type: 'DEFINITION', term: 'Cinemática', definition: 'Rama de la física que describe el movimiento sin explicar sus causas.' },
           { type: 'PARAGRAPH', text: 'La cinemática describe el movimiento de los cuerpos sin considerar las causas que lo producen. Se basa en magnitudes como posición, velocidad y aceleración.' },
           { type: 'FORMULA', latex: 'v = v_0 + at \\quad ; \\quad d = v_0t + \\frac{1}{2}at^2', label: 'MRU y MRUV' },
-          { type: 'IMAGE', src: 'https://images.unsplash.com/photo-1636466497217-26a8cbeaf0aa?w=800&q=80', alt: 'Movimiento rectilíneo', caption: 'Elige un sentido positivo antes de plantear.' },
+          { type: 'EXAMPLE', title: 'Caída libre', problem: 'Un objeto en caída libre ($g = 10 \\text{ m/s}^2$) tarda 3 s en caer. ¿Desde qué altura cayó?', solution: '$h = \\frac{1}{2}gt^2 = \\frac{1}{2} \\cdot 10 \\cdot 3^2 = 45$ m.' },
           { type: 'KEY_POINTS', items: [
             { title: 'Velocidad media', text: 'Cociente entre desplazamiento y tiempo transcurrido.' },
             { title: 'MRU', text: 'Velocidad constante.' },
@@ -668,6 +697,9 @@ async function main() {
           ]},
           { type: 'CALLOUT', title: 'Cuidado con los signos', text: 'Si un cuerpo frena, su aceleración tiene signo opuesto a la velocidad.', tone: 'danger' },
           { type: 'TIP', title: 'Tip de examen', text: 'Dibuja el esquema del problema y elige un sentido positivo antes de aplicar las fórmulas.', variant: 'exam' },
+          { type: 'RESOURCES', title: 'Videos recomendados', items: [
+            { title: 'Cinemática básica', url: 'https://www.youtube.com/results?search_query=cinematica+basica+fisica', description: 'Playlist introductoria de YouTube.' },
+          ]},
         ],
         preguntas: [
           {
@@ -772,8 +804,13 @@ async function main() {
         slug: 'la-celula',
         summary: [
           { type: 'HEADING', level: 1, text: 'La Célula' },
+          { type: 'DEFINITION', term: 'Célula', definition: 'Unidad estructural y funcional básica de todo ser vivo; puede ser procariota o eucariota.' },
           { type: 'IMAGE', src: 'https://images.unsplash.com/photo-1530210124550-912dc1381cb8?w=800&q=80', alt: 'Célula microscópica', caption: 'Unidad estructural y funcional de la vida.' },
-          { type: 'PARAGRAPH', text: 'La célula es la unidad estructural y funcional básica de todo ser vivo. Existen células procariotas y eucariotas, y cada una especializa funciones mediante organelos.' },
+          { type: 'TABLE', title: 'Procariota vs Eucariota', headers: ['Característica', 'Procariota', 'Eucariota'], rows: [
+            ['Núcleo', 'No definido', 'Definido con membrana'],
+            ['Organelos', 'Sin membrana', 'Con membrana'],
+            ['Ejemplos', 'Bacterias', 'Animales, plantas, hongos'],
+          ]},
           { type: 'KEY_POINTS', items: [
             { title: 'Membrana plasmática', text: 'Regula el intercambio de sustancias con el medio.' },
             { title: 'Núcleo', text: 'Centro de control que alberga el material genético.' },
@@ -781,7 +818,10 @@ async function main() {
           ]},
           { type: 'CALLOUT', title: 'Flujo de información', text: 'ADN → ARN → Proteína', tone: 'success' },
           { type: 'TIP', title: 'Memotécnica', text: 'Recuerda: las células procariotas no tienen núcleo definido ni organelos membranosos.', variant: 'memory' },
-          { type: 'CALLOUT', title: 'Dato curioso', text: 'Las mitocondrias tienen su propio ADN y se heredan principalmente por vía materna.', tone: 'info' },
+          { type: 'RESOURCES', title: 'Recursos recomendados', items: [
+            { title: 'La célula - Khan Academy', url: 'https://es.wikipedia.org/wiki/C%C3%A9lula', description: 'Estructura, tipos y funciones celulares.' },
+            { title: 'Video: Estructura de la célula', url: 'https://www.youtube.com/results?search_query=estructura+de+la+celula+khan+academy', description: 'Explicación animada en YouTube.' },
+          ]},
         ],
         preguntas: [
           {
@@ -887,14 +927,21 @@ async function main() {
         summary: [
           { type: 'HEADING', level: 1, text: 'Literatura Universal' },
           { type: 'PARAGRAPH', text: 'La literatura universal reúne obras de todas las épocas y culturas que han marcado la historia de la humanidad. Conocer sus movimientos y autores es clave para el examen de admisión.' },
+          { type: 'QUOTE', text: 'Ser o no ser, esa es la cuestión.', author: 'William Shakespeare, Hamlet' },
+          { type: 'TABLE', title: 'Movimientos y representantes', headers: ['Movimiento', 'Representante', 'Obra'], rows: [
+            ['Renacimiento', 'Miguel de Cervantes', 'Don Quijote'],
+            ['Romanticismo', 'Victor Hugo', 'Los miserables'],
+            ['Realismo mágico', 'Gabriel García Márquez', 'Cien años de soledad'],
+          ]},
           { type: 'KEY_POINTS', items: [
-            { title: 'Épocas literarias', text: 'Clasicismo, Romanticismo, Realismo, Modernismo, Vanguardismo.' },
             { title: 'Géneros literarios', text: 'Lírico, épico/narrativo y dramático.' },
             { title: 'Figuras retóricas', text: 'Metáfora, hipérbole, personificación, sinestesia.' },
           ]},
-          { type: 'IMAGE', src: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=800&q=80', alt: 'Libros clásicos', caption: 'Autor + Obra + Movimiento = Contexto.' },
-          { type: 'CALLOUT', title: 'Obras cumbre', text: 'Quijote (Cervantes), Hamlet (Shakespeare), La Ilíada (Homero).', tone: 'info' },
           { type: 'TIP', title: 'Tip de examen', text: 'Memoriza las obras cumbre y sus autores; el examen suele mezclar movimientos.', variant: 'exam' },
+          { type: 'RESOURCES', title: 'Lecturas y videos', items: [
+            { title: 'Literatura universal en Wikipedia', url: 'https://es.wikipedia.org/wiki/Literatura_universal', description: 'Cronología y autores clave.' },
+            { title: 'Resumen animado: Don Quijote', url: 'https://www.youtube.com/results?search_query=don+quijote+resumen', description: 'Video introductorio en YouTube.' },
+          ]},
         ],
         preguntas: [
           {
@@ -989,13 +1036,23 @@ async function main() {
           { type: 'HEADING', level: 1, text: 'Época Prehispánica' },
           { type: 'IMAGE', src: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?w=800&q=80', alt: 'Machu Picchu', caption: 'Cusco, capital del Tahuantinsuyo.' },
           { type: 'PARAGRAPH', text: 'La época prehispánica abarca las culturas que habitaron el territorio peruano antes de la llegada de los españoles, culminando con el Imperio Inca y su organización social, política y religiosa.' },
+          { type: 'TABLE', title: 'Culturas y aportes', headers: ['Cultura', 'Aporte icónico'], rows: [
+            ['Caral', 'Civilización más antigua de América'],
+            ['Chavín', 'Cabeza clava y culto al jaguar'],
+            ['Nazca', 'Líneas y geoglifos'],
+            ['Moche', 'Huacas del Sol y de la Luna'],
+            ['Inca', 'Tahuantinsuyo y Cusco'],
+          ]},
           { type: 'KEY_POINTS', items: [
-            { title: 'Culturas andinas', text: 'Caral, Chavín, Paracas, Nazca, Moche, Wari, Chimú e Inca.' },
             { title: 'Imperio Inca', text: 'Organización política basada en el Tahuantinsuyo con Cusco como capital.' },
             { title: 'Sociedad inca', text: 'Ayllu como base social; reciprocidad y mita como sistemas de trabajo.' },
           ]},
-          { type: 'CALLOUT', title: 'Aportes icónicos', text: 'Nazca (líneas), Moche (huacas del Sol y de la Luna), Chavín (cabeza clava).', tone: 'warning' },
+          { type: 'QUOTE', text: 'El Tahuantinsuyo fue el mayor imperio prehispánico de América, unido por caminos y administrado desde Cusco.', author: 'Historiografía peruana' },
           { type: 'TIP', title: 'Tip de examen', text: 'Relaciona cada cultura con una obra o aporte distintivo; eso facilita la memoria.', variant: 'exam' },
+          { type: 'RESOURCES', title: 'Material de consulta', items: [
+            { title: 'Historia del Perú en Wikipedia', url: 'https://es.wikipedia.org/wiki/Historia_del_Per%C3%BA', description: 'Desde Caral hasta la República.' },
+            { title: 'Documental: Imperio Inca', url: 'https://www.youtube.com/results?search_query=imperio+inca+documental', description: 'Video introductorio en YouTube.' },
+          ]},
         ],
         preguntas: [
           {

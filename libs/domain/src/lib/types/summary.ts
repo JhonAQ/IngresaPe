@@ -52,6 +52,54 @@ const CalloutBlockSchema = z.object({
   tone: z.union([z.literal('info'), z.literal('success'), z.literal('warning'), z.literal('danger')]).optional(),
 });
 
+const ResourceItemSchema = z.object({
+  title: z.string().min(1),
+  url: z.string().min(1),
+  description: z.string().optional(),
+});
+
+const ResourcesBlockSchema = z.object({
+  type: z.literal('RESOURCES'),
+  title: z.string().optional(),
+  items: z.array(ResourceItemSchema).min(1),
+});
+
+const TableBlockSchema = z.object({
+  type: z.literal('TABLE'),
+  title: z.string().optional(),
+  headers: z.array(z.string().min(1)).min(1),
+  rows: z.array(z.array(z.string())).min(1),
+});
+
+const StepItemSchema = z.object({
+  title: z.string().min(1),
+  text: z.string().min(1),
+});
+
+const StepsBlockSchema = z.object({
+  type: z.literal('STEPS'),
+  items: z.array(StepItemSchema).min(1),
+});
+
+const DefinitionBlockSchema = z.object({
+  type: z.literal('DEFINITION'),
+  term: z.string().min(1),
+  definition: z.string().min(1),
+});
+
+const ExampleBlockSchema = z.object({
+  type: z.literal('EXAMPLE'),
+  title: z.string().optional(),
+  problem: z.string().min(1),
+  solution: z.string().min(1),
+});
+
+const QuoteBlockSchema = z.object({
+  type: z.literal('QUOTE'),
+  text: z.string().min(1),
+  author: z.string().optional(),
+});
+
 export const SummaryBlockSchema = z.discriminatedUnion('type', [
   HeadingBlockSchema,
   ParagraphBlockSchema,
@@ -60,6 +108,12 @@ export const SummaryBlockSchema = z.discriminatedUnion('type', [
   TipBlockSchema,
   ImageBlockSchema,
   CalloutBlockSchema,
+  ResourcesBlockSchema,
+  TableBlockSchema,
+  StepsBlockSchema,
+  DefinitionBlockSchema,
+  ExampleBlockSchema,
+  QuoteBlockSchema,
 ]);
 
 export const SummaryBlocksSchema = z.array(SummaryBlockSchema);
@@ -76,6 +130,14 @@ export type KeyPointsBlock = z.infer<typeof KeyPointsBlockSchema>;
 export type TipBlock = z.infer<typeof TipBlockSchema>;
 export type ImageBlock = z.infer<typeof ImageBlockSchema>;
 export type CalloutBlock = z.infer<typeof CalloutBlockSchema>;
+export type ResourceItem = z.infer<typeof ResourceItemSchema>;
+export type ResourcesBlock = z.infer<typeof ResourcesBlockSchema>;
+export type TableBlock = z.infer<typeof TableBlockSchema>;
+export type StepItem = z.infer<typeof StepItemSchema>;
+export type StepsBlock = z.infer<typeof StepsBlockSchema>;
+export type DefinitionBlock = z.infer<typeof DefinitionBlockSchema>;
+export type ExampleBlock = z.infer<typeof ExampleBlockSchema>;
+export type QuoteBlock = z.infer<typeof QuoteBlockSchema>;
 
 export type SummaryBlock =
   | HeadingBlock
@@ -84,10 +146,16 @@ export type SummaryBlock =
   | KeyPointsBlock
   | TipBlock
   | ImageBlock
-  | CalloutBlock;
+  | CalloutBlock
+  | ResourcesBlock
+  | TableBlock
+  | StepsBlock
+  | DefinitionBlock
+  | ExampleBlock
+  | QuoteBlock;
 
 // =========================================================
-// Helpers de migración y validación
+// Helpers de validación
 // =========================================================
 
 /**
@@ -96,71 +164,4 @@ export type SummaryBlock =
 export function parseSummaryBlocks(input: unknown): SummaryBlock[] {
   const parsed = SummaryBlocksSchema.safeParse(input);
   return parsed.success ? parsed.data : [];
-}
-
-/**
- * Convierte el formato legacy de resumen (estructura fija antigua)
- * al nuevo formato de bloques. Si el input ya es un array de bloques
- * válido, lo devuelve tal cual.
- */
-export function migrateLegacySummary(input: unknown): SummaryBlock[] {
-  if (input === null || input === undefined) return [];
-
-  // Si ya es el nuevo formato, lo validamos y devolvemos.
-  const parsed = SummaryBlocksSchema.safeParse(input);
-  if (parsed.success) return parsed.data;
-
-  // Si es un array pero no valida, no intentamos migrar posibles bloques rotos.
-  if (Array.isArray(input)) return [];
-
-  // Formato legacy: objeto plano con campos fijos.
-  if (typeof input !== 'object' || input === null) return [];
-
-  const legacy = input as Record<string, unknown>;
-  const blocks: SummaryBlock[] = [];
-
-  if (typeof legacy.introduccion === 'string' && legacy.introduccion.trim()) {
-    blocks.push({ type: 'PARAGRAPH', text: legacy.introduccion });
-  }
-
-  if (typeof legacy.imagenUrl === 'string' && legacy.imagenUrl.trim()) {
-    blocks.push({
-      type: 'IMAGE',
-      src: legacy.imagenUrl,
-      alt: 'Ilustración del tema',
-    });
-  }
-
-  if (Array.isArray(legacy.puntosClave) && legacy.puntosClave.length > 0) {
-    const items = legacy.puntosClave
-      .filter((p): p is { title?: string; texto?: string } => typeof p === 'object' && p !== null)
-      .map((p) => ({
-        title: typeof p.title === 'string' && p.title.trim() ? p.title : 'Concepto clave',
-        text: typeof p.texto === 'string' && p.texto.trim() ? p.texto : '',
-      }))
-      .filter((p) => p.text);
-
-    if (items.length > 0) {
-      blocks.push({ type: 'KEY_POINTS', items });
-    }
-  }
-
-  if (typeof legacy.formulaDestacada === 'string' && legacy.formulaDestacada.trim()) {
-    blocks.push({
-      type: 'FORMULA',
-      latex: legacy.formulaDestacada,
-      label: 'Fórmula clave',
-    });
-  }
-
-  if (typeof legacy.tipExamen === 'string' && legacy.tipExamen.trim()) {
-    blocks.push({
-      type: 'TIP',
-      title: 'Tip de examen',
-      text: legacy.tipExamen,
-      variant: 'exam',
-    });
-  }
-
-  return blocks;
 }

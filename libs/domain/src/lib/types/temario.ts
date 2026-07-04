@@ -12,26 +12,6 @@ export interface Actividad {
   color?: MapNodeColor;
 }
 
-/**
- * @deprecated El formato fijo de resumen fue reemplazado por bloques
- * (`SummaryBlock[]`). Solo se mantiene para compatibilidad con migraciones.
- */
-export interface DetalleResumen {
-  titulo: string;
-  texto: string;
-}
-
-/**
- * @deprecated Usar `SummaryBlock[]` en su lugar. Ver `libs/domain/src/lib/types/summary.ts`.
- */
-export interface ResumenData {
-  introduccion: string;
-  imagenUrl?: string;
-  puntosClave: DetalleResumen[];
-  formulaDestacada: string;
-  tipExamen: string;
-}
-
 export interface TemaData {
   id: number;
   tema: number;

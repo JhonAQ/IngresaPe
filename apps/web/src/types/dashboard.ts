@@ -10,25 +10,6 @@ export interface Actividad {
   color?: MapNodeColor;
 }
 
-/**
- * @deprecated Usar SummaryBlock[] desde @ingresa-pe/domain.
- */
-export interface DetalleResumen {
-  titulo: string;
-  texto: string;
-}
-
-/**
- * @deprecated Usar SummaryBlock[] desde @ingresa-pe/domain.
- */
-export interface ResumenData {
-  introduccion: string;
-  imagenUrl?: string;
-  puntosClave: DetalleResumen[];
-  formulaDestacada: string;
-  tipExamen: string;
-}
-
 export interface UserStats {
   racha: number;
   vidas: number;

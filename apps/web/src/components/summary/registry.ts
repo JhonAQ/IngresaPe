@@ -7,6 +7,12 @@ import { KeyPointsRenderer } from './blocks/KeyPointsRenderer';
 import { TipRenderer } from './blocks/TipRenderer';
 import { ImageRenderer } from './blocks/ImageRenderer';
 import { CalloutRenderer } from './blocks/CalloutRenderer';
+import { ResourcesRenderer } from './blocks/ResourcesRenderer';
+import { TableRenderer } from './blocks/TableRenderer';
+import { StepsRenderer } from './blocks/StepsRenderer';
+import { DefinitionRenderer } from './blocks/DefinitionRenderer';
+import { ExampleRenderer } from './blocks/ExampleRenderer';
+import { QuoteRenderer } from './blocks/QuoteRenderer';
 
 export interface SummaryRendererProps<TBlock extends SummaryBlock = SummaryBlock> {
   block: TBlock;
@@ -21,6 +27,12 @@ type RendererMap = {
   TIP: ComponentType<SummaryRendererProps<Extract<SummaryBlock, { type: 'TIP' }>>>;
   IMAGE: ComponentType<SummaryRendererProps<Extract<SummaryBlock, { type: 'IMAGE' }>>>;
   CALLOUT: ComponentType<SummaryRendererProps<Extract<SummaryBlock, { type: 'CALLOUT' }>>>;
+  RESOURCES: ComponentType<SummaryRendererProps<Extract<SummaryBlock, { type: 'RESOURCES' }>>>;
+  TABLE: ComponentType<SummaryRendererProps<Extract<SummaryBlock, { type: 'TABLE' }>>>;
+  STEPS: ComponentType<SummaryRendererProps<Extract<SummaryBlock, { type: 'STEPS' }>>>;
+  DEFINITION: ComponentType<SummaryRendererProps<Extract<SummaryBlock, { type: 'DEFINITION' }>>>;
+  EXAMPLE: ComponentType<SummaryRendererProps<Extract<SummaryBlock, { type: 'EXAMPLE' }>>>;
+  QUOTE: ComponentType<SummaryRendererProps<Extract<SummaryBlock, { type: 'QUOTE' }>>>;
 };
 
 export const summaryRendererRegistry: RendererMap = {
@@ -31,6 +43,12 @@ export const summaryRendererRegistry: RendererMap = {
   TIP: TipRenderer,
   IMAGE: ImageRenderer,
   CALLOUT: CalloutRenderer,
+  RESOURCES: ResourcesRenderer,
+  TABLE: TableRenderer,
+  STEPS: StepsRenderer,
+  DEFINITION: DefinitionRenderer,
+  EXAMPLE: ExampleRenderer,
+  QUOTE: QuoteRenderer,
 };
 
 export function getSummaryRenderer(type: SummaryBlock['type']) {
