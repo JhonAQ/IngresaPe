@@ -5,9 +5,11 @@ import { DashboardHeader } from '../../components/dashboard/Header';
 import { BottomNav } from '../../components/dashboard/BottomNav';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { AuthGuard } from '../../components/auth/AuthGuard';
+import { CourseSelectorProvider, useCourseSelector } from '../../components/dashboard/CourseSelectorContext';
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+function LayoutContent({ children }: { children: React.ReactNode }) {
   const { data, isLoading } = useDashboardData();
+  const { isOpen } = useCourseSelector();
 
   return (
     <AuthGuard>
@@ -23,21 +25,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           className="w-full max-w-md mx-auto relative flex flex-col overflow-hidden bg-white shadow-2xl border-x border-slate-100"
           style={{ height: '100dvh' }}
         >
-          {/* Subtle grid background */}
           <div className="absolute inset-0 bg-grid-pattern z-0 pointer-events-none opacity-50" />
 
-          {/* Unified Header */}
-          <DashboardHeader stats={data.stats} />
+          {!isOpen && <DashboardHeader stats={data.stats} />}
 
-          {/* Main Content — scrollable area for each tab */}
           <div className="flex-1 overflow-hidden relative z-10 flex flex-col">
             {children}
           </div>
 
-          {/* Unified Bottom Navigation */}
-          <BottomNav />
+          {!isOpen && <BottomNav />}
         </div>
       )}
     </AuthGuard>
+  );
+}
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <CourseSelectorProvider>
+      <LayoutContent>{children}</LayoutContent>
+    </CourseSelectorProvider>
   );
 }

@@ -2,47 +2,42 @@
 
 import { useState, Suspense, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { ChevronDown } from 'lucide-react';
 import { CourseProgress } from '../../../components/dashboard/CourseProgress';
 import { TopicList } from '../../../components/dashboard/TopicList';
 import { SummaryModal } from '../../../components/dashboard/SummaryModal';
 import { useDashboardData } from '../../../hooks/useDashboardData';
+import { useCourseSelector } from '../../../components/dashboard/CourseSelectorContext';
+import { CourseSelector } from '../../../components/dashboard/CourseSelector';
 import { trpc } from '../../../utils/trpc';
 import type { TemaData } from '@ingresa-pe/domain';
 
-function CourseSelector({
-  courses,
-  selectedCourseId,
-  onSelect,
+function CoursePill({
+  name,
+  progress,
+  color,
+  onClick,
 }: {
-  courses: { id: string; name: string }[];
-  selectedCourseId: string | null;
-  onSelect: (courseId: string) => void;
+  name: string;
+  progress: number;
+  color: string;
+  onClick: () => void;
 }) {
-  const selected = courses.find((c) => c.id === selectedCourseId);
-
   return (
-    <div className="relative w-full">
-      <select
-        value={selectedCourseId ?? ''}
-        onChange={(e) => onSelect(e.target.value)}
-        className="w-full appearance-none bg-white border-2 border-duo-border border-b-[4px] rounded-2xl px-4 py-3 font-black text-duo-dark pr-10 focus:outline-none focus:border-primary-500"
-      >
-        {courses.map((course) => (
-          <option key={course.id} value={course.id}>
-            {course.name}
-          </option>
-        ))}
-      </select>
-      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-duo-dark">
-        <ChevronDown size={20} strokeWidth={3} />
+    <button
+      onClick={onClick}
+      className="w-full text-left bg-white border-2 border-duo-border border-b-[4px] rounded-2xl p-4 active:border-b-0 active:translate-y-[4px] transition-all"
+    >
+      <div className="flex justify-between items-center mb-2">
+        <span className="font-black text-[16px] text-duo-dark">{name}</span>
+        <span className="font-bold text-[13px]" style={{ color }}>{progress}%</span>
       </div>
-      {selected && (
-        <p className="mt-2 text-center font-bold text-surface-500 text-sm">
-          {selected.name}
-        </p>
-      )}
-    </div>
+      <div className="h-[10px] bg-duo-border rounded-full overflow-hidden relative">
+        <div
+          className="absolute top-0 left-0 bottom-0 rounded-full transition-all duration-500"
+          style={{ width: `${progress}%`, backgroundColor: color }}
+        />
+      </div>
+    </button>
   );
 }
 
@@ -51,6 +46,7 @@ function DashboardContent() {
   const params = useSearchParams();
   const router = useRouter();
   const urlCourseId = params.get('courseId');
+  const { open } = useCourseSelector();
 
   const { data: dashboardData, isLoading: isDashboardLoading } =
     useDashboardData();
@@ -63,7 +59,6 @@ function DashboardContent() {
 
   const [courseId, setCourseId] = useState<string | null>(urlCourseId);
 
-  // Sincroniza con URL y, si no hay, usa el primer curso disponible.
   useEffect(() => {
     if (urlCourseId) {
       setCourseId(urlCourseId);
@@ -85,6 +80,8 @@ function DashboardContent() {
     { courseId: courseId ?? '' },
     { enabled: !!courseId, retry: false, refetchOnWindowFocus: false }
   );
+
+  const selectedCourse = courses.find((c) => c.id === courseId);
 
   const handleCourseChange = (nextCourseId: string) => {
     setCourseId(nextCourseId);
@@ -121,15 +118,44 @@ function DashboardContent() {
     );
   }
 
+  const courseColor = selectedCourse?.name
+    ? ({
+        Biología: '#58cc02',
+        'Álgebra': '#1cb0f6',
+        'Razonamiento Matemático': '#ce82ff',
+        Geometría: '#ff9600',
+        Física: '#ff9600',
+        Química: '#afafaf',
+        Literatura: '#ff4b4b',
+        'Historia del Perú': '#1cb0f6',
+      }[selectedCourse.name] ?? '#1cb0f6')
+    : '#1cb0f6';
+
+  const progress = selectedCourse
+    ? Math.round(
+        (topics.filter(
+          (t: any) => t.userProgress?.isGold || t.userProgress?.isCompleted
+        ).length /
+          (topics.length || 1)) *
+          100
+      )
+    : 0;
+
   return (
     <>
+      <CourseSelector
+        selectedCourseId={courseId}
+        onSelect={handleCourseChange}
+      />
+
       <main className="flex-1 flex flex-col gap-2 overflow-y-auto px-5 pb-32 hide-scrollbar bg-slate-50/50">
-        <div className="sticky top-0 z-40 pt-2 -mx-1 px-1 space-y-2">
+        <div className="sticky top-0 z-40 pt-2 -mx-1 px-1 space-y-3">
           <CourseProgress />
-          <CourseSelector
-            courses={courses.map((c) => ({ id: c.id, name: c.name }))}
-            selectedCourseId={courseId}
-            onSelect={handleCourseChange}
+          <CoursePill
+            name={selectedCourse?.name ?? 'Seleccionar curso'}
+            progress={progress}
+            color={courseColor}
+            onClick={open}
           />
         </div>
 
