@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 // =========================================================
 // Esquemas Zod para cada bloque de resumen

@@ -7,6 +7,7 @@ import { useEngine } from './useEngine';
 import { getQuestionRenderer } from './registry';
 import { EngineHeader, FeedbackDrawer, DuoMaxModal } from './SharedEngineUI';
 import { LatexText } from '../ui/LatexText';
+import { EngineSkeleton } from '../ui/skeleton';
 import type { ComponentType } from 'react';
 
 export function Engine() {
@@ -54,11 +55,7 @@ export function Engine() {
   }
 
   if (status === 'loading') {
-    return (
-      <div className="w-full max-w-md mx-auto h-[100dvh] flex items-center justify-center">
-        <div className="animate-bounce font-black text-[#58cc02] text-[20px]">Cargando preguntas…</div>
-      </div>
-    );
+    return <EngineSkeleton />;
   }
 
   if (status === 'error') {

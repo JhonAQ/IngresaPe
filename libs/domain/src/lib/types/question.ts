@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 export const QuestionType = {
   MULTIPLE_CHOICE: 'MULTIPLE_CHOICE',
@@ -45,7 +45,7 @@ export const orderingContentSchema = z.object({
   correctOrder: z.array(z.string()),
 });
 
-export const questionContentSchema = z.discriminatedUnion('type', [
+export const questionContentSchema = z.union([
   multipleChoiceContentSchema,
   trueFalseContentSchema,
   flashcardContentSchema,
@@ -82,7 +82,7 @@ export const orderingViewSchema = z.object({
   items: z.array(z.object({ id: z.string(), text: z.string() })).min(2),
 });
 
-export const questionViewSchema = z.discriminatedUnion('type', [
+export const questionViewSchema = z.union([
   multipleChoiceViewSchema,
   trueFalseViewSchema,
   flashcardViewSchema,
@@ -118,7 +118,7 @@ export const orderingAnswerSchema = z.object({
   itemIds: z.array(z.string()),
 });
 
-export const answerSubmissionSchema = z.discriminatedUnion('type', [
+export const answerSubmissionSchema = z.union([
   multipleChoiceAnswerSchema,
   trueFalseAnswerSchema,
   flashcardAnswerSchema,

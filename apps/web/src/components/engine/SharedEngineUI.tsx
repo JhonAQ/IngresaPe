@@ -198,7 +198,7 @@ export function FeedbackDrawer({
             animate={{ y: 0 }}
             exit={{ y: 100 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="bg-white border-t-2 border-[#e5e5e5] p-4 pb-safe"
+            className="bg-white border-t-2 border-[#e5e5e5] p-4"
           >
             <button
               onClick={onCheck}

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { TrpcService } from '../trpc.service';
 import { PrismaService } from '../prisma.service';
 import { TRPCError } from '@trpc/server';
@@ -12,7 +12,7 @@ const createQuestionSchema = z.object({
   difficulty: z.enum(['EASY', 'MEDIUM', 'HARD']),
   topicId: z.string().uuid('El topicId debe ser un UUID válido'),
   type: z.nativeEnum(QuestionType),
-  content: questionContentSchema,
+  content: z.any(),
   explanation: z.string().optional(),
 });
 
@@ -28,14 +28,20 @@ export class AdminRouter {
       .input(createQuestionSchema)
       .mutation(async ({ ctx, input }) => {
         if (ctx.user.role !== Role.ADMIN && ctx.user.role !== Role.DATA_ENTRY) {
-          throw new TRPCError({ 
-            code: 'FORBIDDEN', 
-            message: 'Requiere permisos de Administrador o Data Entry' 
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Requiere permisos de Administrador o Data Entry'
           });
         }
 
-        // Validaciones de integridad según el tipo de pregunta
-        const content = input.content as QuestionContent;
+        const contentParse = questionContentSchema.safeParse(input.content);
+        if (!contentParse.success) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'El contenido de la pregunta no es válido',
+          });
+        }
+        const content = contentParse.data as QuestionContent;
 
         if (content.type === QuestionType.MULTIPLE_CHOICE) {
           const correctCount = content.options.filter((o) => o.isCorrect).length;

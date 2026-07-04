@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { TRPCError } from '@trpc/server';
 import { TrpcService } from '../trpc.service';
 import { GameService } from '../services/game.service'; // <--- Importamos el Servicio
-import { z } from 'zod';
-import { answerSubmissionSchema, AnswerSubmission } from '@ingresa-pe/domain';
+import { z } from 'zod/v3';
+import { answerSubmissionSchema } from '@ingresa-pe/domain';
 
 @Injectable()
 export class GameRouter {
@@ -16,15 +17,21 @@ export class GameRouter {
       .input(
         z.object({
           questionId: z.string(),
-          answer: answerSubmissionSchema,
+          answer: z.any(),
         })
       )
       .mutation(async ({ ctx, input }) => {
-        // Delegamos toda la lógica al servicio
+        const answerParse = answerSubmissionSchema.safeParse(input.answer);
+        if (!answerParse.success) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'La respuesta enviada no es válida',
+          });
+        }
         return await this.gameService.submitAnswer({
             userId: ctx.user.userId,
             questionId: input.questionId,
-            answer: input.answer as AnswerSubmission
+            answer: answerParse.data
         });
       }),
   });

@@ -1,5 +1,5 @@
 // libs/domain/src/lib/domain.ts
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 // Definimos un esquema de entrada para probar
 export const helloSchema = z.object({

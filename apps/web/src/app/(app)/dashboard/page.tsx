@@ -11,6 +11,7 @@ import { useCourseSelector } from '../../../components/dashboard/ImmersiveOverla
 import { CourseSelector } from '../../../components/dashboard/CourseSelector';
 import { trpc } from '../../../utils/trpc';
 import type { TemaData } from '@ingresa-pe/domain';
+import { DashboardSkeleton } from '../../../components/ui/skeleton';
 
 function buildTemaData(topic: TopicFromApi, index: number): TemaData {
   return {
@@ -90,11 +91,7 @@ function DashboardContent() {
   };
 
   if (isDashboardLoading || isCoursesLoading || (isTopicsLoading && !!courseId)) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="font-black text-[#58cc02]">Cargando dashboard…</div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (courses.length === 0) {

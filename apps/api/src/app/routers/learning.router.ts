@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { TrpcService } from '../trpc.service';
 import { PrismaService } from '../prisma.service';
 import { TRPCError } from '@trpc/server';
 import { QuestionGraderService } from '../services/question-grader.service';
-import { answerSubmissionSchema, AnswerSubmission } from '@ingresa-pe/domain';
+import { answerSubmissionSchema } from '@ingresa-pe/domain';
 
 @Injectable()
 export class LearningRouter {
@@ -40,16 +40,25 @@ export class LearningRouter {
     submitAnswer: this.trpc.protectedProcedure
       .input(z.object({
         questionId: z.string(),
-        answer: answerSubmissionSchema,
+        answer: z.any(),
       }))
       .mutation(async ({ ctx, input }) => {
+        const answerParse = answerSubmissionSchema.safeParse(input.answer);
+        if (!answerParse.success) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'La respuesta enviada no es válida',
+          });
+        }
+        const answer = answerParse.data;
+
         const question = await this.prisma.question.findUnique({
           where: { id: input.questionId },
         });
 
         if (!question) throw new TRPCError({ code: 'NOT_FOUND', message: 'Pregunta no encontrada' });
 
-        const gradeResult = this.grader.grade(question, input.answer as AnswerSubmission);
+        const gradeResult = this.grader.grade(question, answer);
         const { isCorrect, correctAnswerText, explanation } = gradeResult;
         const { xp: xpEarned, coins: coinsEarned } = this.grader.computeRewards(
           question.difficulty,
@@ -73,7 +82,7 @@ export class LearningRouter {
             userId: ctx.user.userId,
             questionId: question.id,
             isCorrect: isCorrect,
-            answer: input.answer as any,
+            answer: answer as any,
           }
         });
 
