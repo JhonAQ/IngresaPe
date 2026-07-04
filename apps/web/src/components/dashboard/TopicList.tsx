@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import React, { useEffect, useRef } from 'react';
 import { Check, Lock, BookOpen, Target, Star } from 'lucide-react';
-import { TemaData, ResumenData } from '@ingresa-pe/domain';
+import { TemaData, SummaryBlock } from '@ingresa-pe/domain';
 import { MapNode, MapNodeColor } from '@ingresa-pe/ui';
 import { TopicDivider } from './TopicDivider';
 
@@ -10,7 +10,7 @@ export interface TopicFromApi {
   name: string;
   slug: string;
   order: number;
-  summary?: ResumenData | null;
+  summary?: SummaryBlock[] | null;
   totalQuestions?: number;
   userProgress?: {
     correctCount: number;
@@ -128,12 +128,7 @@ export function TopicList({
             descripcion: topic.slug,
             variant: 'primary' as const,
             actividades: buildActivities(topic, index, isLocked),
-            resumenData: topic.summary || {
-              introduccion: `Resumen de ${topic.name}`,
-              puntosClave: [],
-              formulaDestacada: '',
-              tipExamen: '',
-            },
+            resumenData: topic.summary ?? [],
             color: topic.userProgress?.isGold ? '#58cc02' : '#1cb0f6',
           };
         })

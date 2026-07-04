@@ -1,5 +1,6 @@
-import { LucideIcon } from 'lucide-react';
-import type { Card3DVariant, MapNodeColor } from '@ingresa-pe/ui';
+import { SummaryBlock } from "@ingresa-pe/domain";
+import { LucideIcon } from "lucide-react";
+import type { Card3DVariant, MapNodeColor } from "@ingresa-pe/ui";
 
 export interface Actividad {
   id: number;
@@ -9,11 +10,17 @@ export interface Actividad {
   color?: MapNodeColor;
 }
 
+/**
+ * @deprecated Usar SummaryBlock[] desde @ingresa-pe/domain.
+ */
 export interface DetalleResumen {
   titulo: string;
   texto: string;
 }
 
+/**
+ * @deprecated Usar SummaryBlock[] desde @ingresa-pe/domain.
+ */
 export interface ResumenData {
   introduccion: string;
   imagenUrl?: string;
@@ -36,5 +43,5 @@ export interface TemaData {
   descripcion: string;
   variant: Card3DVariant;
   actividades: Actividad[];
-  resumenData: ResumenData;
+  resumenData: SummaryBlock[];
 }

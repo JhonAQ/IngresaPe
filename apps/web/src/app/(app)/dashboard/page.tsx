@@ -7,7 +7,7 @@ import { TopicList, TopicFromApi } from '../../../components/dashboard/TopicList
 import { TopicHeader } from '../../../components/dashboard/TopicHeader';
 import { SummaryModal } from '../../../components/dashboard/SummaryModal';
 import { useDashboardData } from '../../../hooks/useDashboardData';
-import { useCourseSelector } from '../../../components/dashboard/CourseSelectorContext';
+import { useCourseSelector } from '../../../components/dashboard/ImmersiveOverlayContext';
 import { CourseSelector } from '../../../components/dashboard/CourseSelector';
 import { trpc } from '../../../utils/trpc';
 import type { TemaData } from '@ingresa-pe/domain';
@@ -20,14 +20,9 @@ function buildTemaData(topic: TopicFromApi, index: number): TemaData {
     descripcion: topic.slug,
     variant: 'primary',
     actividades: [],
-    resumenData: topic.summary || {
-      introduccion: `Resumen de ${topic.name}`,
-      puntosClave: [],
-      formulaDestacada: '',
-      tipExamen: '',
-    },
+    resumenData: topic.summary ?? [],
     color: topic.userProgress?.isGold ? '#58cc02' : '#1cb0f6',
-  } as TemaData;
+  };
 }
 
 function DashboardContent() {

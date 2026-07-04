@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { Difficulty, Prisma } from '@prisma/client';
 import { QuestionViewService } from '../services/question-view.service';
+import { migrateLegacySummary } from '@ingresa-pe/domain';
 
 @Injectable()
 export class ContentRouter {
@@ -70,6 +71,7 @@ export class ContentRouter {
 
                 return {
                     ...topic,
+                    summary: migrateLegacySummary(topic.summary),
                     totalQuestions: topic._count.questions,
                     userProgress: {
                         correctCount,

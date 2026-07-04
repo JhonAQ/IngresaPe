@@ -5,11 +5,11 @@ import { DashboardHeader } from '../../components/dashboard/Header';
 import { BottomNav } from '../../components/dashboard/BottomNav';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { AuthGuard } from '../../components/auth/AuthGuard';
-import { CourseSelectorProvider, useCourseSelector } from '../../components/dashboard/CourseSelectorContext';
+import { ImmersiveOverlayProvider, useImmersiveOverlay } from '../../components/dashboard/ImmersiveOverlayContext';
 
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const { data, isLoading } = useDashboardData();
-  const { isOpen } = useCourseSelector();
+  const { isOpen } = useImmersiveOverlay();
 
   return (
     <AuthGuard>
@@ -42,8 +42,8 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <CourseSelectorProvider>
+    <ImmersiveOverlayProvider>
       <LayoutContent>{children}</LayoutContent>
-    </CourseSelectorProvider>
+    </ImmersiveOverlayProvider>
   );
 }

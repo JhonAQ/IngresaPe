@@ -1,10 +1,10 @@
-import {
-  ChevronLeft,
-  X,
-  CheckCircle2,
-  Lightbulb,
-} from 'lucide-react';
+'use client';
+
+import { useEffect } from 'react';
+import { ChevronLeft, X } from 'lucide-react';
 import { TemaData } from '@ingresa-pe/domain';
+import { SummaryBlocks } from '../summary/SummaryBlocks';
+import { useImmersiveOverlay } from './ImmersiveOverlayContext';
 
 interface SummaryModalProps {
   resumenActivo: TemaData | null;
@@ -12,10 +12,20 @@ interface SummaryModalProps {
 }
 
 export function SummaryModal({ resumenActivo, onClose }: SummaryModalProps) {
+  const { open, close } = useImmersiveOverlay();
+
+  useEffect(() => {
+    if (resumenActivo) {
+      open('summary');
+    } else {
+      close();
+    }
+  }, [resumenActivo, open, close]);
+
   if (!resumenActivo) return null;
 
   return (
-    <div className="absolute inset-0 bg-white z-[100] flex flex-col transition-transform duration-300 ease-in-out translate-y-0">
+    <div className="fixed inset-0 bg-white z-[100] flex flex-col">
       <div className="px-4 pt-6 pb-4 border-b-2 border-slate-200 flex items-center justify-between sticky top-0 bg-white z-20 shrink-0">
         <button
           onClick={onClose}
@@ -37,9 +47,7 @@ export function SummaryModal({ resumenActivo, onClose }: SummaryModalProps) {
       <div className="flex-1 overflow-y-auto p-6 bg-slate-50 hide-scrollbar">
         <div className="space-y-6 pb-10">
           <div>
-            <span
-              className="inline-block text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md mb-2 bg-red-600 text-white shadow-sm"
-            >
+            <span className="inline-block text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md mb-2 bg-red-600 text-white shadow-sm">
               Resumen Oficial
             </span>
             <h2 className="text-3xl font-black text-slate-800 leading-tight">
@@ -47,71 +55,10 @@ export function SummaryModal({ resumenActivo, onClose }: SummaryModalProps) {
             </h2>
           </div>
 
-          {resumenActivo.resumenData.imagenUrl && (
-            <img
-              src={resumenActivo.resumenData.imagenUrl}
-              alt={`Ilustración de ${resumenActivo.titulo}`}
-              className="w-full h-48 object-cover rounded-2xl border-2 border-slate-300"
-            />
-          )}
-
-          <p className="text-slate-600 font-medium leading-relaxed">
-            {resumenActivo.resumenData.introduccion}
-          </p>
-
-          {resumenActivo.resumenData.formulaDestacada && (
-            <div className="bg-slate-800 rounded-2xl p-6 text-center shadow-lg relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
-              <p className="text-slate-400 text-[10px] font-black mb-2 uppercase tracking-widest">
-                Fórmula Clave
-              </p>
-              <div className="text-xl font-black text-white">
-                {resumenActivo.resumenData.formulaDestacada}
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-black text-slate-800 border-b-2 border-slate-200 pb-2">
-              Conceptos Clave
-            </h3>
-            <div className="space-y-3">
-              {resumenActivo.resumenData.puntosClave.map((punto, index) => (
-                <div
-                  key={index}
-                  className="flex gap-3 bg-white p-4 rounded-2xl border-2 border-slate-100 shadow-sm"
-                >
-                  <div className="mt-0.5 flex-shrink-0 text-green-500">
-                    <CheckCircle2 size={20} strokeWidth={2.5} />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-800 leading-tight">
-                      {punto.titulo}
-                    </h4>
-                    <p className="text-slate-500 mt-1 text-sm font-medium leading-snug">
-                      {punto.texto}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {resumenActivo.resumenData.tipExamen && (
-            <div className="bg-amber-100 border-2 border-amber-300 rounded-2xl p-4 flex gap-3">
-              <div className="text-amber-500 shrink-0 mt-0.5">
-                <Lightbulb size={24} strokeWidth={2.5} />
-              </div>
-              <div>
-                <h4 className="font-black text-amber-800 text-sm mb-0.5">
-                  Tip de Examen
-                </h4>
-                <p className="text-amber-700 text-sm font-medium leading-snug">
-                  {resumenActivo.resumenData.tipExamen}
-                </p>
-              </div>
-            </div>
-          )}
+          <SummaryBlocks
+            blocks={resumenActivo.resumenData}
+            accentColor={resumenActivo.color}
+          />
 
           <button
             onClick={onClose}

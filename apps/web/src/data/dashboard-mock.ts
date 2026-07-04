@@ -29,16 +29,17 @@ export const temarioMock: TemaData[] = [
       { id: 103, name: "Match", state: "current", icon: Layers, color: "warning" },
       { id: 104, name: "Quiz Final", state: "locked", icon: Target },
     ],
-    resumenData: {
-      introduccion: "La célula eucariota es la unidad básica y funcional de organismos complejos. Se caracteriza por tener un núcleo definido protegido por una membrana nuclear que alberga el material genético.",
-      imagenUrl: 'https://placehold.co/600x300?text=Resumen',
-      puntosClave: [
-        { titulo: "Núcleo Celular", texto: "Almacena y protege el material genético (ADN)." },
-        { titulo: "Mitocondrias", texto: "La 'planta de energía'." },
-      ],
-      formulaDestacada: "C₆H₁₂O₆ + 6O₂ ➔ 6CO₂ + 6H₂O + ATP",
-      tipExamen: "Diferencia clásica: Las vegetales tienen pared celular de celulosa."
-    }
+    resumenData: [
+      { type: 'HEADING', level: 1, text: 'La Célula Eucariota' },
+      { type: 'PARAGRAPH', text: "La célula eucariota es la unidad básica y funcional de organismos complejos. Se caracteriza por tener un núcleo definido protegido por una membrana nuclear que alberga el material genético." },
+      { type: 'IMAGE', src: 'https://placehold.co/600x300?text=Resumen', alt: 'Célula eucariota', caption: 'Estructura general de una célula animal.' },
+      { type: 'KEY_POINTS', items: [
+        { title: "Núcleo Celular", text: "Almacena y protege el material genético (ADN)." },
+        { title: "Mitocondrias", text: "La 'planta de energía'." },
+      ]},
+      { type: 'FORMULA', latex: 'C_6H_{12}O_6 + 6O_2 \\rightarrow 6CO_2 + 6H_2O + ATP', label: 'Respiración celular' },
+      { type: 'TIP', title: 'Tip de examen', text: 'Diferencia clásica: Las vegetales tienen pared celular de celulosa.', variant: 'exam' },
+    ],
   },
   {
     id: 2,
@@ -52,15 +53,16 @@ export const temarioMock: TemaData[] = [
       { id: 203, name: "Match", state: "locked", icon: Layers },
       { id: 204, name: "Quiz Final", state: "locked", icon: Target },
     ],
-    resumenData: {
-      introduccion: "El metabolismo es el conjunto de reacciones químicas que ocurren en la célula para mantener la vida, dividiéndose en procesos de construcción y de degradación.",
-      puntosClave: [
-        { titulo: "Catabolismo", texto: "Degrada moléculas complejas liberando energía." },
-        { titulo: "Anabolismo", texto: "Construye moléculas complejas consumiendo energía." }
-      ],
-      formulaDestacada: "ATP ➔ ADP + Pᵢ + Energía",
-      tipExamen: "Recuerda: Anabolismo 'Arma', Catabolismo 'Corta'."
-    }
+    resumenData: [
+      { type: 'HEADING', level: 1, text: 'Metabolismo Celular' },
+      { type: 'PARAGRAPH', text: "El metabolismo es el conjunto de reacciones químicas que ocurren en la célula para mantener la vida, dividiéndose en procesos de construcción y de degradación." },
+      { type: 'KEY_POINTS', items: [
+        { title: "Catabolismo", text: "Degrada moléculas complejas liberando energía." },
+        { title: "Anabolismo", text: "Construye moléculas complejas consumiendo energía." },
+      ]},
+      { type: 'FORMULA', latex: 'ATP \\rightarrow ADP + P_i + \\text{Energía}', label: 'Hidrólisis del ATP' },
+      { type: 'TIP', title: 'Memotécnica', text: "Recuerda: Anabolismo 'Arma', Catabolismo 'Corta'.", variant: 'memory' },
+    ],
   },
   {
     id: 3,
@@ -74,16 +76,17 @@ export const temarioMock: TemaData[] = [
       { id: 303, name: "Match", state: "locked", icon: Layers },
       { id: 304, name: "Quiz Final", state: "locked", icon: Target },
     ],
-    resumenData: {
-      introduccion: "Proceso por el cual una célula madre se divide para formar nuevas células hijas, esencial para el crecimiento, reparación de tejidos y reproducción sexual.",
-      imagenUrl: 'https://placehold.co/600x300?text=Resumen',
-      puntosClave: [
-        { titulo: "Mitosis", texto: "Genera 2 células hijas diploides (idénticas)." },
-        { titulo: "Meiosis", texto: "Genera 4 células hijas haploides (gametos)." }
-      ],
-      formulaDestacada: "2n ➔ 2n (Mitosis) / 2n ➔ n (Meiosis)",
-      tipExamen: "El crossing-over (variabilidad genética) ocurre exclusivamente en la Profase I de la Meiosis."
-    }
+    resumenData: [
+      { type: 'HEADING', level: 1, text: 'División Celular' },
+      { type: 'PARAGRAPH', text: "Proceso por el cual una célula madre se divide para formar nuevas células hijas, esencial para el crecimiento, reparación de tejidos y reproducción sexual." },
+      { type: 'IMAGE', src: 'https://placehold.co/600x300?text=Resumen', alt: 'División celular', caption: 'Mitosis y meiosis en comparación.' },
+      { type: 'KEY_POINTS', items: [
+        { title: "Mitosis", text: "Genera 2 células hijas diploides (idénticas)." },
+        { title: "Meiosis", text: "Genera 4 células hijas haploides (gametos)." },
+      ]},
+      { type: 'FORMULA', latex: '2n \\rightarrow 2n \\text{ (Mitosis)} \\quad ; \\quad 2n \\rightarrow n \\text{ (Meiosis)}', label: 'Cambio de número cromosómico' },
+      { type: 'TIP', title: 'Tip de examen', text: 'El crossing-over (variabilidad genética) ocurre exclusivamente en la Profase I de la Meiosis.', variant: 'exam' },
+    ],
   },
   {
     id: 4,
@@ -97,16 +100,17 @@ export const temarioMock: TemaData[] = [
       { id: 403, name: "Match", state: "locked", icon: Layers },
       { id: 404, name: "Quiz Final", state: "locked", icon: Target },
     ],
-    resumenData: {
-      introduccion: "Estudio de cómo los caracteres se transmiten de generación en generación a través de los genes, fundamentado por los experimentos de Gregor Mendel.",
-      imagenUrl: 'https://placehold.co/600x300?text=Resumen',
-      puntosClave: [
-        { titulo: "Ley de Segregación", texto: "Los alelos se separan durante la formación de gametos." },
-        { titulo: "Fenotipo y Genotipo", texto: "Fenotipo es lo visible; genotipo la carga genética." }
-      ],
-      formulaDestacada: "Proporción Fenotípica F2 (Aa x Aa) = 3:1",
-      tipExamen: "Cuidado con la dominancia incompleta en problemas prácticos, ahí la proporción F2 es 1:2:1."
-    }
+    resumenData: [
+      { type: 'HEADING', level: 1, text: 'Genética Mendeliana' },
+      { type: 'PARAGRAPH', text: "Estudio de cómo los caracteres se transmiten de generación en generación a través de los genes, fundamentado por los experimentos de Gregor Mendel." },
+      { type: 'IMAGE', src: 'https://placehold.co/600x300?text=Resumen', alt: 'Cruzamiento genético', caption: 'Proporciones fenotípicas en F2.' },
+      { type: 'KEY_POINTS', items: [
+        { title: "Ley de Segregación", text: "Los alelos se separan durante la formación de gametos." },
+        { title: "Fenotipo y Genotipo", text: "Fenotipo es lo visible; genotipo la carga genética." },
+      ]},
+      { type: 'FORMULA', latex: '\\text{Proporción fenotípica F2 (Aa x Aa)} = 3:1', label: 'Proporción clásica' },
+      { type: 'CALLOUT', title: 'Cuidado', text: 'Con dominancia incompleta la proporción F2 es 1:2:1.', tone: 'warning' },
+    ],
   },
   {
     id: 5,
@@ -120,16 +124,17 @@ export const temarioMock: TemaData[] = [
       { id: 503, name: "Match", state: "locked", icon: Layers },
       { id: 504, name: "Quiz Final", state: "locked", icon: Target },
     ],
-    resumenData: {
-      introduccion: "Explica cómo la información contenida en el ADN se traduce en proteínas funcionales, pasando por un intermediario de ARN.",
-      imagenUrl: 'https://placehold.co/600x300?text=Resumen',
-      puntosClave: [
-        { titulo: "Transcripción", texto: "Copia de ADN a ARNm en el núcleo." },
-        { titulo: "Traducción", texto: "Síntesis de proteínas en los ribosomas." }
-      ],
-      formulaDestacada: "ADN ➔ ARN ➔ Proteína",
-      tipExamen: "Recuerda que los retrovirus (como el VIH) hacen transcripción inversa: ARN ➔ ADN."
-    }
+    resumenData: [
+      { type: 'HEADING', level: 1, text: 'Dogma Central' },
+      { type: 'PARAGRAPH', text: "Explica cómo la información contenida en el ADN se traduce en proteínas funcionales, pasando por un intermediario de ARN." },
+      { type: 'IMAGE', src: 'https://placehold.co/600x300?text=Resumen', alt: 'Dogma central', caption: 'ADN → ARN → Proteína.' },
+      { type: 'KEY_POINTS', items: [
+        { title: "Transcripción", text: "Copia de ADN a ARNm en el núcleo." },
+        { title: "Traducción", text: "Síntesis de proteínas en los ribosomas." },
+      ]},
+      { type: 'FORMULA', latex: 'ADN \\rightarrow ARN \\rightarrow \\text{Proteína}', label: 'Flujo de información' },
+      { type: 'TIP', title: 'Tip de examen', text: 'Los retrovirus (como el VIH) hacen transcripción inversa: ARN → ADN.', variant: 'exam' },
+    ],
   },
   {
     id: 6,
@@ -143,15 +148,16 @@ export const temarioMock: TemaData[] = [
       { id: 603, name: "Match", state: "locked", icon: Layers },
       { id: 604, name: "Quiz Final", state: "locked", icon: Target },
     ],
-    resumenData: {
-      introduccion: "Proceso de transformación de las especies a lo largo del tiempo, impulsado por mecanismos como la selección natural y las mutaciones.",
-      puntosClave: [
-        { titulo: "Lamarckismo", texto: "Teoría obsoleta del uso y desuso de órganos." },
-        { titulo: "Neodarwinismo", texto: "Selección natural combinada con genética moderna." }
-      ],
-      formulaDestacada: "Variabilidad Genética + Presión Ambiental = Adaptación",
-      tipExamen: "Órganos homólogos (mismo origen, diferente función) prueban evolución divergente."
-    }
+    resumenData: [
+      { type: 'HEADING', level: 1, text: 'Evolución Biológica' },
+      { type: 'PARAGRAPH', text: "Proceso de transformación de las especies a lo largo del tiempo, impulsado por mecanismos como la selección natural y las mutaciones." },
+      { type: 'KEY_POINTS', items: [
+        { title: "Lamarckismo", text: "Teoría obsoleta del uso y desuso de órganos." },
+        { title: "Neodarwinismo", text: "Selección natural combinada con genética moderna." },
+      ]},
+      { type: 'FORMULA', latex: '\\text{Variabilidad Genética} + \\text{Presión Ambiental} = \\text{Adaptación}', label: 'Evolución en resumen' },
+      { type: 'TIP', title: 'Tip de examen', text: 'Órganos homólogos (mismo origen, diferente función) prueban evolución divergente.', variant: 'exam' },
+    ],
   },
   {
     id: 7,
@@ -165,16 +171,17 @@ export const temarioMock: TemaData[] = [
       { id: 703, name: "Match", state: "locked", icon: Layers },
       { id: 704, name: "Quiz Final", state: "locked", icon: Target },
     ],
-    resumenData: {
-      introduccion: "La ecología estudia las interacciones de los seres vivos entre sí y con su entorno físico (biotopo y biocenosis).",
-      imagenUrl: 'https://placehold.co/600x300?text=Resumen',
-      puntosClave: [
-        { titulo: "Productores", texto: "Autótrofos, base de la pirámide alimenticia." },
-        { titulo: "Descomponedores", texto: "Reciclan la materia orgánica (hongos y bacterias)." }
-      ],
-      formulaDestacada: "Biotopo (inerte) + Biocenosis (vivo) = Ecosistema",
-      tipExamen: "Solo el 10% de la energía fluye de un nivel trófico al siguiente (Ley del 10%)."
-    }
+    resumenData: [
+      { type: 'HEADING', level: 1, text: 'Ecología y Ecosistemas' },
+      { type: 'PARAGRAPH', text: "La ecología estudia las interacciones de los seres vivos entre sí y con su entorno físico (biotopo y biocenosis)." },
+      { type: 'IMAGE', src: 'https://placehold.co/600x300?text=Resumen', alt: 'Ecosistema', caption: 'Componentes bióticos y abióticos.' },
+      { type: 'KEY_POINTS', items: [
+        { title: "Productores", text: "Autótrofos, base de la pirámide alimenticia." },
+        { title: "Descomponedores", text: "Reciclan la materia orgánica (hongos y bacterias)." },
+      ]},
+      { type: 'FORMULA', latex: '\\text{Biotopo (inerte)} + \\text{Biocenosis (vivo)} = \\text{Ecosistema}', label: 'Definición' },
+      { type: 'CALLOUT', title: 'Ley del 10%', text: 'Solo el 10% de la energía fluye de un nivel trófico al siguiente.', tone: 'info' },
+    ],
   },
   {
     id: 8,
@@ -188,15 +195,16 @@ export const temarioMock: TemaData[] = [
       { id: 803, name: "Match", state: "locked", icon: Layers },
       { id: 804, name: "Quiz Final", state: "locked", icon: Target },
     ],
-    resumenData: {
-      introduccion: "Red compleja de células, tejidos y órganos que trabajan en conjunto para defender el cuerpo contra patógenos invasores.",
-      puntosClave: [
-        { titulo: "Inmunidad Innata", texto: "Respuesta rápida y general (piel, macrófagos)." },
-        { titulo: "Inmunidad Adaptativa", texto: "Respuesta específica con memoria (Linfocitos T y B)." }
-      ],
-      formulaDestacada: "Antígeno (invasor) + Anticuerpo (defensa) ➔ Complejo Inmune",
-      tipExamen: "Las vacunas generan inmunidad activa artificial mediante células de memoria."
-    }
+    resumenData: [
+      { type: 'HEADING', level: 1, text: 'Sistema Inmunológico' },
+      { type: 'PARAGRAPH', text: "Red compleja de células, tejidos y órganos que trabajan en conjunto para defender el cuerpo contra patógenos invasores." },
+      { type: 'KEY_POINTS', items: [
+        { title: "Inmunidad Innata", text: "Respuesta rápida y general (piel, macrófagos)." },
+        { title: "Inmunidad Adaptativa", text: "Respuesta específica con memoria (Linfocitos T y B)." },
+      ]},
+      { type: 'FORMULA', latex: '\\text{Antígeno (invasor)} + \\text{Anticuerpo (defensa)} \\rightarrow \\text{Complejo Inmune}', label: 'Reacción inmune' },
+      { type: 'TIP', title: 'Memotécnica', text: 'Las vacunas generan inmunidad activa artificial mediante células de memoria.', variant: 'memory' },
+    ],
   },
   {
     id: 9,
@@ -210,16 +218,17 @@ export const temarioMock: TemaData[] = [
       { id: 903, name: "Match", state: "locked", icon: Layers },
       { id: 904, name: "Quiz Final", state: "locked", icon: Target },
     ],
-    resumenData: {
-      introduccion: "Sistema encargado de recibir estímulos, procesar la información y generar respuestas coordinadas mediante impulsos eléctricos.",
-      imagenUrl: 'https://placehold.co/600x300?text=Resumen',
-      puntosClave: [
-        { titulo: "Sinapsis", texto: "Comunicación entre neuronas usando neurotransmisores." },
-        { titulo: "SNC vs SNP", texto: "Central (procesamiento) vs Periférico (transmisión)." }
-      ],
-      formulaDestacada: "Estímulo ➔ Receptor ➔ Centro Nervioso ➔ Efector",
-      tipExamen: "El potencial de acción neuronal se despolariza por la entrada masiva de Sodio (Na+)."
-    }
+    resumenData: [
+      { type: 'HEADING', level: 1, text: 'Sistema Nervioso' },
+      { type: 'PARAGRAPH', text: "Sistema encargado de recibir estímulos, procesar la información y generar respuestas coordinadas mediante impulsos eléctricos." },
+      { type: 'IMAGE', src: 'https://placehold.co/600x300?text=Resumen', alt: 'Neurona', caption: 'El potencial de acción viaja por el axón.' },
+      { type: 'KEY_POINTS', items: [
+        { title: "Sinapsis", text: "Comunicación entre neuronas usando neurotransmisores." },
+        { title: "SNC vs SNP", text: "Central (procesamiento) vs Periférico (transmisión)." },
+      ]},
+      { type: 'FORMULA', latex: '\\text{Estímulo} \\rightarrow \\text{Receptor} \\rightarrow \\text{Centro Nervioso} \\rightarrow \\text{Efector}', label: 'Arco reflejo' },
+      { type: 'TIP', title: 'Tip de examen', text: 'El potencial de acción neuronal se despolariza por la entrada masiva de Sodio (Na+).', variant: 'exam' },
+    ],
   },
   {
     id: 10,
@@ -233,14 +242,15 @@ export const temarioMock: TemaData[] = [
       { id: 1003, name: "Match", state: "locked", icon: Layers },
       { id: 1004, name: "Quiz Final", state: "locked", icon: Target },
     ],
-    resumenData: {
-      introduccion: "Estudio de las agrupaciones celulares en las plantas terrestres que cumplen funciones específicas como soporte, crecimiento y transporte.",
-      puntosClave: [
-        { titulo: "Meristemos", texto: "Tejidos responsables del crecimiento continuo." },
-        { titulo: "Tejidos Conductores", texto: "Transporte de fluidos en plantas vasculares." }
-      ],
-      formulaDestacada: "Xilema = Savia bruta / Floema = Savia elaborada",
-      tipExamen: "El xilema transporta agua de forma unidireccional (raíz a hoja), el floema es bidireccional."
-    }
-  }
+    resumenData: [
+      { type: 'HEADING', level: 1, text: 'Histología Vegetal' },
+      { type: 'PARAGRAPH', text: "Estudio de las agrupaciones celulares en las plantas terrestres que cumplen funciones específicas como soporte, crecimiento y transporte." },
+      { type: 'KEY_POINTS', items: [
+        { title: "Meristemos", text: "Tejidos responsables del crecimiento continuo." },
+        { title: "Tejidos Conductores", text: "Transporte de fluidos en plantas vasculares." },
+      ]},
+      { type: 'FORMULA', latex: '\\text{Xilema} = \\text{savia bruta} \\quad ; \\quad \\text{Floema} = \\text{savia elaborada}', label: 'Tejidos conductores' },
+      { type: 'CALLOUT', title: 'Importante', text: 'El xilema transporta agua de forma unidireccional (raíz a hoja), el floema es bidireccional.', tone: 'warning' },
+    ],
+  },
 ];

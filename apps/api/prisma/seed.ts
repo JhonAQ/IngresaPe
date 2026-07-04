@@ -120,24 +120,20 @@ async function main() {
     explanation: string;
   }
 
-  interface DetalleResumenSeed {
-    titulo: string;
-    texto: string;
-  }
-
-  interface ResumenSeed {
-    introduccion: string;
-    imagenUrl?: string;
-    puntosClave: DetalleResumenSeed[];
-    formulaDestacada: string;
-    tipExamen: string;
-  }
+  type SummaryBlockSeed =
+    | { type: 'HEADING'; level: 1 | 2 | 3; text: string }
+    | { type: 'PARAGRAPH'; text: string }
+    | { type: 'FORMULA'; latex: string; label?: string }
+    | { type: 'KEY_POINTS'; items: { title: string; text: string }[] }
+    | { type: 'TIP'; title?: string; text: string; variant?: 'exam' | 'memory' | 'warning' }
+    | { type: 'IMAGE'; src: string; alt: string; caption?: string }
+    | { type: 'CALLOUT'; title?: string; text: string; tone?: 'info' | 'success' | 'warning' | 'danger' };
 
   interface TemaSeed {
     nombre: string;
     slug: string;
     preguntas: PreguntaSeed[];
-    summary?: ResumenSeed;
+    summary?: SummaryBlockSeed[];
   }
 
   function buildMultipleChoiceContent(options: PreguntaSeed['options']) {
@@ -216,17 +212,19 @@ async function main() {
       {
         nombre: 'Planteo de Ecuaciones',
         slug: 'planteo-ecuaciones',
-        summary: {
-          introduccion: 'El planteo de ecuaciones transforma situaciones cotidianas en lenguaje algebraico. Identificar la incógnita y traducir las relaciones del problema es la clave para resolverlo.',
-          imagenUrl: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=800&q=80',
-          puntosClave: [
-            { titulo: 'Identifica la incógnita', texto: 'Asigna una letra (generalmente x) a lo que se pregunta.' },
-            { titulo: 'Traduce el enunciado', texto: 'Convierte las palabras en operaciones matemáticas.' },
-            { titulo: 'Verifica tu respuesta', texto: 'Reemplaza el valor hallado en el contexto original.' },
-          ],
-          formulaDestacada: 'Incógnita → Ecuación → Solución',
-          tipExamen: 'Lee el problema dos veces: una para entender la situación y otra para extraer los datos numéricos.',
-        },
+        summary: [
+          { type: 'HEADING', level: 1, text: 'Planteo de Ecuaciones' },
+          { type: 'PARAGRAPH', text: 'El planteo de ecuaciones transforma situaciones cotidianas en lenguaje algebraico. Identificar la incógnita y traducir las relaciones del problema es la clave para resolverlo.' },
+          { type: 'IMAGE', src: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=800&q=80', alt: 'Ecuaciones en un pizarrón', caption: 'Traducir palabras a símbolos es el primer paso.' },
+          { type: 'KEY_POINTS', items: [
+            { title: 'Identifica la incógnita', text: 'Asigna una letra (generalmente x) a lo que se pregunta.' },
+            { title: 'Traduce el enunciado', text: 'Convierte las palabras en operaciones matemáticas.' },
+            { title: 'Verifica tu respuesta', text: 'Reemplaza el valor hallado en el contexto original.' },
+          ]},
+          { type: 'FORMULA', latex: 'x = \\frac{c - b}{a}', label: 'Fórmula clave' },
+          { type: 'TIP', title: 'Tip de examen', text: 'Lee el problema dos veces: una para entender la situación y otra para extraer los datos numéricos.', variant: 'exam' },
+          { type: 'CALLOUT', title: 'Cuidado', text: 'No olvides incluir las unidades en tu respuesta final.', tone: 'warning' },
+        ],
         preguntas: [
           {
             difficulty: Difficulty.EASY,
@@ -340,17 +338,19 @@ async function main() {
       {
         nombre: 'Ecuaciones de Primer Grado',
         slug: 'ecuaciones-primer-grado',
-        summary: {
-          introduccion: 'Una ecuación de primer grado con una incógnita expresa una igualdad que se cumple para un único valor de la variable. Su resolución se basa en operaciones inversas.',
-          imagenUrl: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&q=80',
-          puntosClave: [
-            { titulo: 'Aislar la variable', texto: 'Usa suma/resta para dejar la x en un solo lado.' },
-            { titulo: 'Simplifica coeficientes', texto: 'Divide o multiplica para obtener x = valor.' },
-            { titulo: 'Comprueba', texto: 'Sustituye en la ecuación original para validar.' },
-          ],
-          formulaDestacada: 'ax + b = c  ⇒  x = (c − b) / a',
-          tipExamen: 'Si hay paréntesis, elimínalos primero distribuyendo antes de despejar la variable.',
-        },
+        summary: [
+          { type: 'HEADING', level: 1, text: 'Ecuaciones de Primer Grado' },
+          { type: 'PARAGRAPH', text: 'Una ecuación de primer grado con una incógnita expresa una igualdad que se cumple para un único valor de la variable. Su resolución se basa en operaciones inversas.' },
+          { type: 'FORMULA', latex: 'ax + b = c \\Rightarrow x = \\frac{c - b}{a}', label: 'Despeje de x' },
+          { type: 'KEY_POINTS', items: [
+            { title: 'Aislar la variable', text: 'Usa suma/resta para dejar la x en un solo lado.' },
+            { title: 'Simplifica coeficientes', text: 'Divide o multiplica para obtener x = valor.' },
+            { title: 'Comprueba', text: 'Sustituye en la ecuación original para validar.' },
+          ]},
+          { type: 'TIP', title: 'Memotécnica', text: '"Lo que suma pasa restando, lo que multiplica pasa dividiendo."', variant: 'memory' },
+          { type: 'IMAGE', src: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&q=80', alt: 'Símbolos algebraicos', caption: 'El orden de las operaciones importa.' },
+          { type: 'CALLOUT', title: 'Importante', text: 'Si hay paréntesis, elimínalos primero distribuyendo antes de despejar la variable.', tone: 'info' },
+        ],
         preguntas: [
           {
             difficulty: Difficulty.EASY,
@@ -452,17 +452,19 @@ async function main() {
       {
         nombre: 'Triángulos',
         slug: 'triangulos',
-        summary: {
-          introduccion: 'El triángulo es el polígono más simple y estable. Sus propiedades angulares y laterales son fundamentales para resolver gran parte de la geometría plana.',
-          imagenUrl: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&q=80',
-          puntosClave: [
-            { titulo: 'Suma de ángulos internos', texto: 'Siempre suman 180°.' },
-            { titulo: 'Desigualdad triangular', texto: 'Un lado siempre es menor que la suma de los otros dos.' },
-            { titulo: 'Clasificación', texto: 'Por lados (equilátero, isósceles, escaleno) y por ángulos (acutángulo, rectángulo, obtusángulo).' },
-          ],
-          formulaDestacada: '∠A + ∠B + ∠C = 180°',
-          tipExamen: 'En un triángulo rectángulo no olvides el Teorema de Pitágoras y las razones trigonométricas.',
-        },
+        summary: [
+          { type: 'HEADING', level: 1, text: 'Triángulos' },
+          { type: 'IMAGE', src: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&q=80', alt: 'Triángulos geométricos', caption: 'El polígono más simple y estable.' },
+          { type: 'PARAGRAPH', text: 'El triángulo es el polígono más simple y estable. Sus propiedades angulares y laterales son fundamentales para resolver gran parte de la geometría plana.' },
+          { type: 'FORMULA', latex: '\\angle A + \\angle B + \\angle C = 180^\\circ', label: 'Suma de ángulos internos' },
+          { type: 'KEY_POINTS', items: [
+            { title: 'Suma de ángulos internos', text: 'Siempre suman 180°.' },
+            { title: 'Desigualdad triangular', text: 'Un lado siempre es menor que la suma de los otros dos.' },
+            { title: 'Clasificación', text: 'Por lados (equilátero, isósceles, escaleno) y por ángulos (acutángulo, rectángulo, obtusángulo).' },
+          ]},
+          { type: 'CALLOUT', title: 'Recuerda', text: 'En un triángulo rectángulo no olvides el Teorema de Pitágoras y las razones trigonométricas.', tone: 'warning' },
+          { type: 'TIP', title: 'Tip de examen', text: 'Marca los ángulos y lados conocidos en la figura antes de aplicar cualquier fórmula.', variant: 'exam' },
+        ],
         preguntas: [
           {
             difficulty: Difficulty.EASY,
@@ -552,17 +554,19 @@ async function main() {
       {
         nombre: 'Estructura Atómica',
         slug: 'estructura-atomica',
-        summary: {
-          introduccion: 'La estructura atómica explica la composición de la materia a partir de protones, neutrones y electrones organizados en niveles de energía.',
-          imagenUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=800&q=80',
-          puntosClave: [
-            { titulo: 'Partículas subatómicas', texto: 'Protones (+), neutrones (0) y electrones (−).' },
-            { titulo: 'Número de masa', texto: 'Suma de protones y neutrones del núcleo.' },
-            { titulo: 'Configuración electrónica', texto: 'Distribución de electrones en niveles o subniveles.' },
-          ],
-          formulaDestacada: 'A = Z + N  (Masa = Protones + Neutrones)',
-          tipExamen: 'Recuerda que en un átomo neutro el número de protones es igual al número de electrones.',
-        },
+        summary: [
+          { type: 'HEADING', level: 1, text: 'Estructura Atómica' },
+          { type: 'PARAGRAPH', text: 'La estructura atómica explica la composición de la materia a partir de protones, neutrones y electrones organizados en niveles de energía.' },
+          { type: 'CALLOUT', title: 'Fórmula básica', text: 'A = Z + N (Masa = Protones + Neutrones)', tone: 'success' },
+          { type: 'IMAGE', src: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=800&q=80', alt: 'Modelo atómico', caption: 'El núcleo concentra la mayor parte de la masa.' },
+          { type: 'KEY_POINTS', items: [
+            { title: 'Partículas subatómicas', text: 'Protones (+), neutrones (0) y electrones (−).' },
+            { title: 'Número de masa', text: 'Suma de protones y neutrones del núcleo.' },
+            { title: 'Configuración electrónica', text: 'Distribución de electrones en niveles o subniveles.' },
+          ]},
+          { type: 'TIP', title: 'Memotécnica', text: 'En un átomo neutro: protones = electrones. Los iones pierden o ganan electrones, no protones.', variant: 'memory' },
+          { type: 'CALLOUT', title: 'Dato clave', text: 'El número atómico (Z) determina qué elemento es.', tone: 'info' },
+        ],
         preguntas: [
           {
             difficulty: Difficulty.EASY,
@@ -652,17 +656,19 @@ async function main() {
       {
         nombre: 'Cinemática',
         slug: 'cinematica',
-        summary: {
-          introduccion: 'La cinemática describe el movimiento de los cuerpos sin considerar las causas que lo producen. Se basa en magnitudes como posición, velocidad y aceleración.',
-          imagenUrl: 'https://images.unsplash.com/photo-1636466497217-26a8cbeaf0aa?w=800&q=80',
-          puntosClave: [
-            { titulo: 'Velocidad media', texto: 'Cociente entre desplazamiento y tiempo transcurrido.' },
-            { titulo: 'Movimiento rectilíneo uniforme (MRU)', texto: 'Velocidad constante.' },
-            { titulo: 'Movimiento uniformemente acelerado', texto: 'Aceleración constante.' },
-          ],
-          formulaDestacada: 'v = v₀ + at    |    d = v₀t + ½at²',
-          tipExamen: 'Dibuja el esquema del problema y elige un sentido positivo antes de aplicar las fórmulas.',
-        },
+        summary: [
+          { type: 'HEADING', level: 1, text: 'Cinemática' },
+          { type: 'PARAGRAPH', text: 'La cinemática describe el movimiento de los cuerpos sin considerar las causas que lo producen. Se basa en magnitudes como posición, velocidad y aceleración.' },
+          { type: 'FORMULA', latex: 'v = v_0 + at \\quad ; \\quad d = v_0t + \\frac{1}{2}at^2', label: 'MRU y MRUV' },
+          { type: 'IMAGE', src: 'https://images.unsplash.com/photo-1636466497217-26a8cbeaf0aa?w=800&q=80', alt: 'Movimiento rectilíneo', caption: 'Elige un sentido positivo antes de plantear.' },
+          { type: 'KEY_POINTS', items: [
+            { title: 'Velocidad media', text: 'Cociente entre desplazamiento y tiempo transcurrido.' },
+            { title: 'MRU', text: 'Velocidad constante.' },
+            { title: 'MRUV', text: 'Aceleración constante.' },
+          ]},
+          { type: 'CALLOUT', title: 'Cuidado con los signos', text: 'Si un cuerpo frena, su aceleración tiene signo opuesto a la velocidad.', tone: 'danger' },
+          { type: 'TIP', title: 'Tip de examen', text: 'Dibuja el esquema del problema y elige un sentido positivo antes de aplicar las fórmulas.', variant: 'exam' },
+        ],
         preguntas: [
           {
             difficulty: Difficulty.EASY,
@@ -764,17 +770,19 @@ async function main() {
       {
         nombre: 'La Célula',
         slug: 'la-celula',
-        summary: {
-          introduccion: 'La célula es la unidad estructural y funcional básica de todo ser vivo. Existen células procariotas y eucariotas, y cada una especializa funciones mediante organelos.',
-          imagenUrl: 'https://images.unsplash.com/photo-1530210124550-912dc1381cb8?w=800&q=80',
-          puntosClave: [
-            { titulo: 'Membrana plasmática', texto: 'Regula el intercambio de sustancias con el medio.' },
-            { titulo: 'Núcleo', texto: 'Centro de control que alberga el material genético.' },
-            { titulo: 'Mitocondrias', texto: 'Generan ATP mediante la respiración celular.' },
-          ],
-          formulaDestacada: 'ADN → ARN → Proteína',
-          tipExamen: 'Recuerda: las células procariotas no tienen núcleo definido ni organelos membranosos.',
-        },
+        summary: [
+          { type: 'HEADING', level: 1, text: 'La Célula' },
+          { type: 'IMAGE', src: 'https://images.unsplash.com/photo-1530210124550-912dc1381cb8?w=800&q=80', alt: 'Célula microscópica', caption: 'Unidad estructural y funcional de la vida.' },
+          { type: 'PARAGRAPH', text: 'La célula es la unidad estructural y funcional básica de todo ser vivo. Existen células procariotas y eucariotas, y cada una especializa funciones mediante organelos.' },
+          { type: 'KEY_POINTS', items: [
+            { title: 'Membrana plasmática', text: 'Regula el intercambio de sustancias con el medio.' },
+            { title: 'Núcleo', text: 'Centro de control que alberga el material genético.' },
+            { title: 'Mitocondrias', text: 'Generan ATP mediante la respiración celular.' },
+          ]},
+          { type: 'CALLOUT', title: 'Flujo de información', text: 'ADN → ARN → Proteína', tone: 'success' },
+          { type: 'TIP', title: 'Memotécnica', text: 'Recuerda: las células procariotas no tienen núcleo definido ni organelos membranosos.', variant: 'memory' },
+          { type: 'CALLOUT', title: 'Dato curioso', text: 'Las mitocondrias tienen su propio ADN y se heredan principalmente por vía materna.', tone: 'info' },
+        ],
         preguntas: [
           {
             difficulty: Difficulty.EASY,
@@ -876,17 +884,18 @@ async function main() {
       {
         nombre: 'Literatura Universal',
         slug: 'literatura-universal',
-        summary: {
-          introduccion: 'La literatura universal reúne obras de todas las épocas y culturas que han marcado la historia de la humanidad. Conocer sus movimientos y autores es clave para el examen de admisión.',
-          imagenUrl: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=800&q=80',
-          puntosClave: [
-            { titulo: 'Épocas literarias', texto: 'Clasicismo, Romanticismo, Realismo, Modernismo, Vanguardismo.' },
-            { titulo: 'Géneros literarios', texto: 'Lírico, épico/narrativo y dramático.' },
-            { titulo: 'Figuras retóricas', texto: 'Metáfora, hipérbole, personificación, sinestesia.' },
-          ],
-          formulaDestacada: 'Autor + Obra + Movimiento = Contexto',
-          tipExamen: 'Memoriza las obras cumbre y sus autores: Quijote (Cervantes), Hamlet (Shakespeare), La Iliada (Homero).',
-        },
+        summary: [
+          { type: 'HEADING', level: 1, text: 'Literatura Universal' },
+          { type: 'PARAGRAPH', text: 'La literatura universal reúne obras de todas las épocas y culturas que han marcado la historia de la humanidad. Conocer sus movimientos y autores es clave para el examen de admisión.' },
+          { type: 'KEY_POINTS', items: [
+            { title: 'Épocas literarias', text: 'Clasicismo, Romanticismo, Realismo, Modernismo, Vanguardismo.' },
+            { title: 'Géneros literarios', text: 'Lírico, épico/narrativo y dramático.' },
+            { title: 'Figuras retóricas', text: 'Metáfora, hipérbole, personificación, sinestesia.' },
+          ]},
+          { type: 'IMAGE', src: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=800&q=80', alt: 'Libros clásicos', caption: 'Autor + Obra + Movimiento = Contexto.' },
+          { type: 'CALLOUT', title: 'Obras cumbre', text: 'Quijote (Cervantes), Hamlet (Shakespeare), La Ilíada (Homero).', tone: 'info' },
+          { type: 'TIP', title: 'Tip de examen', text: 'Memoriza las obras cumbre y sus autores; el examen suele mezclar movimientos.', variant: 'exam' },
+        ],
         preguntas: [
           {
             difficulty: Difficulty.EASY,
@@ -976,17 +985,18 @@ async function main() {
       {
         nombre: 'Época Prehispánica',
         slug: 'epoca-prehispanica',
-        summary: {
-          introduccion: 'La época prehispánica abarca las culturas que habitaron el territorio peruano antes de la llegada de los españoles, culminando con el Imperio Inca y su organización social, política y religiosa.',
-          imagenUrl: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?w=800&q=80',
-          puntosClave: [
-            { titulo: 'Culturas andinas', texto: 'Caral, Chavín, Paracas, Nazca, Moche, Wari, Chimú e Inca.' },
-            { titulo: 'Imperio Inca', texto: 'Organización política basada en el Tahuantinsuyo con Cusco como capital.' },
-            { titulo: 'Sociedad inca', texto: 'Ayllu como base social; reciprocidad y mita como sistemas de trabajo.' },
-          ],
-          formulaDestacada: 'Cusco = Capital del Tahuantinsuyo',
-          tipExamen: 'Recuerda las culturas por sus aportes: Nazca (líneas), Moche (huacas del Sol y de la Luna), Chavín (cabeza clava).',
-        },
+        summary: [
+          { type: 'HEADING', level: 1, text: 'Época Prehispánica' },
+          { type: 'IMAGE', src: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?w=800&q=80', alt: 'Machu Picchu', caption: 'Cusco, capital del Tahuantinsuyo.' },
+          { type: 'PARAGRAPH', text: 'La época prehispánica abarca las culturas que habitaron el territorio peruano antes de la llegada de los españoles, culminando con el Imperio Inca y su organización social, política y religiosa.' },
+          { type: 'KEY_POINTS', items: [
+            { title: 'Culturas andinas', text: 'Caral, Chavín, Paracas, Nazca, Moche, Wari, Chimú e Inca.' },
+            { title: 'Imperio Inca', text: 'Organización política basada en el Tahuantinsuyo con Cusco como capital.' },
+            { title: 'Sociedad inca', text: 'Ayllu como base social; reciprocidad y mita como sistemas de trabajo.' },
+          ]},
+          { type: 'CALLOUT', title: 'Aportes icónicos', text: 'Nazca (líneas), Moche (huacas del Sol y de la Luna), Chavín (cabeza clava).', tone: 'warning' },
+          { type: 'TIP', title: 'Tip de examen', text: 'Relaciona cada cultura con una obra o aporte distintivo; eso facilita la memoria.', variant: 'exam' },
+        ],
         preguntas: [
           {
             difficulty: Difficulty.EASY,

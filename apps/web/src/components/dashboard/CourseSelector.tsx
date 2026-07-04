@@ -13,7 +13,7 @@ import {
   History,
   PenTool,
 } from 'lucide-react';
-import { useCourseSelector } from './CourseSelectorContext';
+import { useCourseSelector } from './ImmersiveOverlayContext';
 import { trpc } from '../../utils/trpc';
 import { useQueries } from '@tanstack/react-query';
 
