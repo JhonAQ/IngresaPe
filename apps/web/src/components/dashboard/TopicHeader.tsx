@@ -22,7 +22,7 @@ export const TopicHeader: React.FC<TopicHeaderProps> = ({
 }) => {
   return (
     <div
-      className="relative flex w-full max-w-2xl select-none overflow-hidden rounded-2xl bg-[#FF9600] text-white"
+      className="relative flex w-full max-w-2xl select-none overflow-hidden rounded-2xl bg-red-600 text-white"
       style={{
         boxShadow: '0 4px 0 #CC7800', // Efecto 3D de Duolingo
       }}
