@@ -12,6 +12,8 @@ export interface TopicFromApi {
   order: number;
   summary?: SummaryBlock[] | null;
   totalQuestions?: number;
+  nodeSize?: number;
+  nodeCount?: number;
   userProgress?: {
     attemptedCount: number;
     correctCount: number;
@@ -83,8 +85,9 @@ function buildActivities(
   isLocked: boolean
 ) {
   const totalQuestions = topic.totalQuestions ?? 15;
-  const nodeSize = topic.userProgress?.nodeSize ?? 7;
+  const nodeSize = topic.nodeSize ?? topic.userProgress?.nodeSize ?? 7;
   const nodeCount =
+    topic.nodeCount ??
     topic.userProgress?.nodeCount ??
     Math.max(1, Math.ceil(totalQuestions / nodeSize));
   const completedNodes = topic.userProgress?.completedNodes ?? 0;

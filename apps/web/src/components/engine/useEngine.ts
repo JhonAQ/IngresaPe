@@ -38,8 +38,7 @@ export function useEngine(
     onClose?: () => void;
   } = {}
 ): UseEngineResult {
-  const { nodeIndex: _nodeIndex = 0, nodeSize = 7, onClose } = options;
-  void _nodeIndex; // reservado para futuras validaciones de nodo
+  const { nodeIndex = 0, nodeSize = 7, onClose } = options;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answer, setAnswerState] = useState<AnswerSubmission | null>(null);
   const [status, setStatus] = useState<EngineStatus>('loading');
@@ -55,7 +54,7 @@ export function useEngine(
     isError: isQuestionsError,
     error: questionsError,
   } = trpc.content.getQuestions.useQuery(
-    { topicId, limit: nodeSize, excludeAnswered: true },
+    { topicId, nodeIndex, limit: nodeSize, excludeAnswered: true },
     {
       retry: false,
       refetchOnWindowFocus: false,
@@ -63,15 +62,34 @@ export function useEngine(
     }
   );
 
+  const completeNode = trpc.content.completeNode.useMutation({
+    onSuccess: () => {
+      void utils.profile.getMe.invalidate();
+      void utils.content.getTopics.invalidate();
+      if (courseId) {
+        void utils.content.getTopics.invalidate({ courseId });
+      }
+    },
+    onError: (err) => {
+      // No bloqueamos la UI; solo registramos el error.
+      // eslint-disable-next-line no-console
+      console.error('Error completando nodo:', err.message);
+    },
+  });
+
   useEffect(() => {
     if (status !== 'loading') return;
     if (isQuestionsError) {
       setStatus('error');
       setError(questionsError?.message ?? 'No se pudieron cargar las preguntas');
     } else if (!isQuestionsLoading) {
-      setStatus('idle');
+      if (questions.length === 0) {
+        setStatus('completed');
+      } else {
+        setStatus('idle');
+      }
     }
-  }, [isQuestionsLoading, isQuestionsError, questionsError, status]);
+  }, [isQuestionsLoading, isQuestionsError, questionsError, questions.length, status]);
 
   const submitMutation = trpc.game.submitAnswer.useMutation({
     onSuccess: (result) => {
@@ -126,8 +144,11 @@ export function useEngine(
       setStatus('idle');
     } else {
       setStatus('completed');
+      if (topicId) {
+        completeNode.mutate({ topicId, nodeIndex });
+      }
     }
-  }, [currentIndex, questions.length]);
+  }, [currentIndex, questions.length, topicId, nodeIndex, completeNode]);
 
   const handleClose = useCallback(() => {
     onClose?.();

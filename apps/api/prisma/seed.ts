@@ -176,6 +176,8 @@ async function main() {
   }
 
   // Función helper para crear cursos con temas y preguntas
+  const DEFAULT_NODE_SIZE = 7;
+
   async function crearCurso(nombre: string, slug: string, icon: string, temas: TemaSeed[]) {
     const curso = await prisma.course.upsert({
       where: { slug },
@@ -198,6 +200,8 @@ async function main() {
         slug: tema.slug,
         order: i + 1,
         summary: tema.summary ? (tema.summary as any) : undefined,
+        nodeSize: DEFAULT_NODE_SIZE,
+        nodeCount: Math.max(1, Math.ceil(tema.preguntas.length / DEFAULT_NODE_SIZE)),
       };
 
       const topicCreated = existingTopic

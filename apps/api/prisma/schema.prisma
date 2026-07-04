@@ -93,6 +93,7 @@ model User {
 
   // --- Historial y Relaciones ---
   progress      UserProgress[] // Avance por cursos
+  nodeCompletions UserTopicNodeCompletion[] // Nodos completados por tema
   subscriptions Subscription[] // Pagos realizados
   answers       AnswerLog[]    // Respuestas dadas (Data para IA)
 }
@@ -129,10 +130,15 @@ model Topic {
   order       Int      // 1, 2, 3... (Orden del camino de aprendizaje)
   summary     Json?    // Resumen rico del tema: { introduccion, imagenUrl, puntosClave, formulaDestacada, tipExamen }
 
+  // Nodos del tema: cada nodo es una lección de ~nodeSize preguntas.
+  nodeSize    Int      @default(7)
+  nodeCount   Int      @default(1)
+
   courseId    String
   course      Course   @relation(fields: [courseId], references: [id])
 
   questions   Question[] // Banco de preguntas del tema
+  nodeCompletions UserTopicNodeCompletion[]
 }
 
 model Question {
@@ -186,17 +192,34 @@ model UserProgress {
 model AnswerLog {
   id          String   @id @default(uuid())
   createdAt   DateTime @default(now())
-  
+
   userId      String
   user        User     @relation(fields: [userId], references: [id])
-  
+
   questionId  String
   question    Question @relation(fields: [questionId], references: [id])
-  
+
   isCorrect   Boolean  // ¿Acertó?
   selectedOption Int?   // LEGACY: indice de la opcion seleccionada (0, 1, 2...)
   answer      Json?    // Respuesta generica por tipo de pregunta
   timeTaken   Int?     // Segundos que tardó en responder
+}
+
+// Registro de nodos completados por usuario/tema (progreso estable del mapa)
+model UserTopicNodeCompletion {
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  topicId     String
+  topic       Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  nodeIndex   Int
+
+  @@unique([userId, topicId, nodeIndex])
+  @@index([userId, topicId])
 }
 
 // =========================================================
