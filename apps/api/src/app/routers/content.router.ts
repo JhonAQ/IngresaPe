@@ -54,13 +54,23 @@ export class ContentRouter {
           },
         });
 
-        // C. Calcular Progreso "Dorado"
-        // Meta: 15 correctas para considerar el tema "Dominado" (3 Quizzes de 5)
+        // C. Calcular Progreso
+        // - Dorado: 15 correctas (dominio total del tema).
+        // - Completado: el usuario respondió todas las preguntas del tema.
+        // - Nodos: se desbloquean por sesiones jugadas, no solo por aciertos.
         const GOAL_TO_GOLD = 15;
 
         const topicsWithProgress = await Promise.all(
             topics.map(async (topic) => {
-                // Contamos respuestas correctas únicas del usuario en este tema
+                // Total de respuestas dadas (aciertos o fallos)
+                const attemptedCount = await this.prisma.answerLog.count({
+                    where: {
+                        userId: userId,
+                        question: { topicId: topic.id }
+                    }
+                });
+
+                // Respuestas correctas para el estado "dorado"
                 const correctCount = await this.prisma.answerLog.count({
                     where: {
                         userId: userId,
@@ -69,16 +79,19 @@ export class ContentRouter {
                     }
                 });
 
+                const totalQuestions = topic._count.questions;
+
                 return {
                     ...topic,
                     summary: parseSummaryBlocks(topic.summary),
-                    totalQuestions: topic._count.questions,
+                    totalQuestions,
                     userProgress: {
+                        attemptedCount,
                         correctCount,
                         goal: GOAL_TO_GOLD,
-                        percentage: Math.min(100, Math.round((correctCount / GOAL_TO_GOLD) * 100)),
+                        percentage: Math.min(100, Math.round((attemptedCount / Math.max(1, totalQuestions)) * 100)),
                         isGold: correctCount >= GOAL_TO_GOLD, // True = Pintar de Dorado
-                        isCompleted: correctCount >= topic._count.questions // True = Ya no hay preguntas nuevas
+                        isCompleted: attemptedCount >= totalQuestions // True = Ya no hay preguntas nuevas
                     }
                 };
             })

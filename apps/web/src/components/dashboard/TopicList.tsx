@@ -13,6 +13,7 @@ export interface TopicFromApi {
   summary?: SummaryBlock[] | null;
   totalQuestions?: number;
   userProgress?: {
+    attemptedCount: number;
     correctCount: number;
     goal: number;
     percentage: number;
@@ -70,21 +71,44 @@ function buildActivities(
   topicIndex: number,
   isLocked: boolean
 ) {
-  const correctCount = topic.userProgress?.correctCount ?? 0;
-  const isCompleted = topic.userProgress?.isCompleted ?? false;
-  const isGold = topic.userProgress?.isGold ?? false;
   const totalQuestions = topic.totalQuestions ?? 15;
   const nodeGoal = Math.max(1, Math.ceil(totalQuestions / 3));
 
-  return Array.from({ length: 3 }, (_, i) => {
-    const threshold = (i + 1) * nodeGoal;
-    let state: 'completed' | 'current' | 'locked';
+  const attemptedCount = topic.userProgress?.attemptedCount ?? 0;
+  const isCompleted = topic.userProgress?.isCompleted ?? false;
+  const isGold = topic.userProgress?.isGold ?? false;
 
-    if (isLocked) {
-      state = 'locked';
-    } else if (isCompleted || isGold || correctCount >= threshold) {
+  // Si el tema está bloqueado, todo bloqueado.
+  if (isLocked) {
+    return Array.from({ length: 3 }, (_, i) => ({
+      id: `${topicIndex}-${i}`,
+      name: NODE_NAMES[i],
+      state: 'locked' as const,
+      icon: NODE_ICONS[i],
+      color: 'primary' as MapNodeColor,
+    }));
+  }
+
+  // Si el tema ya fue completado o dominado, todos los nodos completados.
+  if (isCompleted || isGold) {
+    return Array.from({ length: 3 }, (_, i) => ({
+      id: `${topicIndex}-${i}`,
+      name: NODE_NAMES[i],
+      state: 'completed' as const,
+      icon: NODE_ICONS[i],
+      color: (isGold ? 'success' : 'primary') as MapNodeColor,
+    }));
+  }
+
+  // Progreso por nodos: cada nodo se completa al jugar `nodeGoal` preguntas.
+  const completedNodes = Math.min(3, Math.floor(attemptedCount / nodeGoal));
+  const currentNodeIndex = Math.min(2, completedNodes);
+
+  return Array.from({ length: 3 }, (_, i) => {
+    let state: 'completed' | 'current' | 'locked';
+    if (i < completedNodes) {
       state = 'completed';
-    } else if (i === 0 || correctCount >= i * nodeGoal) {
+    } else if (i === currentNodeIndex) {
       state = 'current';
     } else {
       state = 'locked';
@@ -95,7 +119,7 @@ function buildActivities(
       name: NODE_NAMES[i],
       state,
       icon: NODE_ICONS[i],
-      color: (isGold || isCompleted
+      color: (state === 'completed'
         ? 'success'
         : state === 'current'
         ? 'warning'
