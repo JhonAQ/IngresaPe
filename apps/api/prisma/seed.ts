@@ -120,6 +120,26 @@ async function main() {
     explanation: string;
   }
 
+  interface DetalleResumenSeed {
+    titulo: string;
+    texto: string;
+  }
+
+  interface ResumenSeed {
+    introduccion: string;
+    imagenUrl?: string;
+    puntosClave: DetalleResumenSeed[];
+    formulaDestacada: string;
+    tipExamen: string;
+  }
+
+  interface TemaSeed {
+    nombre: string;
+    slug: string;
+    preguntas: PreguntaSeed[];
+    summary?: ResumenSeed;
+  }
+
   function buildMultipleChoiceContent(options: PreguntaSeed['options']) {
     return {
       type: QuestionType.MULTIPLE_CHOICE,
@@ -132,7 +152,7 @@ async function main() {
   }
 
   // Función helper para crear cursos con temas y preguntas
-  async function crearCurso(nombre: string, slug: string, icon: string, temas: { nombre: string; slug: string; preguntas: PreguntaSeed[] }[]) {
+  async function crearCurso(nombre: string, slug: string, icon: string, temas: TemaSeed[]) {
     const curso = await prisma.course.upsert({
       where: { slug },
       update: { name: nombre, iconUrl: icon },
@@ -143,22 +163,27 @@ async function main() {
 
     for (let i = 0; i < temas.length; i++) {
       const tema = temas[i];
-      
+
       // Buscar si el tema ya existe
       const existingTopic = await prisma.topic.findFirst({
         where: { courseId: curso.id, slug: tema.slug },
       });
 
-      const topicCreated = existingTopic 
+      const topicData = {
+        name: tema.nombre,
+        slug: tema.slug,
+        order: i + 1,
+        summary: tema.summary ? (tema.summary as any) : undefined,
+      };
+
+      const topicCreated = existingTopic
         ? await prisma.topic.update({
             where: { id: existingTopic.id },
-            data: { name: tema.nombre, order: i + 1 },
+            data: topicData,
           })
         : await prisma.topic.create({
             data: {
-              name: tema.nombre,
-              slug: tema.slug,
-              order: i + 1,
+              ...topicData,
               courseId: curso.id,
             },
           });
@@ -191,6 +216,17 @@ async function main() {
       {
         nombre: 'Planteo de Ecuaciones',
         slug: 'planteo-ecuaciones',
+        summary: {
+          introduccion: 'El planteo de ecuaciones transforma situaciones cotidianas en lenguaje algebraico. Identificar la incógnita y traducir las relaciones del problema es la clave para resolverlo.',
+          imagenUrl: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=800&q=80',
+          puntosClave: [
+            { titulo: 'Identifica la incógnita', texto: 'Asigna una letra (generalmente x) a lo que se pregunta.' },
+            { titulo: 'Traduce el enunciado', texto: 'Convierte las palabras en operaciones matemáticas.' },
+            { titulo: 'Verifica tu respuesta', texto: 'Reemplaza el valor hallado en el contexto original.' },
+          ],
+          formulaDestacada: 'Incógnita → Ecuación → Solución',
+          tipExamen: 'Lee el problema dos veces: una para entender la situación y otra para extraer los datos numéricos.',
+        },
         preguntas: [
           {
             difficulty: Difficulty.EASY,
@@ -304,6 +340,17 @@ async function main() {
       {
         nombre: 'Ecuaciones de Primer Grado',
         slug: 'ecuaciones-primer-grado',
+        summary: {
+          introduccion: 'Una ecuación de primer grado con una incógnita expresa una igualdad que se cumple para un único valor de la variable. Su resolución se basa en operaciones inversas.',
+          imagenUrl: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&q=80',
+          puntosClave: [
+            { titulo: 'Aislar la variable', texto: 'Usa suma/resta para dejar la x en un solo lado.' },
+            { titulo: 'Simplifica coeficientes', texto: 'Divide o multiplica para obtener x = valor.' },
+            { titulo: 'Comprueba', texto: 'Sustituye en la ecuación original para validar.' },
+          ],
+          formulaDestacada: 'ax + b = c  ⇒  x = (c − b) / a',
+          tipExamen: 'Si hay paréntesis, elimínalos primero distribuyendo antes de despejar la variable.',
+        },
         preguntas: [
           {
             difficulty: Difficulty.EASY,
@@ -405,6 +452,17 @@ async function main() {
       {
         nombre: 'Triángulos',
         slug: 'triangulos',
+        summary: {
+          introduccion: 'El triángulo es el polígono más simple y estable. Sus propiedades angulares y laterales son fundamentales para resolver gran parte de la geometría plana.',
+          imagenUrl: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&q=80',
+          puntosClave: [
+            { titulo: 'Suma de ángulos internos', texto: 'Siempre suman 180°.' },
+            { titulo: 'Desigualdad triangular', texto: 'Un lado siempre es menor que la suma de los otros dos.' },
+            { titulo: 'Clasificación', texto: 'Por lados (equilátero, isósceles, escaleno) y por ángulos (acutángulo, rectángulo, obtusángulo).' },
+          ],
+          formulaDestacada: '∠A + ∠B + ∠C = 180°',
+          tipExamen: 'En un triángulo rectángulo no olvides el Teorema de Pitágoras y las razones trigonométricas.',
+        },
         preguntas: [
           {
             difficulty: Difficulty.EASY,
@@ -494,6 +552,17 @@ async function main() {
       {
         nombre: 'Estructura Atómica',
         slug: 'estructura-atomica',
+        summary: {
+          introduccion: 'La estructura atómica explica la composición de la materia a partir de protones, neutrones y electrones organizados en niveles de energía.',
+          imagenUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=800&q=80',
+          puntosClave: [
+            { titulo: 'Partículas subatómicas', texto: 'Protones (+), neutrones (0) y electrones (−).' },
+            { titulo: 'Número de masa', texto: 'Suma de protones y neutrones del núcleo.' },
+            { titulo: 'Configuración electrónica', texto: 'Distribución de electrones en niveles o subniveles.' },
+          ],
+          formulaDestacada: 'A = Z + N  (Masa = Protones + Neutrones)',
+          tipExamen: 'Recuerda que en un átomo neutro el número de protones es igual al número de electrones.',
+        },
         preguntas: [
           {
             difficulty: Difficulty.EASY,
@@ -583,6 +652,17 @@ async function main() {
       {
         nombre: 'Cinemática',
         slug: 'cinematica',
+        summary: {
+          introduccion: 'La cinemática describe el movimiento de los cuerpos sin considerar las causas que lo producen. Se basa en magnitudes como posición, velocidad y aceleración.',
+          imagenUrl: 'https://images.unsplash.com/photo-1636466497217-26a8cbeaf0aa?w=800&q=80',
+          puntosClave: [
+            { titulo: 'Velocidad media', texto: 'Cociente entre desplazamiento y tiempo transcurrido.' },
+            { titulo: 'Movimiento rectilíneo uniforme (MRU)', texto: 'Velocidad constante.' },
+            { titulo: 'Movimiento uniformemente acelerado', texto: 'Aceleración constante.' },
+          ],
+          formulaDestacada: 'v = v₀ + at    |    d = v₀t + ½at²',
+          tipExamen: 'Dibuja el esquema del problema y elige un sentido positivo antes de aplicar las fórmulas.',
+        },
         preguntas: [
           {
             difficulty: Difficulty.EASY,
@@ -640,6 +720,36 @@ async function main() {
           },
         ],
       },
+      {
+        nombre: 'Energía y Trabajo',
+        slug: 'energia-trabajo',
+        preguntas: [
+          {
+            difficulty: Difficulty.EASY,
+            statement: 'El trabajo mecánico y la energía se miden en:',
+            options: [
+              { text: 'A) Vatios', isCorrect: false },
+              { text: 'B) Joules', isCorrect: true },
+              { text: 'C) Newtons', isCorrect: false },
+              { text: 'D) Pascales', isCorrect: false },
+              { text: 'E) Ergios', isCorrect: false },
+            ],
+            explanation: 'En el SI, el trabajo y la energía se miden en Joules (J).',
+          },
+          {
+            difficulty: Difficulty.MEDIUM,
+            statement: 'Un cuerpo de 2 kg se mueve a 3 m/s. ¿Cuál es su energía cinética?',
+            options: [
+              { text: 'A) 3 J', isCorrect: false },
+              { text: 'B) 6 J', isCorrect: false },
+              { text: 'C) 9 J', isCorrect: true },
+              { text: 'D) 12 J', isCorrect: false },
+              { text: 'E) 18 J', isCorrect: false },
+            ],
+            explanation: 'Ec = ½mv² = ½ × 2 × 3² = 9 J',
+          },
+        ],
+      },
     ]
   );
 
@@ -654,6 +764,17 @@ async function main() {
       {
         nombre: 'La Célula',
         slug: 'la-celula',
+        summary: {
+          introduccion: 'La célula es la unidad estructural y funcional básica de todo ser vivo. Existen células procariotas y eucariotas, y cada una especializa funciones mediante organelos.',
+          imagenUrl: 'https://images.unsplash.com/photo-1530210124550-912dc1381cb8?w=800&q=80',
+          puntosClave: [
+            { titulo: 'Membrana plasmática', texto: 'Regula el intercambio de sustancias con el medio.' },
+            { titulo: 'Núcleo', texto: 'Centro de control que alberga el material genético.' },
+            { titulo: 'Mitocondrias', texto: 'Generan ATP mediante la respiración celular.' },
+          ],
+          formulaDestacada: 'ADN → ARN → Proteína',
+          tipExamen: 'Recuerda: las células procariotas no tienen núcleo definido ni organelos membranosos.',
+        },
         preguntas: [
           {
             difficulty: Difficulty.EASY,
@@ -711,6 +832,36 @@ async function main() {
           },
         ],
       },
+      {
+        nombre: 'Evolución',
+        slug: 'evolucion',
+        preguntas: [
+          {
+            difficulty: Difficulty.EASY,
+            statement: 'La teoría de la evolución por selección natural fue propuesta principalmente por:',
+            options: [
+              { text: 'A) Gregor Mendel', isCorrect: false },
+              { text: 'B) Charles Darwin', isCorrect: true },
+              { text: 'C) Isaac Newton', isCorrect: false },
+              { text: 'D) Louis Pasteur', isCorrect: false },
+              { text: 'E) Albert Einstein', isCorrect: false },
+            ],
+            explanation: 'Charles Darwin propuso la selección natural como mecanismo principal de evolución.',
+          },
+          {
+            difficulty: Difficulty.MEDIUM,
+            statement: '¿Qué mecanismo produce variabilidad genética en las poblaciones?',
+            options: [
+              { text: 'A) Selección natural', isCorrect: false },
+              { text: 'B) Mutaciones', isCorrect: true },
+              { text: 'C) Deriva genética', isCorrect: false },
+              { text: 'D) Flujo génico', isCorrect: false },
+              { text: 'E) Endogamia', isCorrect: false },
+            ],
+            explanation: 'Las mutaciones son la fuente original de nueva variabilidad genética.',
+          },
+        ],
+      },
     ]
   );
 
@@ -725,6 +876,17 @@ async function main() {
       {
         nombre: 'Literatura Universal',
         slug: 'literatura-universal',
+        summary: {
+          introduccion: 'La literatura universal reúne obras de todas las épocas y culturas que han marcado la historia de la humanidad. Conocer sus movimientos y autores es clave para el examen de admisión.',
+          imagenUrl: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=800&q=80',
+          puntosClave: [
+            { titulo: 'Épocas literarias', texto: 'Clasicismo, Romanticismo, Realismo, Modernismo, Vanguardismo.' },
+            { titulo: 'Géneros literarios', texto: 'Lírico, épico/narrativo y dramático.' },
+            { titulo: 'Figuras retóricas', texto: 'Metáfora, hipérbole, personificación, sinestesia.' },
+          ],
+          formulaDestacada: 'Autor + Obra + Movimiento = Contexto',
+          tipExamen: 'Memoriza las obras cumbre y sus autores: Quijote (Cervantes), Hamlet (Shakespeare), La Iliada (Homero).',
+        },
         preguntas: [
           {
             difficulty: Difficulty.EASY,
@@ -770,6 +932,36 @@ async function main() {
           },
         ],
       },
+      {
+        nombre: 'Análisis Literario',
+        slug: 'analisis-literario',
+        preguntas: [
+          {
+            difficulty: Difficulty.EASY,
+            statement: 'El recurso que atribuye características humanas a objetos o animales se llama:',
+            options: [
+              { text: 'A) Metáfora', isCorrect: false },
+              { text: 'B) Hipérbole', isCorrect: false },
+              { text: 'C) Personificación', isCorrect: true },
+              { text: 'D) Símil', isCorrect: false },
+              { text: 'E) Anáfora', isCorrect: false },
+            ],
+            explanation: 'La personificación otorga cualidades humanas a seres no humanos.',
+          },
+          {
+            difficulty: Difficulty.MEDIUM,
+            statement: 'En un texto literario, el narrador que participa en la historia y usa "yo" es:',
+            options: [
+              { text: 'A) Narrador omnisciente', isCorrect: false },
+              { text: 'B) Narrador protagonista', isCorrect: true },
+              { text: 'C) Narrador testigo', isCorrect: false },
+              { text: 'D) Narrador en tercera persona', isCorrect: false },
+              { text: 'E) Narrador objetivo', isCorrect: false },
+            ],
+            explanation: 'El narrador protagonista es un personaje que cuenta su propia historia usando la primera persona.',
+          },
+        ],
+      },
     ]
   );
 
@@ -784,6 +976,17 @@ async function main() {
       {
         nombre: 'Época Prehispánica',
         slug: 'epoca-prehispanica',
+        summary: {
+          introduccion: 'La época prehispánica abarca las culturas que habitaron el territorio peruano antes de la llegada de los españoles, culminando con el Imperio Inca y su organización social, política y religiosa.',
+          imagenUrl: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?w=800&q=80',
+          puntosClave: [
+            { titulo: 'Culturas andinas', texto: 'Caral, Chavín, Paracas, Nazca, Moche, Wari, Chimú e Inca.' },
+            { titulo: 'Imperio Inca', texto: 'Organización política basada en el Tahuantinsuyo con Cusco como capital.' },
+            { titulo: 'Sociedad inca', texto: 'Ayllu como base social; reciprocidad y mita como sistemas de trabajo.' },
+          ],
+          formulaDestacada: 'Cusco = Capital del Tahuantinsuyo',
+          tipExamen: 'Recuerda las culturas por sus aportes: Nazca (líneas), Moche (huacas del Sol y de la Luna), Chavín (cabeza clava).',
+        },
         preguntas: [
           {
             difficulty: Difficulty.EASY,
@@ -826,6 +1029,36 @@ async function main() {
               { text: 'E) 1814', isCorrect: false },
             ],
             explanation: 'José de San Martín proclamó la Independencia del Perú el 28 de julio de 1821 en Lima',
+          },
+        ],
+      },
+      {
+        nombre: 'Perú Republicano',
+        slug: 'peru-republicano',
+        preguntas: [
+          {
+            difficulty: Difficulty.EASY,
+            statement: '¿Quién fue el primer presidente constitucional del Perú?',
+            options: [
+              { text: 'A) José de San Martín', isCorrect: false },
+              { text: 'B) Simón Bolívar', isCorrect: false },
+              { text: 'C) José Rufino Echenique', isCorrect: false },
+              { text: 'D) José Luis Bustamante y Rivero', isCorrect: false },
+              { text: 'E) José de la Riva Agüero', isCorrect: true },
+            ],
+            explanation: 'José de la Riva Agüero fue el primer presidente constitucional del Perú en 1823.',
+          },
+          {
+            difficulty: Difficulty.MEDIUM,
+            statement: 'La Guerra del Pacífico (1879-1883) enfrentó al Perú contra:',
+            options: [
+              { text: 'A) Argentina', isCorrect: false },
+              { text: 'B) Chile', isCorrect: true },
+              { text: 'C) Bolivia', isCorrect: false },
+              { text: 'D) Ecuador', isCorrect: false },
+              { text: 'E) Colombia', isCorrect: false },
+            ],
+            explanation: 'La Guerra del Pacífico enfrentó a Perú y Bolivia contra Chile por recursos salitreros.',
           },
         ],
       },

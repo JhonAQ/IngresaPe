@@ -26,6 +26,7 @@ export interface CourseView {
   progress: number;
   colorHex: string;
   bgTint: string;
+  iconUrl?: string;
   icon: React.ComponentType<{
     size?: number;
     color?: string;
@@ -115,6 +116,7 @@ export function CourseSelector({ selectedCourseId, onSelect }: CourseSelectorPro
         progress: progressByCourse[course.id] ?? 0,
         colorHex: style.color,
         bgTint: style.bg,
+        iconUrl: course.iconUrl ?? undefined,
         icon: style.icon,
         message: `¡Vamos a dominar ${course.name}!`,
         status: 'available' as CourseStatus,
@@ -199,12 +201,20 @@ export function CourseSelector({ selectedCourseId, onSelect }: CourseSelectorPro
                         <div className="pt-6 px-5 pb-2 relative min-h-[145px] flex items-start">
                           <div className="duo-bubble w-[75%] relative z-10">{course.message}</div>
                           <div className="absolute -bottom-3 -right-2 w-28 h-28 flex items-center justify-center rotate-[-5deg]">
-                            <Icon
-                              size={100}
-                              color={course.colorHex}
-                              strokeWidth={1.5}
-                              className="drop-shadow-sm opacity-90"
-                            />
+                            {course.iconUrl ? (
+                              <img
+                                src={course.iconUrl}
+                                alt={course.name}
+                                className="w-24 h-24 object-contain drop-shadow-sm opacity-90"
+                              />
+                            ) : (
+                              <Icon
+                                size={100}
+                                color={course.colorHex}
+                                strokeWidth={1.5}
+                                className="drop-shadow-sm opacity-90"
+                              />
+                            )}
                           </div>
                         </div>
                       </motion.div>

@@ -18,7 +18,7 @@ export interface DetalleResumen {
 
 export interface ResumenData {
   introduccion: string;
-  imagenExplicativa: boolean;
+  imagenUrl?: string;      // URL de imagen explicativa (placeholder si no se provee)
   puntosClave: DetalleResumen[];
   formulaDestacada: string;
   tipExamen: string;

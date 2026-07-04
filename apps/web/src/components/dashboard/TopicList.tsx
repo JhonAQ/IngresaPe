@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import React, { useEffect, useRef } from 'react';
-import { Check, Lock, BookOpen } from 'lucide-react';
-import { TemaData } from '@ingresa-pe/domain';
+import { Check, Lock, BookOpen, Target, Star } from 'lucide-react';
+import { TemaData, ResumenData } from '@ingresa-pe/domain';
 import { MapNode, MapNodeColor } from '@ingresa-pe/ui';
 import { TopicDivider } from './TopicDivider';
 
@@ -10,6 +10,7 @@ export interface TopicFromApi {
   name: string;
   slug: string;
   order: number;
+  summary?: ResumenData | null;
   totalQuestions?: number;
   userProgress?: {
     correctCount: number;
@@ -36,6 +37,9 @@ const NODE_SPACING = 90;
 const X_LEFT = 95;
 const X_RIGHT = 205;
 
+const NODE_ICONS = [BookOpen, Target, Star];
+const NODE_NAMES = ['Teoría', 'Práctica', 'Desafío'];
+
 function generatePathPositions(count: number) {
   if (count <= 0) return [];
   const availableHeight = 400 - TOP_MARGIN - BOTTOM_MARGIN;
@@ -61,6 +65,30 @@ function buildPathD(positions: { x: number; y: number }[]) {
   return d;
 }
 
+function buildActivities(topic: TopicFromApi, topicIndex: number) {
+  const isGold = topic.userProgress?.isGold ?? false;
+  const isCompleted = topic.userProgress?.isCompleted ?? false;
+
+  return Array.from({ length: 3 }, (_, i) => {
+    let state: 'completed' | 'current' | 'locked';
+    if (isGold || isCompleted) {
+      state = 'completed';
+    } else if (i === 0) {
+      state = 'current';
+    } else {
+      state = 'locked';
+    }
+
+    return {
+      id: `${topicIndex}-${i}`,
+      name: NODE_NAMES[i],
+      state,
+      icon: NODE_ICONS[i],
+      color: (isGold ? 'success' : state === 'current' ? 'warning' : 'primary') as MapNodeColor,
+    };
+  });
+}
+
 export function TopicList({
   courseId,
   topics,
@@ -77,22 +105,9 @@ export function TopicList({
           titulo: topic.name,
           descripcion: topic.slug,
           variant: 'primary' as const,
-          actividades: [
-            {
-              id: index,
-              name: topic.name,
-              state: topic.userProgress?.isGold
-                ? ('completed' as const)
-                : ('current' as const),
-              icon: BookOpen,
-              color: (topic.userProgress?.isGold
-                ? 'success'
-                : 'warning') as MapNodeColor,
-            },
-          ],
-          resumenData: {
+          actividades: buildActivities(topic, index),
+          resumenData: topic.summary || {
             introduccion: `Resumen de ${topic.name}`,
-            imagenExplicativa: false,
             puntosClave: [],
             formulaDestacada: '',
             tipExamen: '',
@@ -100,13 +115,6 @@ export function TopicList({
           color: topic.userProgress?.isGold ? '#58cc02' : '#1cb0f6',
         }))
       : temario;
-
-  const pathPositions = generatePathPositions(mergedUnits.length);
-  const pathD = buildPathD(pathPositions);
-  const svgHeight =
-    mergedUnits.length > 1
-      ? pathPositions[pathPositions.length - 1].y + BOTTOM_MARGIN
-      : 400;
 
   const dividerRefs = useRef(new Map<string, HTMLElement>());
 
@@ -147,8 +155,12 @@ export function TopicList({
   return (
     <div className="space-y-12 py-6 relative z-10">
       {mergedUnits.map((unidad, index) => {
-        const pos = pathPositions[index];
-        if (!pos) return null;
+        const pathPositions = generatePathPositions(unidad.actividades.length);
+        const pathD = buildPathD(pathPositions);
+        const svgHeight =
+          pathPositions.length > 1
+            ? pathPositions[pathPositions.length - 1].y + BOTTOM_MARGIN
+            : 400;
 
         return (
           <div
@@ -193,7 +205,10 @@ export function TopicList({
                 />
               </svg>
 
-              {unidad.actividades.map((act) => {
+              {unidad.actividades.map((act, actIndex) => {
+                const pos = pathPositions[actIndex];
+                if (!pos) return null;
+
                 const isCompleted = act.state === 'completed';
                 const isLocked = act.state === 'locked';
                 const Icon = act.icon;

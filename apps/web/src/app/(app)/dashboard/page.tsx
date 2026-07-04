@@ -20,9 +20,8 @@ function buildTemaData(topic: TopicFromApi, index: number): TemaData {
     descripcion: topic.slug,
     variant: 'primary',
     actividades: [],
-    resumenData: {
+    resumenData: topic.summary || {
       introduccion: `Resumen de ${topic.name}`,
-      imagenExplicativa: false,
       puntosClave: [],
       formulaDestacada: '',
       tipExamen: '',
@@ -73,17 +72,20 @@ function DashboardContent() {
     { enabled: !!courseId, retry: false, refetchOnWindowFocus: false }
   );
 
+  const typedTopics = topics as unknown as TopicFromApi[];
+
   useEffect(() => {
-    if (topics.length > 0 && !activeTopicId) {
-      setActiveTopicId(topics[0].id);
+    if (typedTopics.length > 0 && !activeTopicId) {
+      setActiveTopicId(typedTopics[0].id);
     }
-  }, [topics, activeTopicId]);
+  }, [typedTopics, activeTopicId]);
 
   const selectedCourse = courses.find((c) => c.id === courseId);
 
   const handleCourseChange = (nextCourseId: string) => {
     setCourseId(nextCourseId);
     setActiveTopicId(null);
+    mainRef.current?.scrollTo({ top: 0, behavior: 'instant' });
     router.replace(`/dashboard?courseId=${nextCourseId}`, { scroll: false });
   };
 
@@ -119,17 +121,17 @@ function DashboardContent() {
 
   const progress = selectedCourse
     ? Math.round(
-        (topics.filter(
-          (t: TopicFromApi) => t.userProgress?.isGold || t.userProgress?.isCompleted
+        (typedTopics.filter(
+          (t) => t.userProgress?.isGold || t.userProgress?.isCompleted
         ).length /
-          (topics.length || 1)) *
+          (typedTopics.length || 1)) *
           100
       )
     : 0;
 
-  const activeTopicIndex = topics.findIndex((t) => t.id === activeTopicId);
+  const activeTopicIndex = typedTopics.findIndex((t) => t.id === activeTopicId);
   const activeTopic =
-    activeTopicIndex >= 0 ? buildTemaData(topics[activeTopicIndex], activeTopicIndex) : null;
+    activeTopicIndex >= 0 ? buildTemaData(typedTopics[activeTopicIndex], activeTopicIndex) : null;
 
   return (
     <>
@@ -146,6 +148,7 @@ function DashboardContent() {
           <CourseProgress
             courseName={selectedCourse?.name ?? 'Seleccionar curso'}
             progress={progress}
+            iconUrl={selectedCourse?.iconUrl ?? undefined}
             onClick={open}
           />
         </div>
@@ -162,7 +165,7 @@ function DashboardContent() {
 
         <TopicList
           courseId={courseId ?? courses[0].id}
-          topics={topics}
+          topics={typedTopics}
           temario={dashboardData.temario ?? []}
           onOpenSummary={setResumenActivo}
           onActiveTopicChange={setActiveTopicId}

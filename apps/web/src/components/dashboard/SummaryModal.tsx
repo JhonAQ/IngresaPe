@@ -3,7 +3,6 @@ import {
   X,
   CheckCircle2,
   Lightbulb,
-  Image as ImageIcon,
 } from 'lucide-react';
 import { TemaData } from '@ingresa-pe/domain';
 
@@ -39,7 +38,8 @@ export function SummaryModal({ resumenActivo, onClose }: SummaryModalProps) {
         <div className="space-y-6 pb-10">
           <div>
             <span
-              className={`inline-block text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md mb-2 text-yellow-600 shadow-sm ${resumenActivo.color}`}
+              className="inline-block text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md mb-2 text-yellow-600 shadow-sm"
+              style={{ backgroundColor: resumenActivo.color }}
             >
               Resumen Oficial
             </span>
@@ -48,32 +48,29 @@ export function SummaryModal({ resumenActivo, onClose }: SummaryModalProps) {
             </h2>
           </div>
 
-          {resumenActivo.resumenData.imagenExplicativa && (
-            <div className="w-full h-48 bg-slate-200 rounded-2xl border-2 border-slate-300 border-dashed flex flex-col items-center justify-center text-slate-400">
-              <ImageIcon
-                size={40}
-                strokeWidth={1.5}
-                className="mb-2 opacity-50"
-              />
-              <span className="text-xs font-bold">
-                [Diagrama de {resumenActivo.titulo}]
-              </span>
-            </div>
+          {resumenActivo.resumenData.imagenUrl && (
+            <img
+              src={resumenActivo.resumenData.imagenUrl}
+              alt={`Ilustración de ${resumenActivo.titulo}`}
+              className="w-full h-48 object-cover rounded-2xl border-2 border-slate-300"
+            />
           )}
 
           <p className="text-slate-600 font-medium leading-relaxed">
             {resumenActivo.resumenData.introduccion}
           </p>
 
-          <div className="bg-slate-800 rounded-2xl p-6 text-center shadow-lg relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
-            <p className="text-slate-400 text-[10px] font-black mb-2 uppercase tracking-widest">
-              Fórmula Clave
-            </p>
-            <div className="text-xl font-black text-white">
-              {resumenActivo.resumenData.formulaDestacada}
+          {resumenActivo.resumenData.formulaDestacada && (
+            <div className="bg-slate-800 rounded-2xl p-6 text-center shadow-lg relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
+              <p className="text-slate-400 text-[10px] font-black mb-2 uppercase tracking-widest">
+                Fórmula Clave
+              </p>
+              <div className="text-xl font-black text-white">
+                {resumenActivo.resumenData.formulaDestacada}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="space-y-4">
             <h3 className="text-lg font-black text-slate-800 border-b-2 border-slate-200 pb-2">
@@ -101,23 +98,26 @@ export function SummaryModal({ resumenActivo, onClose }: SummaryModalProps) {
             </div>
           </div>
 
-          <div className="bg-amber-100 border-2 border-amber-300 rounded-2xl p-4 flex gap-3">
-            <div className="text-amber-500 shrink-0 mt-0.5">
-              <Lightbulb size={24} strokeWidth={2.5} />
+          {resumenActivo.resumenData.tipExamen && (
+            <div className="bg-amber-100 border-2 border-amber-300 rounded-2xl p-4 flex gap-3">
+              <div className="text-amber-500 shrink-0 mt-0.5">
+                <Lightbulb size={24} strokeWidth={2.5} />
+              </div>
+              <div>
+                <h4 className="font-black text-amber-800 text-sm mb-0.5">
+                  Tip de Examen
+                </h4>
+                <p className="text-amber-700 text-sm font-medium leading-snug">
+                  {resumenActivo.resumenData.tipExamen}
+                </p>
+              </div>
             </div>
-            <div>
-              <h4 className="font-black text-amber-800 text-sm mb-0.5">
-                Tip de Examen
-              </h4>
-              <p className="text-amber-700 text-sm font-medium leading-snug">
-                {resumenActivo.resumenData.tipExamen}
-              </p>
-            </div>
-          </div>
+          )}
 
           <button
             onClick={onClose}
-            className={`w-full py-4 rounded-2xl font-black text-white text-lg shadow-[0_4px_0_0_rgba(0,0,0,0.15)] active:translate-y-[4px] active:shadow-none transition-all flex justify-center items-center gap-2 ${resumenActivo.color}`}
+            className="w-full py-4 rounded-2xl font-black text-white text-lg shadow-[0_4px_0_0_rgba(0,0,0,0.15)] active:translate-y-[4px] active:shadow-none transition-all flex justify-center items-center gap-2"
+            style={{ backgroundColor: resumenActivo.color }}
           >
             <span>¡Entendido!</span>
           </button>

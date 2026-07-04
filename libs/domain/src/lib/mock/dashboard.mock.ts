@@ -25,7 +25,7 @@ export const temarioMock: TemaData[] = [
     ],
     resumenData: {
       introduccion: 'La célula eucariota es la unidad básica y funcional de organismos complejos. Se caracteriza por tener un núcleo definido protegido por una membrana nuclear que alberga el material genético.',
-      imagenExplicativa: true,
+      imagenUrl: 'https://placehold.co/600x300?text=Célula+Eucariota',
       puntosClave: [
         { titulo: 'Núcleo Celular', texto: 'Almacena y protege el material genético (ADN).' },
         { titulo: 'Mitocondrias', texto: "La 'planta de energía'." },
@@ -48,7 +48,6 @@ export const temarioMock: TemaData[] = [
     ],
     resumenData: {
       introduccion: 'El metabolismo es el conjunto de reacciones químicas que ocurren en la célula para mantener la vida.',
-      imagenExplicativa: false,
       puntosClave: [
         { titulo: 'Catabolismo', texto: 'Degrada moléculas complejas liberando energía.' },
         { titulo: 'Anabolismo', texto: 'Construye moléculas complejas consumiendo energía.' },
@@ -71,7 +70,7 @@ export const temarioMock: TemaData[] = [
     ],
     resumenData: {
       introduccion: 'Proceso por el cual una célula madre se divide para formar nuevas células hijas.',
-      imagenExplicativa: true,
+      imagenUrl: 'https://placehold.co/600x300?text=División+Celular',
       puntosClave: [
         { titulo: 'Mitosis', texto: 'Genera 2 células hijas diploides (idénticas).' },
         { titulo: 'Meiosis', texto: 'Genera 4 células hijas haploides (gametos).' },

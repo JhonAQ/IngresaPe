@@ -31,7 +31,7 @@ export const temarioMock: TemaData[] = [
     ],
     resumenData: {
       introduccion: "La célula eucariota es la unidad básica y funcional de organismos complejos. Se caracteriza por tener un núcleo definido protegido por una membrana nuclear que alberga el material genético.",
-      imagenExplicativa: true,
+      imagenUrl: 'https://placehold.co/600x300?text=Resumen',
       puntosClave: [
         { titulo: "Núcleo Celular", texto: "Almacena y protege el material genético (ADN)." },
         { titulo: "Mitocondrias", texto: "La 'planta de energía'." },
@@ -54,7 +54,6 @@ export const temarioMock: TemaData[] = [
     ],
     resumenData: {
       introduccion: "El metabolismo es el conjunto de reacciones químicas que ocurren en la célula para mantener la vida, dividiéndose en procesos de construcción y de degradación.",
-      imagenExplicativa: false,
       puntosClave: [
         { titulo: "Catabolismo", texto: "Degrada moléculas complejas liberando energía." },
         { titulo: "Anabolismo", texto: "Construye moléculas complejas consumiendo energía." }
@@ -77,7 +76,7 @@ export const temarioMock: TemaData[] = [
     ],
     resumenData: {
       introduccion: "Proceso por el cual una célula madre se divide para formar nuevas células hijas, esencial para el crecimiento, reparación de tejidos y reproducción sexual.",
-      imagenExplicativa: true,
+      imagenUrl: 'https://placehold.co/600x300?text=Resumen',
       puntosClave: [
         { titulo: "Mitosis", texto: "Genera 2 células hijas diploides (idénticas)." },
         { titulo: "Meiosis", texto: "Genera 4 células hijas haploides (gametos)." }
@@ -100,7 +99,7 @@ export const temarioMock: TemaData[] = [
     ],
     resumenData: {
       introduccion: "Estudio de cómo los caracteres se transmiten de generación en generación a través de los genes, fundamentado por los experimentos de Gregor Mendel.",
-      imagenExplicativa: true,
+      imagenUrl: 'https://placehold.co/600x300?text=Resumen',
       puntosClave: [
         { titulo: "Ley de Segregación", texto: "Los alelos se separan durante la formación de gametos." },
         { titulo: "Fenotipo y Genotipo", texto: "Fenotipo es lo visible; genotipo la carga genética." }
@@ -123,7 +122,7 @@ export const temarioMock: TemaData[] = [
     ],
     resumenData: {
       introduccion: "Explica cómo la información contenida en el ADN se traduce en proteínas funcionales, pasando por un intermediario de ARN.",
-      imagenExplicativa: true,
+      imagenUrl: 'https://placehold.co/600x300?text=Resumen',
       puntosClave: [
         { titulo: "Transcripción", texto: "Copia de ADN a ARNm en el núcleo." },
         { titulo: "Traducción", texto: "Síntesis de proteínas en los ribosomas." }
@@ -146,7 +145,6 @@ export const temarioMock: TemaData[] = [
     ],
     resumenData: {
       introduccion: "Proceso de transformación de las especies a lo largo del tiempo, impulsado por mecanismos como la selección natural y las mutaciones.",
-      imagenExplicativa: false,
       puntosClave: [
         { titulo: "Lamarckismo", texto: "Teoría obsoleta del uso y desuso de órganos." },
         { titulo: "Neodarwinismo", texto: "Selección natural combinada con genética moderna." }
@@ -169,7 +167,7 @@ export const temarioMock: TemaData[] = [
     ],
     resumenData: {
       introduccion: "La ecología estudia las interacciones de los seres vivos entre sí y con su entorno físico (biotopo y biocenosis).",
-      imagenExplicativa: true,
+      imagenUrl: 'https://placehold.co/600x300?text=Resumen',
       puntosClave: [
         { titulo: "Productores", texto: "Autótrofos, base de la pirámide alimenticia." },
         { titulo: "Descomponedores", texto: "Reciclan la materia orgánica (hongos y bacterias)." }
@@ -192,7 +190,6 @@ export const temarioMock: TemaData[] = [
     ],
     resumenData: {
       introduccion: "Red compleja de células, tejidos y órganos que trabajan en conjunto para defender el cuerpo contra patógenos invasores.",
-      imagenExplicativa: false,
       puntosClave: [
         { titulo: "Inmunidad Innata", texto: "Respuesta rápida y general (piel, macrófagos)." },
         { titulo: "Inmunidad Adaptativa", texto: "Respuesta específica con memoria (Linfocitos T y B)." }
@@ -215,7 +212,7 @@ export const temarioMock: TemaData[] = [
     ],
     resumenData: {
       introduccion: "Sistema encargado de recibir estímulos, procesar la información y generar respuestas coordinadas mediante impulsos eléctricos.",
-      imagenExplicativa: true,
+      imagenUrl: 'https://placehold.co/600x300?text=Resumen',
       puntosClave: [
         { titulo: "Sinapsis", texto: "Comunicación entre neuronas usando neurotransmisores." },
         { titulo: "SNC vs SNP", texto: "Central (procesamiento) vs Periférico (transmisión)." }
@@ -238,7 +235,6 @@ export const temarioMock: TemaData[] = [
     ],
     resumenData: {
       introduccion: "Estudio de las agrupaciones celulares en las plantas terrestres que cumplen funciones específicas como soporte, crecimiento y transporte.",
-      imagenExplicativa: false,
       puntosClave: [
         { titulo: "Meristemos", texto: "Tejidos responsables del crecimiento continuo." },
         { titulo: "Tejidos Conductores", texto: "Transporte de fluidos en plantas vasculares." }

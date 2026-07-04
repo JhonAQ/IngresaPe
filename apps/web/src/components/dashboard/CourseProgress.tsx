@@ -34,10 +34,11 @@ function getCourseStyle(name: string) {
 interface CourseProgressProps {
   courseName: string;
   progress: number;
+  iconUrl?: string;
   onClick: () => void;
 }
 
-export function CourseProgress({ courseName, progress, onClick }: CourseProgressProps) {
+export function CourseProgress({ courseName, progress, iconUrl, onClick }: CourseProgressProps) {
   const style = getCourseStyle(courseName);
   const Icon = style.icon;
 
@@ -48,10 +49,18 @@ export function CourseProgress({ courseName, progress, onClick }: CourseProgress
     >
       <div className="flex items-center gap-3 w-full">
         <div
-          className="w-[44px] h-[44px] rounded-xl flex items-center justify-center shrink-0"
+          className="w-[44px] h-[44px] rounded-xl flex items-center justify-center shrink-0 overflow-hidden"
           style={{ backgroundColor: `${style.color}20` }}
         >
-          <Icon size={26} color={style.color} strokeWidth={2} />
+          {iconUrl ? (
+            <img
+              src={iconUrl}
+              alt={courseName}
+              className="w-7 h-7 object-contain"
+            />
+          ) : (
+            <Icon size={26} color={style.color} strokeWidth={2} />
+          )}
         </div>
         <div className="flex flex-col items-start flex-1 pr-2 w-full">
           <span className="text-[10px] font-extrabold text-surface-400 uppercase tracking-widest leading-none mb-1">

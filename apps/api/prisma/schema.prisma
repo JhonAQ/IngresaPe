@@ -127,10 +127,11 @@ model Topic {
   name        String   // Ej: "Átomos", "Ecuaciones Lineales"
   slug        String   // Ej: "atomos"
   order       Int      // 1, 2, 3... (Orden del camino de aprendizaje)
-  
+  summary     Json?    // Resumen rico del tema: { introduccion, imagenUrl, puntosClave, formulaDestacada, tipExamen }
+
   courseId    String
   course      Course   @relation(fields: [courseId], references: [id])
-  
+
   questions   Question[] // Banco de preguntas del tema
 }
 
