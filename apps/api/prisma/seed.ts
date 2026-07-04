@@ -153,6 +153,28 @@ async function main() {
     };
   }
 
+  function generarPreguntasPlaceholder(
+    temaNombre: string,
+    temaNumero: number,
+    cantidad: number
+  ): PreguntaSeed[] {
+    return Array.from({ length: cantidad }, (_, i) => {
+      const n = i + 1;
+      return {
+        difficulty: [Difficulty.EASY, Difficulty.MEDIUM, Difficulty.HARD][n % 3],
+        statement: `${temaNombre}, Biología - Pregunta ${n}`,
+        options: [
+          { text: 'Alternativa incorrecta 1', isCorrect: false },
+          { text: 'Alternativa incorrecta 2', isCorrect: false },
+          { text: 'Alternativa correcta', isCorrect: true },
+          { text: 'Alternativa incorrecta 3', isCorrect: false },
+          { text: 'Alternativa incorrecta 4', isCorrect: false },
+        ],
+        explanation: `Respuesta de prueba para ${temaNombre}, pregunta ${n}.`,
+      };
+    });
+  }
+
   // Función helper para crear cursos con temas y preguntas
   async function crearCurso(nombre: string, slug: string, icon: string, temas: TemaSeed[]) {
     const curso = await prisma.course.upsert({
@@ -847,92 +869,17 @@ async function main() {
             { title: 'Video: Estructura de la célula', url: 'https://www.youtube.com/results?search_query=estructura+de+la+celula+khan+academy', description: 'Explicación animada en YouTube.' },
           ]},
         ],
-        preguntas: [
-          {
-            difficulty: Difficulty.EASY,
-            statement: 'La unidad básica de la vida es:',
-            options: [
-              { text: 'A) El átomo', isCorrect: false },
-              { text: 'B) La molécula', isCorrect: false },
-              { text: 'C) La célula', isCorrect: true },
-              { text: 'D) El tejido', isCorrect: false },
-              { text: 'E) El órgano', isCorrect: false },
-            ],
-            explanation: 'La célula es la unidad estructural y funcional más pequeña de los seres vivos',
-          },
-          {
-            difficulty: Difficulty.MEDIUM,
-            statement: 'Las mitocondrias son responsables de:',
-            options: [
-              { text: 'A) La fotosíntesis', isCorrect: false },
-              { text: 'B) La producción de energía (ATP)', isCorrect: true },
-              { text: 'C) La síntesis de proteínas', isCorrect: false },
-              { text: 'D) El almacenamiento de agua', isCorrect: false },
-              { text: 'E) La división celular', isCorrect: false },
-            ],
-            explanation: 'Las mitocondrias son las "centrales energéticas" de la célula, producen ATP mediante respiración celular',
-          },
-        ],
+        preguntas: generarPreguntasPlaceholder('La Célula', 1, 20),
       },
       {
         nombre: 'Genética',
         slug: 'genetica',
-        preguntas: [
-          {
-            difficulty: Difficulty.MEDIUM,
-            statement: 'El ADN está formado por:',
-            options: [
-              { text: 'A) Aminoácidos', isCorrect: false },
-              { text: 'B) Nucleótidos', isCorrect: true },
-              { text: 'C) Lípidos', isCorrect: false },
-              { text: 'D) Carbohidratos', isCorrect: false },
-              { text: 'E) Proteínas', isCorrect: false },
-            ],
-            explanation: 'El ADN es un polímero formado por unidades llamadas nucleótidos (base nitrogenada + azúcar + fosfato)',
-          },
-          {
-            difficulty: Difficulty.HARD,
-            statement: 'En un cruce de dos heterocigotos (Aa × Aa), ¿qué proporción de descendencia será homocigota recesiva (aa)?',
-            options: [
-              { text: 'A) 1/4', isCorrect: true },
-              { text: 'B) 1/2', isCorrect: false },
-              { text: 'C) 3/4', isCorrect: false },
-              { text: 'D) 1/3', isCorrect: false },
-              { text: 'E) 2/3', isCorrect: false },
-            ],
-            explanation: 'Cuadro de Punnett: AA (1/4), Aa (2/4), aa (1/4). La proporción de aa es 1/4',
-          },
-        ],
+        preguntas: generarPreguntasPlaceholder('Genética', 2, 20),
       },
       {
         nombre: 'Evolución',
         slug: 'evolucion',
-        preguntas: [
-          {
-            difficulty: Difficulty.EASY,
-            statement: 'La teoría de la evolución por selección natural fue propuesta principalmente por:',
-            options: [
-              { text: 'A) Gregor Mendel', isCorrect: false },
-              { text: 'B) Charles Darwin', isCorrect: true },
-              { text: 'C) Isaac Newton', isCorrect: false },
-              { text: 'D) Louis Pasteur', isCorrect: false },
-              { text: 'E) Albert Einstein', isCorrect: false },
-            ],
-            explanation: 'Charles Darwin propuso la selección natural como mecanismo principal de evolución.',
-          },
-          {
-            difficulty: Difficulty.MEDIUM,
-            statement: '¿Qué mecanismo produce variabilidad genética en las poblaciones?',
-            options: [
-              { text: 'A) Selección natural', isCorrect: false },
-              { text: 'B) Mutaciones', isCorrect: true },
-              { text: 'C) Deriva genética', isCorrect: false },
-              { text: 'D) Flujo génico', isCorrect: false },
-              { text: 'E) Endogamia', isCorrect: false },
-            ],
-            explanation: 'Las mutaciones son la fuente original de nueva variabilidad genética.',
-          },
-        ],
+        preguntas: generarPreguntasPlaceholder('Evolución', 3, 20),
       },
     ]
   );

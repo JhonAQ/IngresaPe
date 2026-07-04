@@ -68,8 +68,9 @@ function DashboardContent() {
     {
       enabled: !!courseId,
       retry: false,
-      refetchOnWindowFocus: false,
+      refetchOnWindowFocus: true,
       refetchOnMount: 'always',
+      staleTime: 0,
     }
   );
 

@@ -88,6 +88,7 @@ export function useEngine(
       setStatus('feedback');
       // Invalidar stats/progreso para reflejar cambios en dashboard.
       void utils.profile.getMe.invalidate();
+      void utils.content.getTopics.invalidate();
       if (courseId) {
         void utils.content.getTopics.invalidate({ courseId });
       }

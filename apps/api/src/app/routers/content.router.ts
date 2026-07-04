@@ -82,7 +82,12 @@ export class ContentRouter {
 
                 const totalQuestions = topic._count.questions;
                 const nodeCount = Math.max(1, Math.ceil(totalQuestions / NODE_SIZE));
-                const completedNodes = Math.min(nodeCount, Math.floor(attemptedCount / NODE_SIZE));
+                // El último nodo puede tener menos de NODE_SIZE preguntas; si ya se respondieron
+                // todas las del tema, consideramos todos los nodos completados.
+                const answeredAll = totalQuestions > 0 && attemptedCount >= totalQuestions;
+                const completedNodes = answeredAll
+                  ? nodeCount
+                  : Math.min(nodeCount - 1, Math.floor(attemptedCount / NODE_SIZE));
 
                 return {
                     ...topic,
@@ -97,7 +102,7 @@ export class ContentRouter {
                         goal: GOAL_TO_GOLD,
                         percentage: Math.min(100, Math.round((completedNodes / Math.max(1, nodeCount)) * 100)),
                         isGold: correctCount >= GOAL_TO_GOLD, // True = Pintar de Dorado
-                        isCompleted: completedNodes >= nodeCount // True = Ya no hay preguntas nuevas
+                        isCompleted: answeredAll // True = Ya no hay preguntas nuevas
                     }
                 };
             })
