@@ -210,6 +210,7 @@
 | Seed de competidores | ✅ Terminado | 50 usuarios fake |
 | `UserProgress` tabla | ⚠️ Parcial | Existe en schema pero NINGÚN endpoint escribe en ella |
 | `AnswerLog` tabla | ✅ Terminado | Se usa correctamente para tracking de respuestas y progreso |
+| Configuración de entorno | ✅ Terminado | `.env` vive en la raíz del monorepo (ignorado por git). `.env.example` documenta las variables. No hay secretos en el historial |
 | Índices y performance | ⚠️ Parcial | No hay índices custom. Funciona para dev pero no para producción |
 
 ---
