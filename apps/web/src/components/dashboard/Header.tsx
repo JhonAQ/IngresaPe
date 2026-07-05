@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ChevronDown, Plus } from 'lucide-react';
+import { ChevronDown, Plus, Heart } from 'lucide-react';
 import { UserStats } from '@ingresa-pe/domain';
 import { StatBadge } from '@ingresa-pe/ui';
 
@@ -93,6 +93,12 @@ export function DashboardHeader({
           <StatBadge value={stats.racha} type="streak" />
           <div className="w-px h-4 bg-slate-200" />
           <StatBadge value={stats.xp} type="xp" />
+          <div className="w-px h-4 bg-slate-200" />
+          <StatBadge
+            value={stats.vidas}
+            type="heart"
+            icon={<Heart size={20} className="text-error-500" strokeWidth={2.5} />}
+          />
           <div className="w-px h-4 bg-slate-200" />
           <StatBadge value={stats.gemas} type="gem" />
           <Link

@@ -1,10 +1,11 @@
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Lock, BookOpen, Target, Star, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { TemaData, SummaryBlock } from '@ingresa-pe/domain';
 import { MapNode, MapNodeColor } from '@ingresa-pe/ui';
 import { TopicDivider } from './TopicDivider';
+import { trpc } from '../../utils/trpc';
 
 export interface TopicFromApi {
   id: string;
@@ -176,6 +177,31 @@ export function TopicList({
           };
         })
       : temario;
+
+  const router = useRouter();
+  const utils = trpc.useUtils();
+  const [pendingNode, setPendingNode] = useState<{ topicId: string; nodeIndex: number; nodeSize: number } | null>(null);
+
+  const spendEnergy = trpc.profile.spendNodeEnergy.useMutation({
+    onSuccess: () => {
+      void utils.profile.getMe.invalidate();
+      if (pendingNode) {
+        const { topicId, nodeIndex, nodeSize } = pendingNode;
+        router.push(`/engine?topicId=${topicId}&courseId=${courseId}&nodeIndex=${nodeIndex}&nodeSize=${nodeSize}`);
+        setPendingNode(null);
+      }
+    },
+    onError: (err) => {
+      setPendingNode(null);
+      alert(err.message ?? 'No tienes suficiente energía para iniciar este nodo.');
+    },
+  });
+
+  const startNode = (topicId: string, nodeIndex: number, nodeSize: number) => {
+    if (spendEnergy.isPending) return;
+    setPendingNode({ topicId, nodeIndex, nodeSize });
+    spendEnergy.mutate();
+  };
 
   const topicRefs = useRef(new Map<string, HTMLElement>());
 
@@ -389,6 +415,11 @@ export function TopicList({
                   />
                 );
 
+                const isLoadingNode =
+                  spendEnergy.isPending &&
+                  pendingNode?.topicId === unidad.id &&
+                  pendingNode?.nodeIndex === actIndex;
+
                 return (
                   <div
                     key={act.id}
@@ -399,12 +430,17 @@ export function TopicList({
                     {isLocked ? (
                       nodeContent
                     ) : (
-                      <Link
-                        href={`/engine?topicId=${unidad.id}&courseId=${courseId}&nodeIndex=${actIndex}&nodeSize=${act.nodeSize}`}
-                        className="block relative"
+                      <button
+                        onClick={() =>
+                          startNode(String(unidad.id), actIndex, act.nodeSize ?? 7)
+                        }
+                        disabled={isLoadingNode}
+                        className={`block relative ${
+                          isLoadingNode ? 'opacity-60 cursor-wait' : ''
+                        }`}
                       >
                         {nodeContent}
-                      </Link>
+                      </button>
                     )}
                   </div>
                 );

@@ -9,6 +9,24 @@ const updateProfileSchema = z.object({
   image: z.string().optional(),
 });
 
+export const ENERGY_MAX = 25;
+export const NODE_ENERGY_COST = 5;
+export const ENERGY_RECHARGE_MS = 15 * 60 * 1000; // 1 energía cada 15 minutos
+
+function calculateEnergy(
+  storedEnergy: number,
+  lastRefill: Date | null,
+  isPremium: boolean
+): number {
+  if (isPremium) return ENERGY_MAX;
+
+  const last = lastRefill ? new Date(lastRefill).getTime() : Date.now();
+  const elapsed = Date.now() - last;
+  const recharges = Math.floor(elapsed / ENERGY_RECHARGE_MS);
+
+  return Math.min(ENERGY_MAX, storedEnergy + recharges);
+}
+
 @Injectable()
 export class ProfileRouter {
   constructor(
@@ -47,9 +65,13 @@ export class ProfileRouter {
           subExpiresAt: true,
         },
       });
-      
+
       if (!user) throw new TRPCError({ code: 'NOT_FOUND', message: 'Usuario no encontrado' });
-      return user;
+
+      return {
+        ...user,
+        energy: calculateEnergy(user.energy, user.lastRefill, user.isPremium),
+      };
     }),
 
     update: this.trpc.protectedProcedure
@@ -65,9 +87,9 @@ export class ProfileRouter {
             });
 
             if (!user || !user.inventory.includes(input.image)) {
-              throw new TRPCError({ 
-                code: 'FORBIDDEN', 
-                message: '⛔ No posees este avatar. Debes comprarlo en la tienda primero.' 
+              throw new TRPCError({
+                code: 'FORBIDDEN',
+                message: '⛔ No posees este avatar. Debes comprarlo en la tienda primero.'
               });
             }
           }
@@ -90,11 +112,54 @@ export class ProfileRouter {
             inventory: true, // Retornamos inventario
           },
         });
-        
+
         return {
           message: 'Perfil actualizado exitosamente',
           user: updatedUser,
         };
+      }),
+
+    spendNodeEnergy: this.trpc.protectedProcedure
+      .mutation(async ({ ctx }) => {
+        const user = await this.prisma.user.findUnique({
+          where: { id: ctx.user.userId },
+          select: {
+            energy: true,
+            lastRefill: true,
+            isPremium: true,
+          },
+        });
+
+        if (!user) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Usuario no encontrado' });
+        }
+
+        if (user.isPremium) {
+          return { success: true, energy: ENERGY_MAX };
+        }
+
+        const currentEnergy = calculateEnergy(user.energy, user.lastRefill, false);
+
+        if (currentEnergy < NODE_ENERGY_COST) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: `Necesitas ${NODE_ENERGY_COST} de energía para iniciar un nodo.`,
+          });
+        }
+
+        const now = new Date();
+        const newEnergy = currentEnergy - NODE_ENERGY_COST;
+
+        await this.prisma.user.update({
+          where: { id: ctx.user.userId },
+          data: {
+            energy: newEnergy,
+            lastRefill: now,
+            lastInteraction: now,
+          },
+        });
+
+        return { success: true, energy: newEnergy };
       }),
   });
 }
