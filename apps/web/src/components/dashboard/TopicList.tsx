@@ -215,6 +215,61 @@ export function TopicList({
       }
     };
 
+  const nodeRefs = useRef(new Map<string, HTMLElement>());
+  const hasScrolledRef = useRef(false);
+  const prevCourseIdRef = useRef(courseId);
+
+  useEffect(() => {
+    if (prevCourseIdRef.current !== courseId) {
+      hasScrolledRef.current = false;
+      prevCourseIdRef.current = courseId;
+    }
+  }, [courseId]);
+
+  useEffect(() => {
+    if (!scrollContainerRef?.current || hasScrolledRef.current) return;
+
+    const currentEntry = mergedUnits
+      .flatMap((u, topicIndex) =>
+        u.actividades.map((act, actIndex) => ({
+          key: `${topicIndex}-${actIndex}`,
+          state: act.state,
+        }))
+      )
+      .find((entry) => entry.state === 'current');
+
+    const key = currentEntry?.key;
+    const el = key ? nodeRefs.current.get(key) : null;
+    if (!el) return;
+
+    const container = scrollContainerRef.current;
+    const HEADER_OFFSET = 120; // altura aproximada del header sticky + topic header
+
+    const scroll = () => {
+      const containerRect = container.getBoundingClientRect();
+      const nodeRect = el.getBoundingClientRect();
+      const nodeTop = nodeRect.top - containerRect.top + container.scrollTop;
+      const target =
+        nodeTop - (container.clientHeight - HEADER_OFFSET) / 2 + nodeRect.height / 2 + HEADER_OFFSET / 2;
+      container.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+    };
+
+    const raf = requestAnimationFrame(scroll);
+    hasScrolledRef.current = true;
+
+    return () => cancelAnimationFrame(raf);
+  }, [mergedUnits, scrollContainerRef, courseId]);
+
+  const setNodeRef =
+    (key: string) =>
+    (el: HTMLElement | null): void => {
+      if (el) {
+        nodeRefs.current.set(key, el);
+      } else {
+        nodeRefs.current.delete(key);
+      }
+    };
+
   return (
     <div className="space-y-12 py-6 relative z-10">
       {mergedUnits.map((unidad, index) => {
@@ -293,6 +348,7 @@ export function TopicList({
                 return (
                   <div
                     key={act.id}
+                    ref={setNodeRef(`${index}-${actIndex}`)}
                     className="absolute transform -translate-x-1/2 -translate-y-1/2"
                     style={{ left: pos.x, top: pos.y, zIndex: 10 }}
                   >

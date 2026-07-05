@@ -7,7 +7,6 @@ import { TopicList, TopicFromApi } from '../../../components/dashboard/TopicList
 import { TopicHeader } from '../../../components/dashboard/TopicHeader';
 import { SummaryModal } from '../../../components/dashboard/SummaryModal';
 import { useDashboardData } from '../../../hooks/useDashboardData';
-import { useCourseSelector } from '../../../components/dashboard/ImmersiveOverlayContext';
 import { CourseSelector } from '../../../components/dashboard/CourseSelector';
 import { trpc } from '../../../utils/trpc';
 import type { TemaData } from '@ingresa-pe/domain';
@@ -33,7 +32,6 @@ function DashboardContent() {
   const params = useSearchParams();
   const router = useRouter();
   const urlCourseId = params.get('courseId');
-  const { open } = useCourseSelector();
 
   const { data: dashboardData, isLoading: isDashboardLoading } =
     useDashboardData();
@@ -145,24 +143,21 @@ function DashboardContent() {
         ref={mainRef}
         className="flex-1 flex flex-col gap-2 overflow-y-auto px-5 pb-32 hide-scrollbar bg-slate-50/50"
       >
-        <div className="pt-2 -mx-1 px-1 space-y-3">
+        <div className="sticky top-0 z-40 -mx-5 px-5 pt-2 pb-3 bg-slate-50/95 backdrop-blur-sm space-y-3">
           <CourseProgress
             courseName={selectedCourse?.name ?? 'Seleccionar curso'}
             progress={progress}
             iconUrl={selectedCourse?.iconUrl ?? undefined}
-            onClick={open}
           />
-        </div>
 
-        {activeTopic && (
-          <div className="sticky top-0 z-40 -mx-1 px-1 pt-2 pb-3 bg-slate-50/95 backdrop-blur-sm">
+          {activeTopic && (
             <TopicHeader
               subtitle={`TEMA ${activeTopic.tema}`}
               title={activeTopic.titulo}
               onGuideClick={() => setResumenActivo(activeTopic)}
             />
-          </div>
-        )}
+          )}
+        </div>
 
         <TopicList
           courseId={courseId ?? courses[0].id}
