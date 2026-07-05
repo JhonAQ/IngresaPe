@@ -3,6 +3,11 @@ import { z } from 'zod';
 import { TrpcService } from '../trpc.service';
 import { PrismaService } from '../prisma.service';
 import { TRPCError } from '@trpc/server';
+import {
+  ACADEMIC_AXIS_DEFINITIONS,
+  getAxisIdByCourseSlug,
+  type AcademicAxisId,
+} from '../lib/academic-dna';
 
 const updateProfileSchema = z.object({
   name: z.string().min(2).max(50).optional(),
@@ -161,6 +166,115 @@ export class ProfileRouter {
           user: updatedUser,
         };
       }),
+
+    getAcademicDNA: this.trpc.protectedProcedure.query(async ({ ctx }) => {
+      const logs = await this.prisma.answerLog.findMany({
+        where: { userId: ctx.user.userId },
+        select: {
+          isCorrect: true,
+          question: {
+            select: {
+              topic: {
+                select: {
+                  course: {
+                    select: { id: true, name: true, slug: true },
+                  },
+                },
+              },
+            },
+          },
+          examQuestion: {
+            select: {
+              course: {
+                select: { id: true, name: true, slug: true },
+              },
+            },
+          },
+        },
+      });
+
+      const courseStats = new Map<
+        string,
+        { id: string; name: string; slug: string; total: number; correct: number }
+      >();
+
+      for (const log of logs) {
+        const course = log.question?.topic?.course ?? log.examQuestion?.course;
+        if (!course) continue;
+
+        const axisId = getAxisIdByCourseSlug(course.slug);
+        if (!axisId) continue;
+
+        const current = courseStats.get(course.id) ?? {
+          id: course.id,
+          name: course.name,
+          slug: course.slug,
+          total: 0,
+          correct: 0,
+        };
+        current.total += 1;
+        if (log.isCorrect) current.correct += 1;
+        courseStats.set(course.id, current);
+      }
+
+      const MIN_ANSWERS_FOR_INSIGHT = 3;
+      const axisMap = new Map<AcademicAxisId, { total: number; correct: number }>();
+
+      for (const def of ACADEMIC_AXIS_DEFINITIONS) {
+        axisMap.set(def.id, { total: 0, correct: 0 });
+      }
+
+      for (const course of courseStats.values()) {
+        const axisId = getAxisIdByCourseSlug(course.slug);
+        if (!axisId) continue;
+        const agg = axisMap.get(axisId) ?? { total: 0, correct: 0 };
+        agg.total += course.total;
+        agg.correct += course.correct;
+        axisMap.set(axisId, agg);
+      }
+
+      const axes = ACADEMIC_AXIS_DEFINITIONS.map((def) => {
+        const agg = axisMap.get(def.id) ?? { total: 0, correct: 0 };
+        const axisCourses = Array.from(courseStats.values()).filter(
+          (c) => getAxisIdByCourseSlug(c.slug) === def.id
+        );
+
+        return {
+          id: def.id,
+          label: def.label,
+          total: agg.total,
+          correct: agg.correct,
+          accuracy: agg.total > 0 ? Number(((agg.correct / agg.total) * 100).toFixed(1)) : 0,
+          hasData: agg.total > 0,
+          courses: axisCourses.map((c) => ({
+            id: c.id,
+            name: c.name,
+            slug: c.slug,
+            total: c.total,
+            correct: c.correct,
+            accuracy: c.total > 0 ? Number(((c.correct / c.total) * 100).toFixed(1)) : 0,
+          })),
+        };
+      });
+
+      const eligibleAxes = axes.filter((a) => a.total >= MIN_ANSWERS_FOR_INSIGHT);
+
+      let strongAxisId: string | null = null;
+      let weakAxisId: string | null = null;
+
+      if (eligibleAxes.length > 0) {
+        const sorted = [...eligibleAxes].sort((a, b) => a.accuracy - b.accuracy);
+        weakAxisId = sorted[0].id;
+        strongAxisId = sorted[sorted.length - 1].id;
+      }
+
+      return {
+        axes,
+        strongAxisId,
+        weakAxisId,
+        totalAnswers: logs.length,
+      };
+    }),
 
     spendNodeEnergy: this.trpc.protectedProcedure
       .mutation(async ({ ctx }) => {

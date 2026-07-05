@@ -1,66 +1,79 @@
 'use client';
 
-import React from 'react';
-import { Dna, TrendingUp, AlertTriangle } from 'lucide-react';
+import React, { useMemo, useState, useEffect } from 'react';
+import { Dna, Sparkles } from 'lucide-react';
+import { trpc } from '../../utils/trpc';
+import { RadarChart } from './dna/RadarChart';
+import { AxisDetailPanel } from './dna/AxisDetailPanel';
 
-interface AcademicDNAProps {
-  scores?: Record<string, number>; // subject → 0-100
-  strongIn?: string;
-  prioritize?: string;
-}
+export function AcademicDNA() {
+  const { data, isLoading } = trpc.profile.getAcademicDNA.useQuery();
+  const [selectedAxisId, setSelectedAxisId] = useState<string | null>(null);
 
-const DEFAULT_SCORES: Record<string, number> = {
-  Matemática: 72,
-  'R. Verbal': 58,
-  Ciencias: 65,
-  Historia: 44,
-  'R. Lógico': 80,
-};
+  const axes = useMemo(
+    () =>
+      data?.axes.map((a) => ({
+        id: a.id,
+        label: a.label,
+        accuracy: a.accuracy,
+        hasData: a.hasData,
+      })) ?? [],
+    [data]
+  );
 
-export function AcademicDNA({
-  scores = DEFAULT_SCORES,
-  strongIn = 'Razonamiento lógico',
-  prioritize = 'Historia del Perú',
-}: AcademicDNAProps) {
-  const subjects = Object.keys(scores);
-  const values = Object.values(scores);
-  const n = subjects.length;
-  const cx = 150;
-  const cy = 150;
-  const maxR = 100;
+  // Seleccionar automáticamente el eje débil al cargar (o el primero con datos)
+  useEffect(() => {
+    if (!data || selectedAxisId) return;
 
-  // Calculate polygon points for a given radius
-  const getPolygonPoints = (radius: number) => {
-    return subjects
-      .map((_, i) => {
-        const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
-        const x = cx + radius * Math.cos(angle);
-        const y = cy + radius * Math.sin(angle);
-        return `${x},${y}`;
-      })
-      .join(' ');
-  };
+    const weakAxis = data.axes.find((a) => a.id === data.weakAxisId);
+    const firstWithData = data.axes.find((a) => a.hasData);
+    setSelectedAxisId(weakAxis?.id ?? firstWithData?.id ?? data.axes[0]?.id ?? null);
+  }, [data, selectedAxisId]);
 
-  // Calculate the data polygon
-  const dataPoints = values
-    .map((val, i) => {
-      const radius = (val / 100) * maxR;
-      const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
-      const x = cx + radius * Math.cos(angle);
-      const y = cy + radius * Math.sin(angle);
-      return `${x},${y}`;
-    })
-    .join(' ');
+  const selectedAxis = useMemo(
+    () => data?.axes.find((a) => a.id === selectedAxisId) ?? null,
+    [data, selectedAxisId]
+  );
 
-  // Label positions (slightly outside the chart)
-  const labelPositions = subjects.map((_, i) => {
-    const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
-    const labelR = maxR + 30;
-    return {
-      x: cx + labelR * Math.cos(angle),
-      y: cy + labelR * Math.sin(angle),
-    };
-  });
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-2xl border-2 border-slate-200 border-b-[4px] border-b-slate-300 p-5 animate-pulse">
+        <div className="h-6 bg-slate-100 rounded w-1/2 mb-4" />
+        <div className="h-[260px] bg-slate-100 rounded-2xl mb-4" />
+        <div className="h-32 bg-slate-100 rounded-2xl" />
+      </div>
+    );
+  }
+
+  if (!data || data.totalAnswers === 0) {
+    return (
+      <div className="bg-white rounded-2xl border-2 border-slate-200 border-b-[4px] border-b-slate-300 overflow-hidden">
+        <div className="flex items-center gap-3 px-5 pt-5 pb-2">
+          <div className="w-10 h-10 rounded-xl bg-duo-purple/15 flex items-center justify-center shrink-0">
+            <Dna size={22} className="text-duo-purple" strokeWidth={2.5} />
+          </div>
+          <div>
+            <h3 className="font-black text-[18px] text-slate-800 leading-tight">
+              Tu ADN Académico
+            </h3>
+            <p className="text-[12px] font-bold text-slate-400">Estadísticas globales</p>
+          </div>
+        </div>
+
+        <div className="px-5 py-8 text-center">
+          <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Sparkles size={28} className="text-slate-300" />
+          </div>
+          <p className="text-slate-500 font-bold text-[14px] mb-1">
+            Aún no tenemos suficientes datos
+          </p>
+          <p className="text-slate-400 text-[12px]">
+            Responde preguntas en el path o rinde un simulacro para descubrir tu ADN académico.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-2xl border-2 border-slate-200 border-b-[4px] border-b-slate-300 overflow-hidden">
@@ -73,135 +86,43 @@ export function AcademicDNA({
           <h3 className="font-black text-[18px] text-slate-800 leading-tight">
             Tu ADN Académico
           </h3>
-          <p className="text-[12px] font-bold text-slate-400">
-            Estadísticas globales
-          </p>
+          <p className="text-[12px] font-bold text-slate-400">Estadísticas globales</p>
         </div>
       </div>
 
-      {/* Radar Chart */}
-      <div className="flex justify-center py-2">
-        <svg
-          width="300"
-          height="300"
-          viewBox="0 0 300 300"
-          className="overflow-visible"
-        >
-          {/* Grid rings */}
-          {[0.25, 0.5, 0.75, 1].map((scale, i) => (
-            <polygon
-              key={i}
-              points={getPolygonPoints(maxR * scale)}
-              fill="none"
-              stroke="#e2e8f0"
-              strokeWidth="1.5"
-              opacity={0.7}
-            />
-          ))}
-
-          {/* Axis lines */}
-          {subjects.map((_, i) => {
-            const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
-            const x2 = cx + maxR * Math.cos(angle);
-            const y2 = cy + maxR * Math.sin(angle);
-            return (
-              <line
-                key={i}
-                x1={cx}
-                y1={cy}
-                x2={x2}
-                y2={y2}
-                stroke="#e2e8f0"
-                strokeWidth="1.5"
-              />
-            );
-          })}
-
-          {/* Data fill */}
-          <polygon
-            points={dataPoints}
-            fill="rgba(206, 130, 255, 0.2)"
-            stroke="#ce82ff"
-            strokeWidth="3"
-            strokeLinejoin="round"
-          />
-
-          {/* Data points */}
-          {values.map((val, i) => {
-            const radius = (val / 100) * maxR;
-            const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
-            const x = cx + radius * Math.cos(angle);
-            const y = cy + radius * Math.sin(angle);
-            return (
-              <circle
-                key={i}
-                cx={x}
-                cy={y}
-                r="5"
-                fill="#ce82ff"
-                stroke="white"
-                strokeWidth="2.5"
-              />
-            );
-          })}
-
-          {/* Labels */}
-          {subjects.map((label, i) => {
-            const pos = labelPositions[i];
-            return (
-              <text
-                key={i}
-                x={pos.x}
-                y={pos.y}
-                textAnchor="middle"
-                dominantBaseline="middle"
-                className="fill-slate-600 font-extrabold"
-                fontSize="11"
-              >
-                {label}
-              </text>
-            );
-          })}
-        </svg>
+      {/* Radar chart */}
+      <div className="flex justify-center py-3">
+        <RadarChart
+          axes={axes}
+          selectedAxisId={selectedAxisId}
+          onSelectAxis={setSelectedAxisId}
+          size={320}
+        />
       </div>
 
-      {/* Insights row */}
-      <div className="grid grid-cols-2 gap-3 px-5 pb-5">
-        <div className="flex items-center gap-2.5 bg-success-50 rounded-xl p-3 border border-success-100">
-          <div className="w-8 h-8 rounded-lg bg-success-100 flex items-center justify-center shrink-0">
-            <TrendingUp
-              size={18}
-              className="text-success-600"
-              strokeWidth={2.5}
-            />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[9px] font-black text-success-600 uppercase tracking-widest">
-              Fuerte en
-            </p>
-            <p className="text-[13px] font-extrabold text-slate-700 leading-tight truncate">
-              {strongIn}
-            </p>
-          </div>
+      {/* Insight pills */}
+      <div className="px-5 pb-4">
+        <div className="flex flex-wrap gap-2 justify-center">
+          {data.strongAxisId && (
+            <span className="inline-flex items-center gap-1.5 bg-success-50 text-success-600 border border-success-100 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider">
+              Fuerte: {data.axes.find((a) => a.id === data.strongAxisId)?.label}
+            </span>
+          )}
+          {data.weakAxisId && (
+            <span className="inline-flex items-center gap-1.5 bg-warning-50 text-warning-600 border border-warning-100 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider">
+              Priorizar: {data.axes.find((a) => a.id === data.weakAxisId)?.label}
+            </span>
+          )}
         </div>
+      </div>
 
-        <div className="flex items-center gap-2.5 bg-warning-50 rounded-xl p-3 border border-warning-100">
-          <div className="w-8 h-8 rounded-lg bg-warning-100 flex items-center justify-center shrink-0">
-            <AlertTriangle
-              size={18}
-              className="text-warning-600"
-              strokeWidth={2.5}
-            />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[9px] font-black text-warning-600 uppercase tracking-widest">
-              Priorizar
-            </p>
-            <p className="text-[13px] font-extrabold text-slate-700 leading-tight truncate">
-              {prioritize}
-            </p>
-          </div>
-        </div>
+      {/* Detail panel */}
+      <div className="px-5 pb-5">
+        <AxisDetailPanel
+          axis={selectedAxis}
+          isStrong={selectedAxis?.id === data.strongAxisId}
+          isWeak={selectedAxis?.id === data.weakAxisId}
+        />
       </div>
     </div>
   );
