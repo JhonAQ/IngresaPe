@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Check, Lock, BookOpen, Target, Star, ChevronDown } from 'lucide-react';
+import { Check, Lock, BookOpen, Target, Star, ChevronDown, ChevronUp } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { TemaData, SummaryBlock } from '@ingresa-pe/domain';
 import { MapNode, MapNodeColor } from '@ingresa-pe/ui';
 import { TopicDivider } from './TopicDivider';
@@ -218,6 +219,7 @@ export function TopicList({
   const nodeRefs = useRef(new Map<string, HTMLElement>());
   const lastScrolledKeyRef = useRef<string | null>(null);
   const [showReturnButton, setShowReturnButton] = useState(false);
+  const [returnDirection, setReturnDirection] = useState<'up' | 'down'>('down');
 
   const activeNodeInfo = useMemo(() => {
     for (let ti = 0; ti < mergedUnits.length; ti++) {
@@ -281,7 +283,18 @@ export function TopicList({
 
     const observer = new IntersectionObserver(
       (entries) => {
-        setShowReturnButton(!entries[0].isIntersecting);
+        const entry = entries[0];
+        if (entry.isIntersecting) {
+          setShowReturnButton(false);
+          return;
+        }
+        setShowReturnButton(true);
+        const rootBounds = entry.rootBounds;
+        if (rootBounds && entry.boundingClientRect.top < rootBounds.top) {
+          setReturnDirection('up');
+        } else {
+          setReturnDirection('down');
+        }
       },
       { root: container, threshold: 0 }
     );
@@ -403,13 +416,25 @@ export function TopicList({
     </div>
 
     {showReturnButton && activeNodeInfo && (
-      <button
+      <motion.button
         onClick={scrollToActiveNode}
-        className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 w-12 h-12 rounded-full bg-white text-[#1cb0f6] shadow-[0_6px_0_#e5e7eb] border-2 border-slate-100 flex items-center justify-center active:translate-y-[3px] active:shadow-none transition-all"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: [1, 1.08, 1], opacity: 1 }}
+        transition={{
+          opacity: { duration: 0.2 },
+          scale: { repeat: Infinity, duration: 1.4, ease: 'easeInOut' },
+        }}
+        whileHover={{ scale: 1.12 }}
+        whileTap={{ scale: 0.9 }}
+        className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 w-12 h-12 rounded-full bg-white text-[#1cb0f6] shadow-[0_6px_0_#e5e7eb] border-2 border-slate-100 flex items-center justify-center active:translate-y-[3px] active:shadow-none"
         aria-label="Volver al nodo activo"
       >
-        <ChevronDown size={28} strokeWidth={3} />
-      </button>
+        {returnDirection === 'up' ? (
+          <ChevronUp size={28} strokeWidth={3} />
+        ) : (
+          <ChevronDown size={28} strokeWidth={3} />
+        )}
+      </motion.button>
     )}
   </>
   );
