@@ -4,8 +4,9 @@ import React, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEngine } from './useEngine';
+import { useExitConfirm } from './useExitConfirm';
 import { getQuestionRenderer } from './registry';
-import { EngineHeader, FeedbackDrawer, DinoMaxModal } from './SharedEngineUI';
+import { EngineHeader, FeedbackDrawer, DinoMaxModal, ExitConfirmModal } from './SharedEngineUI';
 import { LatexText } from '../ui/LatexText';
 import { EngineSkeleton } from '../ui/skeleton';
 import type { ComponentType } from 'react';
@@ -19,6 +20,7 @@ export function Engine() {
   const nodeSize = Math.max(1, parseInt(params.get('nodeSize') ?? '7', 10));
 
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isExitModalOpen, setIsExitModalOpen] = useState(false);
 
   const {
     status,
@@ -31,12 +33,17 @@ export function Engine() {
     setAnswer,
     submit,
     continueNext,
-    onClose,
+    onClose: handleConfirmExit,
   } = useEngine(topicId ?? '', courseId, {
     nodeIndex,
     nodeSize,
     onClose: () => router.back(),
   });
+
+  const handleCloseRequest = () => setIsExitModalOpen(true);
+  const handleCancelExit = () => setIsExitModalOpen(false);
+
+  useExitConfirm(isExitModalOpen, handleCloseRequest, handleCancelExit);
 
   if (!topicId) {
     return (
@@ -68,7 +75,7 @@ export function Engine() {
           <h1 className="font-black text-[22px] text-[#ea2b2b] mb-2">Ups, algo salió mal</h1>
           <p className="text-[#777777] mb-6">{error ?? 'No se pudieron cargar las preguntas'}</p>
           <button
-            onClick={onClose}
+            onClick={handleConfirmExit}
             className="bg-[#ff4b4b] text-white font-black text-[16px] uppercase tracking-widest py-3.5 px-6 rounded-2xl border-b-[4px] border-[#df2b2b] active:border-b-0 active:translate-y-[4px] transition-all"
           >
             Volver
@@ -81,7 +88,7 @@ export function Engine() {
   if (status === 'failed') {
     return (
       <NodeFailedScreen
-        onClose={onClose}
+        onClose={handleConfirmExit}
         onRetry={() => window.location.reload()}
       />
     );
@@ -90,7 +97,7 @@ export function Engine() {
   if (status === 'completed' || !currentQuestion) {
     return (
       <CompletionScreen
-        onClose={onClose}
+        onClose={handleConfirmExit}
         onRetry={() => window.location.reload()}
       />
     );
@@ -101,7 +108,7 @@ export function Engine() {
 
   return (
     <div className="w-full max-w-md mx-auto relative bg-[#ffffff] h-[100dvh] flex flex-col font-sans border-x border-[#e5e5e5] overflow-hidden">
-      <EngineHeader progress={progress} lives={lives} onClose={onClose} />
+      <EngineHeader progress={progress} lives={lives} onClose={handleCloseRequest} />
 
       <main className="flex-1 overflow-y-auto hide-scrollbar px-5 pt-6 pb-40 flex flex-col relative z-10">
         <AnimatePresence mode="wait">
@@ -142,6 +149,12 @@ export function Engine() {
         onClose={() => setIsAiModalOpen(false)}
         trick="Explicación paso a paso"
         explanation={feedback?.explanation ?? currentQuestion.explanation ?? 'Sigue practicando para dominar este tema.'}
+      />
+
+      <ExitConfirmModal
+        isOpen={isExitModalOpen}
+        onConfirm={handleConfirmExit}
+        onCancel={handleCancelExit}
       />
     </div>
   );

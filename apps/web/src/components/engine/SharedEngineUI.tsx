@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, CheckCircle2, Check, Flag } from 'lucide-react';
+import { X, Sparkles, CheckCircle2, Check, Flag, AlertTriangle } from 'lucide-react';
 import { LatexText } from '../ui/LatexText';
 
 // ============================================================================
@@ -478,6 +478,68 @@ export function DinoMaxModal({
                   ¡Entendido!
                 </motion.button>
               )}
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+interface ExitConfirmModalProps {
+  isOpen: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+export function ExitConfirmModal({
+  isOpen,
+  onConfirm,
+  onCancel,
+}: ExitConfirmModalProps) {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center px-6">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onCancel}
+            className="absolute inset-0 bg-[#0f172a]/40 backdrop-blur-[2px]"
+          />
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className="relative z-10 w-full max-w-sm bg-white rounded-[2rem] p-6 shadow-2xl border-b-[6px] border-[#e5e5e5] text-center"
+          >
+            <div className="w-16 h-16 bg-[#fff4e5] rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle size={32} className="text-[#ff9600]" strokeWidth={2.5} />
+            </div>
+
+            <h2 className="font-black text-[22px] text-[#3c3c3c] mb-2">
+              ¿Seguro que quieres salir?
+            </h2>
+            <p className="text-[#777777] font-bold text-[15px] mb-6 leading-snug">
+              Perderás el progreso de esta lección. ¡Ya casi lo logras!
+            </p>
+
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={onConfirm}
+                className="w-full bg-[#ff4b4b] text-white font-black text-[16px] uppercase tracking-widest py-3.5 rounded-2xl border-b-[4px] border-[#df2b2b] active:border-b-0 active:translate-y-[4px] transition-all"
+              >
+                Salir
+              </button>
+              <button
+                onClick={onCancel}
+                className="w-full bg-white text-[#1cb0f6] font-black text-[16px] uppercase tracking-widest py-3.5 rounded-2xl border-b-[4px] border-[#e5e5e5] active:border-b-0 active:translate-y-[4px] transition-all"
+              >
+                Seguir practicando
+              </button>
             </div>
           </motion.div>
         </div>

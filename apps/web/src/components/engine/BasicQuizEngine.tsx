@@ -1,7 +1,8 @@
 'use client';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { EngineHeader, FeedbackDrawer, DinoMaxModal } from './SharedEngineUI';
+import { EngineHeader, FeedbackDrawer, DinoMaxModal, ExitConfirmModal } from './SharedEngineUI';
+import { useExitConfirm } from './useExitConfirm';
 
 // ============================================================================
 // DATOS MOCK PARA EL ENGINE
@@ -45,9 +46,19 @@ export function BasicQuizEngine({ onClose }: { onClose: () => void }) {
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [lives, setLives] = useState(5);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isExitModalOpen, setIsExitModalOpen] = useState(false);
 
   const question = quizData[currentIndex];
   const progress = (currentIndex / quizData.length) * 100;
+
+  const handleCloseRequest = () => setIsExitModalOpen(true);
+  const handleConfirmExit = () => {
+    setIsExitModalOpen(false);
+    onClose();
+  };
+  const handleCancelExit = () => setIsExitModalOpen(false);
+
+  useExitConfirm(isExitModalOpen, handleCloseRequest, handleCancelExit);
 
   const handleSelect = (id: string) => {
     if (status === 'idle') setSelectedOption(id);
@@ -75,7 +86,7 @@ export function BasicQuizEngine({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="w-full max-w-md mx-auto relative bg-[#ffffff] h-[100dvh] flex flex-col font-sans border-x border-[#e5e5e5] overflow-hidden">
-      <EngineHeader progress={progress} lives={lives} onClose={onClose} />
+      <EngineHeader progress={progress} lives={lives} onClose={handleCloseRequest} />
 
       <main className="flex-1 overflow-y-auto hide-scrollbar px-5 pt-6 pb-40 flex flex-col relative z-10">
         <AnimatePresence mode="wait">
@@ -164,6 +175,12 @@ export function BasicQuizEngine({ onClose }: { onClose: () => void }) {
         onClose={() => setIsAiModalOpen(false)}
         trick={question.trick}
         explanation={question.explanation}
+      />
+
+      <ExitConfirmModal
+        isOpen={isExitModalOpen}
+        onConfirm={handleConfirmExit}
+        onCancel={handleCancelExit}
       />
     </div>
   );
