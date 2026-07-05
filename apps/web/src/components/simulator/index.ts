@@ -6,3 +6,5 @@ export * from './QuestionCard';
 export * from './FooterNavigation';
 export * from './AnswerBubbles';
 export * from './FichaOpticaModal';
+export * from './ExamResultScreen';
+export * from './useSimulacro';

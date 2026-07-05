@@ -9,6 +9,20 @@ const FREE_WEEKLY_ATTEMPTS = 1;
 const byIdSchema = z.object({ attemptId: z.string().uuid() });
 const byExamIdSchema = z.object({ examId: z.string().uuid() });
 
+const submitSchema = z.object({
+  attemptId: z.string().uuid(),
+  answers: z.record(
+    z.string(),
+    z.object({
+      selectedOptionId: z.string(),
+      timeTaken: z.number().optional(),
+    })
+  ),
+});
+
+const XP_PER_CORRECT = 10;
+const COINS_PER_CORRECT = 5;
+
 @Injectable()
 export class SimulacroRouter {
   constructor(
@@ -212,6 +226,137 @@ export class SimulacroRouter {
             topicName: q.topic.name,
             courseName: q.course.name,
           })),
+        };
+      }),
+
+    // Fase 3: entregar y calificar un intento
+    submit: this.trpc.protectedProcedure
+      .input(submitSchema)
+      .mutation(async ({ ctx, input }) => {
+        const attempt = await this.prisma.examAttempt.findUnique({
+          where: { id: input.attemptId },
+          include: { exam: { select: { id: true, title: true } } },
+        });
+
+        if (!attempt || attempt.userId !== ctx.user.userId) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Intento no encontrado' });
+        }
+
+        if (attempt.status !== 'IN_PROGRESS') {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Este intento ya fue entregado' });
+        }
+
+        const questions = await this.prisma.examQuestion.findMany({
+          where: { id: { in: attempt.questionIds } },
+          select: { id: true, options: true },
+        });
+
+        const questionMap = new Map(questions.map((q) => [q.id, q]));
+
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let blankCount = 0;
+
+        const gradedAnswers: Record<string, { selectedOptionId: string; timeTaken?: number; isCorrect: boolean }> = {};
+        const answerLogs: Array<{
+          userId: string;
+          examQuestionId: string;
+          isCorrect: boolean;
+          answer: { selectedOptionId: string; timeTaken?: number };
+          timeTaken?: number;
+        }> = [];
+
+        for (const questionId of attempt.questionIds) {
+          const question = questionMap.get(questionId);
+          const submitted = input.answers[questionId];
+          const options = (question?.options ?? []) as Array<{ id: string; text: string; isCorrect: boolean }>;
+          const correctOption = options.find((o) => o.isCorrect);
+
+          if (!submitted || !submitted.selectedOptionId) {
+            blankCount++;
+            gradedAnswers[questionId] = { selectedOptionId: '', timeTaken: 0, isCorrect: false };
+            continue;
+          }
+
+          const isCorrect = submitted.selectedOptionId === correctOption?.id;
+          if (isCorrect) correctCount++;
+          else incorrectCount++;
+
+          gradedAnswers[questionId] = {
+            selectedOptionId: submitted.selectedOptionId,
+            timeTaken: submitted.timeTaken,
+            isCorrect,
+          };
+
+          answerLogs.push({
+            userId: ctx.user.userId,
+            examQuestionId: questionId,
+            isCorrect,
+            answer: { selectedOptionId: submitted.selectedOptionId, timeTaken: submitted.timeTaken },
+            timeTaken: submitted.timeTaken,
+          });
+        }
+
+        const totalAnswered = correctCount + incorrectCount;
+        const score = attempt.questionCount > 0
+          ? Number(((correctCount / attempt.questionCount) * 100).toFixed(1))
+          : 0;
+
+        const timeUsedSeconds = Math.max(
+          0,
+          Math.floor((Date.now() - attempt.startedAt.getTime()) / 1000)
+        );
+
+        const xpEarned = correctCount * XP_PER_CORRECT;
+        const coinsEarned = correctCount * COINS_PER_CORRECT;
+
+        await this.prisma.$transaction(async (tx) => {
+          await tx.examAttempt.update({
+            where: { id: attempt.id },
+            data: {
+              status: 'COMPLETED',
+              submittedAt: new Date(),
+              timeUsedSeconds,
+              correctCount,
+              incorrectCount,
+              blankCount,
+              score,
+              answers: gradedAnswers as any,
+              totalXpEarned: xpEarned,
+              totalCoinsEarned: coinsEarned,
+            },
+          });
+
+          for (const log of answerLogs) {
+            await tx.answerLog.create({ data: log as any });
+          }
+
+          const userUpdateData: any = {
+            totalXp: { increment: xpEarned },
+            coins: { increment: coinsEarned },
+            lastExamScore: score,
+          };
+
+          if (attempt.mode === 'GENERATED' && !attempt.examId) {
+            userUpdateData.freeSimAttemptsUsed = { increment: 1 };
+          }
+
+          await tx.user.update({
+            where: { id: ctx.user.userId },
+            data: userUpdateData,
+          });
+        });
+
+        return {
+          attemptId: attempt.id,
+          score,
+          correctCount,
+          incorrectCount,
+          blankCount,
+          totalAnswered,
+          timeUsedSeconds,
+          xpEarned,
+          coinsEarned,
         };
       }),
   });

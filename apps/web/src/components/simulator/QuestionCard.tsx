@@ -1,16 +1,18 @@
 import React from 'react';
 
-export interface Opcion {
-  letra: string;
-  texto: string;
+interface ExamOption {
+  id: string;
+  text: string;
 }
 
 interface QuestionCardProps {
   texto: string;
-  opciones: Opcion[];
-  etiqueta: string;
+  opciones: ExamOption[];
+  etiqueta?: string;
   resaltar?: string;
 }
+
+const optionLabels = ['A', 'B', 'C', 'D', 'E', 'F'];
 
 export const QuestionCard = ({
   texto,
@@ -18,10 +20,7 @@ export const QuestionCard = ({
   etiqueta,
   resaltar,
 }: QuestionCardProps) => {
-  const renderizarTextoConResalte = (
-    textoCompleto: string,
-    palabra?: string
-  ) => {
+  const renderizarTextoConResalte = (textoCompleto: string, palabra?: string) => {
     if (!palabra) return textoCompleto;
     const regex = new RegExp(`(${palabra})`, 'gi');
     return textoCompleto.split(regex).map((part, index) =>
@@ -42,23 +41,28 @@ export const QuestionCard = ({
       </h2>
 
       <div className="space-y-5 mb-16">
-        {opciones.map((opc) => (
-          <div key={opc.letra} className="flex items-start gap-4">
-            <span className="text-[#8ba3c7] font-black text-[17px] leading-snug shrink-0">
-              {opc.letra})
-            </span>
-            <span className="text-[#1e293b] font-bold text-[17px] leading-snug">
-              {opc.texto}
-            </span>
-          </div>
-        ))}
+        {opciones.map((opc, index) => {
+          const label = optionLabels[index] ?? opc.id.toUpperCase();
+          return (
+            <div key={opc.id} className="flex items-start gap-4">
+              <span className="text-[#8ba3c7] font-black text-[17px] leading-snug shrink-0">
+                {label})
+              </span>
+              <span className="text-[#1e293b] font-bold text-[17px] leading-snug">
+                {opc.text}
+              </span>
+            </div>
+          );
+        })}
       </div>
 
-      <div className="absolute bottom-5 right-5">
-        <span className="border-2 border-[#dbeafe] text-[#3b82f6] px-4 py-1.5 rounded-xl text-[11px] font-black tracking-widest uppercase">
-          {etiqueta}
-        </span>
-      </div>
+      {etiqueta && (
+        <div className="absolute bottom-5 right-5">
+          <span className="border-2 border-[#dbeafe] text-[#3b82f6] px-4 py-1.5 rounded-xl text-[11px] font-black tracking-widest uppercase">
+            {etiqueta}
+          </span>
+        </div>
+      )}
     </div>
   );
 };

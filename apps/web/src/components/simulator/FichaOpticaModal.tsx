@@ -1,27 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import { Bookmark, FileText, ChevronLeft } from 'lucide-react';
+import { Bookmark, FileText, ChevronLeft, Check } from 'lucide-react';
+
+interface FichaQuestion {
+  id: string;
+  options: Array<{ id: string; text?: string }>;
+}
+
+interface FichaAnswer {
+  selectedOptionId: string;
+  timeTaken?: number;
+}
 
 interface FichaOpticaModalProps {
   isOpen: boolean;
   onClose: () => void;
-  respuestas: Record<number, string>;
-  marcadas: number[];
-  preguntaActual: number;
-  totalPreguntas: number;
-  onCambiarPregunta: (numero: number) => void;
+  questions: FichaQuestion[];
+  answers: Record<string, FichaAnswer>;
+  markedIds: string[];
+  currentQuestionId?: string;
+  onSelectQuestion: (index: number) => void;
+  onSubmit: () => void;
 }
+
+const optionLabels = ['A', 'B', 'C', 'D', 'E', 'F'];
 
 export const FichaOpticaModal = ({
   isOpen,
   onClose,
-  respuestas,
-  marcadas,
-  preguntaActual,
-  totalPreguntas,
-  onCambiarPregunta,
+  questions,
+  answers,
+  markedIds,
+  currentQuestionId,
+  onSelectQuestion,
+  onSubmit,
 }: FichaOpticaModalProps) => {
-  const resueltas = Object.keys(respuestas).length;
-  const enBlanco = totalPreguntas - resueltas;
+  const resueltas = Object.values(answers).filter((a) => a.selectedOptionId).length;
+  const enBlanco = questions.length - resueltas;
 
   const [startY, setStartY] = useState(0);
   const [dragY, setDragY] = useState(0);
@@ -43,33 +57,32 @@ export const FichaOpticaModal = ({
     if (!isDragging) return;
     const currentY = e.touches[0].clientY;
     const diff = currentY - startY;
-    if (diff > 0) {
-      setDragY(diff);
-    }
+    if (diff > 0) setDragY(diff);
   };
 
   const handleTouchEnd = () => {
     setIsDragging(false);
-    if (dragY > 120) {
-      onClose();
-    } else {
-      setDragY(0);
-    }
+    if (dragY > 120) onClose();
+    else setDragY(0);
   };
 
-  const renderColumna = (inicio: number, fin: number) => (
-    <div className="flex-1 border-2 border-red-200/60 rounded-xl py-1.5 px-1 h-max bg-white shadow-sm overflow-hidden">
-      {Array.from({ length: fin - inicio + 1 }, (_, i) => i + inicio).map(
-        (num) => {
-          const isCurrent = num === preguntaActual;
-          const respondida = respuestas[num];
-          const isEven = num % 2 === 0;
+  const mid = Math.ceil(questions.length / 2);
+  const firstColumn = questions.slice(0, mid);
+  const secondColumn = questions.slice(mid);
 
-          return (
-            <div
-              key={num}
-              onClick={() => onCambiarPregunta(num)}
-              className={`relative flex items-center justify-center px-2 py-1.5 rounded-lg cursor-pointer transition-all mb-[1px]
+  const renderColumna = (items: FichaQuestion[], offset: number) => (
+    <div className="flex-1 border-2 border-red-200/60 rounded-xl py-1.5 px-1 h-max bg-white shadow-sm overflow-hidden">
+      {items.map((question, index) => {
+        const num = offset + index + 1;
+        const isCurrent = question.id === currentQuestionId;
+        const respondida = answers[question.id]?.selectedOptionId;
+        const isEven = num % 2 === 0;
+
+        return (
+          <div
+            key={question.id}
+            onClick={() => onSelectQuestion(num - 1)}
+            className={`relative flex items-center justify-center px-2 py-1.5 rounded-lg cursor-pointer transition-all mb-[1px]
               ${
                 isCurrent
                   ? 'ring-2 ring-blue-400 bg-blue-50 shadow-sm z-10'
@@ -78,46 +91,46 @@ export const FichaOpticaModal = ({
                   : 'bg-white hover:bg-slate-50'
               }
             `}
+          >
+            {markedIds.includes(question.id) && (
+              <Bookmark
+                size={12}
+                strokeWidth={3}
+                className="absolute left-1.5 text-orange-500 fill-orange-500 pointer-events-none"
+              />
+            )}
+
+            <span
+              className={`font-black text-[12px] w-[22px] text-right mr-2 shrink-0 ${
+                isCurrent ? 'text-blue-600' : 'text-slate-700'
+              }`}
             >
-              {marcadas.includes(num) && (
-                <Bookmark
-                  size={12}
-                  strokeWidth={3}
-                  className="absolute left-1.5 text-orange-500 fill-orange-500 pointer-events-none"
-                />
-              )}
+              {num}.
+            </span>
 
-              <span
-                className={`font-black text-[12px] w-[22px] text-right mr-2 shrink-0 ${
-                  isCurrent ? 'text-blue-600' : 'text-slate-700'
-                }`}
-              >
-                {num}.
-              </span>
-
-              <div className="flex items-center gap-1 shrink-0">
-                {['A', 'B', 'C', 'D', 'E'].map((letra) => {
-                  const isSelected = respondida === letra;
-                  return (
-                    <div
-                      key={letra}
-                      className={`w-[18px] h-[18px] sm:w-[20px] sm:h-[20px] rounded-full border-[1.5px] flex items-center justify-center text-[8px] font-black transition-colors shrink-0
-                    ${
-                      isSelected
-                        ? 'bg-slate-800 border-slate-800 text-white shadow-inner'
-                        : 'bg-transparent border-red-400 text-red-500 opacity-80'
-                    }
-                  `}
-                    >
-                      {letra}
-                    </div>
-                  );
-                })}
-              </div>
+            <div className="flex items-center gap-0.5 shrink-0">
+              {question.options.map((opt, optIndex) => {
+                const isSelected = respondida === opt.id;
+                const label = optionLabels[optIndex] ?? opt.id.toUpperCase();
+                return (
+                  <div
+                    key={opt.id}
+                    className={`w-[16px] h-[16px] rounded-full border-[1.5px] flex items-center justify-center text-[7px] font-black transition-colors shrink-0
+                      ${
+                        isSelected
+                          ? 'bg-slate-800 border-slate-800 text-white shadow-inner'
+                          : 'bg-transparent border-red-400 text-red-500 opacity-80'
+                      }
+                    `}
+                  >
+                    {isSelected ? <Check size={10} strokeWidth={4} /> : label}
+                  </div>
+                );
+              })}
             </div>
-          );
-        }
-      )}
+          </div>
+        );
+      })}
     </div>
   );
 
@@ -165,25 +178,20 @@ export const FichaOpticaModal = ({
             <span className="text-[#22c55e] text-[10px] font-black uppercase tracking-widest mb-1">
               Resueltas
             </span>
-            <span className="text-[#16a34a] text-2xl font-black leading-none">
-              {resueltas}
-            </span>
+            <span className="text-[#16a34a] text-2xl font-black leading-none">{resueltas}</span>
           </div>
           <div className="flex-1 bg-[#fffbeb] border-2 border-[#fde68a] rounded-2xl p-3 flex flex-col items-center justify-center shadow-sm">
             <span className="text-[#d97706] text-[10px] font-black uppercase tracking-widest mb-1">
               En Blanco
             </span>
-            <span className="text-[#d97706] text-2xl font-black leading-none">
-              {enBlanco}
-            </span>
+            <span className="text-[#d97706] text-2xl font-black leading-none">{enBlanco}</span>
           </div>
         </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto px-4 py-2">
-          {/* Note: .hide-scrollbar class would be needed in global.css */}
           <div className="flex gap-3 pb-8">
-            {renderColumna(1, 40)}
-            {renderColumna(41, 80)}
+            {renderColumna(firstColumn, 0)}
+            {secondColumn.length > 0 && renderColumna(secondColumn, mid)}
           </div>
         </div>
 
@@ -194,7 +202,10 @@ export const FichaOpticaModal = ({
           >
             <ChevronLeft size={24} />
           </button>
-          <button className="flex-1 bg-[#ef4444] hover:bg-[#dc2626] text-white font-black text-xl py-4 rounded-2xl shadow-[0_5px_0_0_#b91c1c] active:translate-y-[5px] active:shadow-none transition-all">
+          <button
+            onClick={onSubmit}
+            className="flex-1 bg-[#ef4444] hover:bg-[#dc2626] text-white font-black text-xl py-4 rounded-2xl shadow-[0_5px_0_0_#b91c1c] active:translate-y-[5px] active:shadow-none transition-all"
+          >
             ENTREGAR EXAMEN
           </button>
         </div>
