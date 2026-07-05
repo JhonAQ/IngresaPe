@@ -9,6 +9,7 @@ import { AppRouter } from './app.router';
 // Question engine services
 import { QuestionGraderService } from './services/question-grader.service';
 import { QuestionViewService } from './services/question-view.service';
+import { WeakTopicAnalyzerService } from './services/weak-topic-analyzer.service';
 
 // Routers (tRPC)
 import { AuthRouter } from './routers/auth.router';
@@ -49,6 +50,7 @@ import { GameService } from './services/game.service';
     // Question engine services
     QuestionGraderService,
     QuestionViewService,
+    WeakTopicAnalyzerService,
 
     // Routers tRPC (Inyectables)
     AuthRouter,

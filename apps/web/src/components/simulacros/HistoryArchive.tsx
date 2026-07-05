@@ -3,16 +3,10 @@ import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { History, ChevronRight, FileText, LayoutGrid } from 'lucide-react';
-
-interface PastExam {
-  id: number;
-  title: string;
-  type: string;
-  questions: number;
-}
+import type { ExamSummaryDto } from '@ingresa-pe/domain';
 
 interface HistoryArchiveProps {
-  pastExams: PastExam[];
+  pastExams: ExamSummaryDto[];
 }
 
 export const HistoryArchive: React.FC<HistoryArchiveProps> = ({
@@ -44,18 +38,19 @@ export const HistoryArchive: React.FC<HistoryArchiveProps> = ({
               </div>
               <div className="flex-1 min-w-0">
                 <span className="text-[8px] font-black text-rose-500 uppercase tracking-widest">
-                  FASE {exam.id % 2 === 0 ? 'I' : 'II'}
+                  {exam.type ?? 'EXAMEN'} {exam.phase ? `- FASE ${exam.phase}` : ''}
                 </span>
                 <h4 className="font-black text-slate-800 text-[12.5px] leading-tight mt-0.5 line-clamp-3">
-                  Admisión {exam.id > 102 ? '2023' : '2024'}
+                  {exam.year}
                 </h4>
               </div>
               <div className="mt-auto pt-2 border-t border-slate-100">
                 <div className="flex items-center gap-1 text-slate-400 font-bold text-[9px] mb-2">
-                  <LayoutGrid size={10} strokeWidth={3} /> {exam.questions}{' '}
+                  <LayoutGrid size={10} strokeWidth={3} /> {exam.questionCount}{' '}
                   Pregs
                 </div>
-                <div className="w-full py-1.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center text-[9px] font-black text-slate-500 uppercase tracking-widest group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
+                <div className="w-full py-1.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center text-[9px] font-black text-slate-500 uppercase tracking-widest group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors"
+                >
                   Iniciar
                 </div>
               </div>

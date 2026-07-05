@@ -1,8 +1,7 @@
 'use client';
 import React from 'react';
-import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Sparkles, Brain, Play } from 'lucide-react';
+import { Sparkles, Brain, Play, Lock, Zap } from 'lucide-react';
 import { Button3D } from '../ui/Button3D';
 
 interface AIExamCardProps {
@@ -10,6 +9,10 @@ interface AIExamCardProps {
   setNumQuestions: (num: number) => void;
   timeLimit: number;
   setTimeLimit: (mins: number) => void;
+  isPremium: boolean;
+  freeAttemptsRemaining: number;
+  isLoading: boolean;
+  onStart: (params: { mode: 'AI' | 'RANDOM' }) => void;
 }
 
 export const AIExamCard: React.FC<AIExamCardProps> = ({
@@ -17,8 +20,12 @@ export const AIExamCard: React.FC<AIExamCardProps> = ({
   setNumQuestions,
   timeLimit,
   setTimeLimit,
+  isPremium,
+  freeAttemptsRemaining,
+  isLoading,
+  onStart,
 }) => {
-  const router = useRouter();
+  const isLocked = !isPremium && freeAttemptsRemaining <= 0;
 
   return (
     <div className="px-5 mb-8">
@@ -76,12 +83,13 @@ export const AIExamCard: React.FC<AIExamCardProps> = ({
                 {[20, 40, 60, 80].map((v) => (
                   <button
                     key={v}
+                    disabled={isLoading}
                     onClick={() => setNumQuestions(v)}
                     className={`w-9 h-7 rounded-lg text-[10px] font-black border transition-all ${
                       numQuestions === v
                         ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300'
                         : 'bg-slate-900 border-slate-800 text-slate-500'
-                    }`}
+                    } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     {v}
                   </button>
@@ -96,12 +104,13 @@ export const AIExamCard: React.FC<AIExamCardProps> = ({
                 {[30, 60, 90, 120].map((v) => (
                   <button
                     key={v}
+                    disabled={isLoading}
                     onClick={() => setTimeLimit(v)}
                     className={`w-9 h-7 rounded-lg text-[10px] font-black border transition-all ${
                       timeLimit === v
                         ? 'bg-indigo-500/20 border-indigo-400 text-indigo-300'
                         : 'bg-slate-900 border-slate-800 text-slate-500'
-                    }`}
+                    } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     {v}
                   </button>
@@ -110,12 +119,41 @@ export const AIExamCard: React.FC<AIExamCardProps> = ({
             </div>
           </div>
 
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider">
+              {isPremium ? (
+                <>
+                  <Zap size={12} className="text-amber-400 fill-amber-400" />
+                  <span className="text-amber-400">Premium ilimitado</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles size={12} className="text-cyan-400" />
+                  <span className={freeAttemptsRemaining > 0 ? 'text-cyan-300' : 'text-rose-400'}>
+                    {freeAttemptsRemaining} gratis esta semana
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+
           <Button3D
             variant="neon"
-            className="!py-3.5"
-            onClick={() => router.push('/simulator')}
+            className="!py-3.5 w-full"
+            disabled={isLoading || isLocked}
+            onClick={() => onStart({ mode: 'AI' })}
           >
-            GENERAR AHORA <Play size={16} fill="currentColor" />
+            {isLoading ? (
+              <>Generando...</>
+            ) : isLocked ? (
+              <>
+                <Lock size={16} /> BLOQUEADO
+              </>
+            ) : (
+              <>
+                GENERAR AHORA <Play size={16} fill="currentColor" />
+              </>
+            )}
           </Button3D>
         </div>
       </div>
