@@ -75,38 +75,6 @@ export function useSimulacro(attemptId: string): UseSimulacroResult {
     }
   }, [attempt, isError, queryError]);
 
-  // Temporizador global del examen
-  useEffect(() => {
-    if (status !== 'idle' || timeRemaining <= 0) return;
-    const interval = setInterval(() => {
-      setTimeRemaining((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          // Auto-submit al acabar el tiempo
-          handleSubmit();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [status, timeRemaining]);
-
-  // Reiniciar cronómetro por pregunta al cambiar de índice
-  useEffect(() => {
-    setQuestionStartTime(Date.now());
-  }, [currentIndex]);
-
-  const answeredCount = useMemo(
-    () => Object.values(answers).filter((a) => a.selectedOptionId).length,
-    [answers]
-  );
-
-  const progress = useMemo(() => {
-    if (questions.length === 0) return 0;
-    return (answeredCount / questions.length) * 100;
-  }, [answeredCount, questions.length]);
-
   const submitMutation = trpc.simulacro.submit.useMutation({
     onSuccess: (data) => {
       setResult(data);
@@ -123,6 +91,38 @@ export function useSimulacro(attemptId: string): UseSimulacroResult {
     setStatus('submitting');
     submitMutation.mutate({ attemptId, answers });
   }, [attempt, status, submitMutation, attemptId, answers]);
+
+  // Temporizador global del examen
+  useEffect(() => {
+    if (status !== 'idle' || timeRemaining <= 0) return;
+    const interval = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          // Auto-submit al acabar el tiempo
+          handleSubmit();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [status, timeRemaining, handleSubmit]);
+
+  // Reiniciar cronómetro por pregunta al cambiar de índice
+  useEffect(() => {
+    setQuestionStartTime(Date.now());
+  }, [currentIndex]);
+
+  const answeredCount = useMemo(
+    () => Object.values(answers).filter((a) => a.selectedOptionId).length,
+    [answers]
+  );
+
+  const progress = useMemo(() => {
+    if (questions.length === 0) return 0;
+    return (answeredCount / questions.length) * 100;
+  }, [answeredCount, questions.length]);
 
   const setAnswer = useCallback(
     (optionId: string) => {
