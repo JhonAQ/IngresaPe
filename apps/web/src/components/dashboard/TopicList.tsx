@@ -216,47 +216,54 @@ export function TopicList({
     };
 
   const nodeRefs = useRef(new Map<string, HTMLElement>());
-  const hasScrolledRef = useRef(false);
-  const prevCourseIdRef = useRef(courseId);
+  const lastScrolledKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (prevCourseIdRef.current !== courseId) {
-      hasScrolledRef.current = false;
-      prevCourseIdRef.current = courseId;
-    }
-  }, [courseId]);
+    if (!scrollContainerRef?.current) return;
 
-  useEffect(() => {
-    if (!scrollContainerRef?.current || hasScrolledRef.current) return;
+    const scrollKey =
+      mergedUnits
+        .map((u) => u.actividades.map((a) => a.state).join(','))
+        .join('|') + `:${courseId}`;
 
-    const currentEntry = mergedUnits
-      .flatMap((u, topicIndex) =>
-        u.actividades.map((act, actIndex) => ({
-          key: `${topicIndex}-${actIndex}`,
-          state: act.state,
-        }))
-      )
-      .find((entry) => entry.state === 'current');
-
-    const key = currentEntry?.key;
-    const el = key ? nodeRefs.current.get(key) : null;
-    if (!el) return;
+    if (lastScrolledKeyRef.current === scrollKey) return;
 
     const container = scrollContainerRef.current;
-    const HEADER_OFFSET = 120; // altura aproximada del header sticky + topic header
+    const sticky = document.getElementById('course-progress-sticky');
+    const stickyHeight = sticky ? sticky.getBoundingClientRect().height : 110;
+
+    // Objetivo: primer nodo no completado del primer tema no completado.
+    // Si todo está completado, el último nodo del último tema.
+    let targetKey: string | null = null;
+    for (let ti = 0; ti < mergedUnits.length; ti++) {
+      const acts = mergedUnits[ti].actividades;
+      const firstIncomplete = acts.findIndex((a) => a.state !== 'completed');
+      if (firstIncomplete !== -1) {
+        targetKey = `${ti}-${firstIncomplete}`;
+        break;
+      }
+    }
+    if (!targetKey && mergedUnits.length > 0) {
+      const lastTi = mergedUnits.length - 1;
+      const lastAi = mergedUnits[lastTi].actividades.length - 1;
+      if (lastAi >= 0) targetKey = `${lastTi}-${lastAi}`;
+    }
+    if (!targetKey) return;
+
+    const el = nodeRefs.current.get(targetKey);
+    if (!el) return;
 
     const scroll = () => {
       const containerRect = container.getBoundingClientRect();
       const nodeRect = el.getBoundingClientRect();
       const nodeTop = nodeRect.top - containerRect.top + container.scrollTop;
-      const target =
-        nodeTop - (container.clientHeight - HEADER_OFFSET) / 2 + nodeRect.height / 2 + HEADER_OFFSET / 2;
+      const visibleCenter = stickyHeight + (container.clientHeight - stickyHeight) / 2;
+      const target = nodeTop - visibleCenter + nodeRect.height / 2;
       container.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+      lastScrolledKeyRef.current = scrollKey;
     };
 
     const raf = requestAnimationFrame(scroll);
-    hasScrolledRef.current = true;
-
     return () => cancelAnimationFrame(raf);
   }, [mergedUnits, scrollContainerRef, courseId]);
 

@@ -157,7 +157,7 @@ function DashboardContent() {
         ref={mainRef}
         className="flex-1 flex flex-col gap-2 overflow-y-auto px-5 pb-32 hide-scrollbar bg-slate-50/50"
       >
-        <div className="sticky top-0 z-40 -mx-5 px-5 pt-2 pb-2 bg-slate-50/95 backdrop-blur-sm space-y-2">
+        <div id="course-progress-sticky" className="sticky top-0 z-40 -mx-5 px-5 pt-2 pb-2 bg-slate-50/95 backdrop-blur-sm space-y-2">
           <CourseProgress
             courseName={selectedCourse?.name ?? 'Seleccionar curso'}
             progress={progress}
