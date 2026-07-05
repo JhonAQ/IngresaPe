@@ -137,7 +137,7 @@ export function CourseSelector({ selectedCourseId, onSelect }: CourseSelectorPro
   const handleConfirm = () => {
     if (previewCourseId) {
       onSelect(previewCourseId);
-      close();
+      close({ popHistory: false });
     }
   };
 
@@ -148,7 +148,7 @@ export function CourseSelector({ selectedCourseId, onSelect }: CourseSelectorPro
       {/* Header sticky con X */}
       <header className="sticky top-0 z-50 bg-white px-4 pt-4 pb-3 border-b-2 border-duo-border flex items-center gap-4">
         <button
-          onClick={close}
+          onClick={() => close()}
           className="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-surface-100 text-duo-dark hover:bg-surface-200 transition-colors"
           aria-label="Cerrar selector"
         >

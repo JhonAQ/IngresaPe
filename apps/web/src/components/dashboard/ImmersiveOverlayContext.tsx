@@ -16,7 +16,7 @@ interface ImmersiveOverlayContextValue {
   mode: ImmersiveOverlayMode | null;
   isOpen: boolean;
   open: (mode: ImmersiveOverlayMode) => void;
-  close: () => void;
+  close: (options?: { popHistory?: boolean }) => void;
 }
 
 const ImmersiveOverlayContext = createContext<ImmersiveOverlayContextValue | null>(null);
@@ -33,10 +33,15 @@ export function ImmersiveOverlayProvider({ children }: { children: ReactNode }) 
     }
   }, []);
 
-  const close = useCallback(() => {
+  const close = useCallback((options?: { popHistory?: boolean }) => {
+    const popHistory = options?.popHistory ?? true;
     if (typeof window !== 'undefined' && window.history.state?.immersiveOverlay) {
-      manualCloseRef.current = true;
-      window.history.back();
+      if (popHistory) {
+        manualCloseRef.current = true;
+        window.history.back();
+      } else {
+        window.history.replaceState({}, '');
+      }
     }
     setMode(null);
   }, []);
