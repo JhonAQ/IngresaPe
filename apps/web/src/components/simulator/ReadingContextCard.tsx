@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { BookOpen, ChevronDown } from 'lucide-react';
+import { LatexText } from '../ui/LatexText';
 
 interface ReadingContextCardProps {
-  contexto?: string;
+  contexto?: string | null;
 }
 
 export const ReadingContextCard = ({ contexto }: ReadingContextCardProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(!!contexto);
 
   if (!contexto) return null;
 
@@ -47,9 +48,9 @@ export const ReadingContextCard = ({ contexto }: ReadingContextCardProps) => {
       >
         <div className="overflow-hidden">
           <div className="pt-4 border-t-2 border-slate-100">
-            <div className="max-h-52 overflow-y-auto pr-2">
+            <div className="max-h-64 overflow-y-auto pr-2 custom-scrollbar">
               <p className="text-slate-600 text-[15px] font-medium leading-relaxed">
-                {contexto}
+                <LatexText text={contexto} />
               </p>
             </div>
           </div>

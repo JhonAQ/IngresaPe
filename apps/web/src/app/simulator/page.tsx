@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   TopBar,
@@ -44,6 +44,7 @@ function SimulatorPage() {
     answers,
     markedIds,
     timeRemaining,
+    answeredCount,
     isFirst,
     isLast,
     setAnswer,
@@ -57,6 +58,7 @@ function SimulatorPage() {
 
   const [fichaAbierta, setFichaAbierta] = useState(false);
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
+  const hasAutoOpenedFicha = useRef(false);
 
   useEffect(() => {
     if (!attemptId && status === 'loading') {
@@ -64,6 +66,24 @@ function SimulatorPage() {
       router.replace('/simulacros');
     }
   }, [attemptId, status, router]);
+
+  // Abrir ficha óptica automáticamente al responder la última pregunta
+  useEffect(() => {
+    if (
+      status === 'idle' &&
+      questions.length > 0 &&
+      answeredCount === questions.length &&
+      !hasAutoOpenedFicha.current
+    ) {
+      hasAutoOpenedFicha.current = true;
+      setFichaAbierta(true);
+    }
+  }, [status, questions.length, answeredCount]);
+
+  // Reset auto-open flag when the attempt changes
+  useEffect(() => {
+    hasAutoOpenedFicha.current = false;
+  }, [attemptId]);
 
   if (status === 'loading' || !currentQuestion) {
     return (
@@ -131,10 +151,11 @@ function SimulatorPage() {
             onToggleBandera={toggleMark}
           />
 
-          <ReadingContextCard contexto={undefined} />
+          <ReadingContextCard contexto={currentQuestion.passage} />
 
           <QuestionCard
             texto={currentQuestion.statement}
+            imageUrl={currentQuestion.imageUrl}
             opciones={currentQuestion.options}
             etiqueta={`${currentQuestion.topicName}`}
           />

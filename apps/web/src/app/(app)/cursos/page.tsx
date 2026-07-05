@@ -109,7 +109,7 @@ export default function CursosPage() {
 
   return (
     <main className="flex-1 overflow-y-auto hide-scrollbar flex flex-col">
-      <div className="flex-1 p-5 pb-6">
+      <div className="flex-1 p-5 pb-bottom-nav">
         <h2 className="font-black text-[32px] leading-[1.15] mb-8 text-center tracking-tight">
           <span className="text-duo-dark">¿Qué quieres</span>
           <br />

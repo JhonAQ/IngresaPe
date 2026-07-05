@@ -310,9 +310,12 @@ export class SimulacroRouter {
             examId: q.examId,
             order: q.order,
             statement: q.statement,
-            options: (q.options as Array<{ id: string; text: string; isCorrect: boolean }>).map((o) => ({
+            passage: q.passage,
+            imageUrl: q.imageUrl,
+            options: (q.options as Array<{ id: string; text: string; isCorrect: boolean; imageUrl?: string | null }>).map((o) => ({
               id: o.id,
               text: o.text,
+              imageUrl: o.imageUrl,
             })),
             difficulty: q.difficulty,
             topicName: q.topic.name,

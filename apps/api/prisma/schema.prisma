@@ -260,7 +260,9 @@ model ExamQuestion {
   order  Int
 
   statement   String
-  options     Json // [{ id, text, isCorrect }]
+  passage     String? // Texto base de comprensión lectora (RV)
+  imageUrl    String? // Imagen opcional del enunciado
+  options     Json // [{ id, text, isCorrect, imageUrl? }]
   explanation String?
   difficulty  Difficulty
 

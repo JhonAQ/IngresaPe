@@ -1,4 +1,5 @@
 import { PrismaClient, Area, Difficulty, QuestionType } from '@prisma/client';
+import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -13,6 +14,8 @@ async function main() {
     await prisma.answerLog.deleteMany();
     await prisma.userProgress.deleteMany();
     await prisma.question.deleteMany();
+    await prisma.examQuestion.deleteMany();
+    await prisma.exam.deleteMany();
     await prisma.topic.deleteMany();
     await prisma.course.deleteMany();
     await prisma.user.deleteMany();
@@ -1147,6 +1150,34 @@ async function main() {
   console.log('📜 Creando exámenes históricos de ejemplo...');
   await seedHistoricalExams();
 
+  // ---------------------------------------------------------
+  // 6. USUARIO DE PRUEBA PREMIUM
+  // ---------------------------------------------------------
+  console.log('👤 Creando usuario premium de prueba...');
+  const testCareer = await prisma.career.findFirst({
+    where: { name: 'Ingeniería de Sistemas' },
+  });
+
+  const hashedPassword = await bcrypt.hash('test1234', 12);
+
+  await prisma.user.upsert({
+    where: { email: 'premium@test.com' },
+    update: {},
+    create: {
+      email: 'premium@test.com',
+      name: 'Premium Tester',
+      password: hashedPassword,
+      provider: 'credentials',
+      role: 'USER',
+      isPremium: true,
+      subExpiresAt: new Date('2027-01-01T00:00:00Z'),
+      careerId: testCareer?.id ?? null,
+      energy: 25,
+      coins: 500,
+      inventory: ['default'],
+    },
+  });
+
   console.log('🌱 Sembrado completado.');
 }
 
@@ -1389,6 +1420,82 @@ async function seedHistoricalExams() {
         },
       ],
     },
+    {
+      title: 'Admisión UNSA 2024 - Comprensión Lectora',
+      year: 2024,
+      phase: 'I',
+      type: 'ORDINARIO',
+      timeLimitMinutes: 15,
+      questions: [
+        {
+          courseSlug: 'literatura',
+          topicSlug: 'analisis-literario',
+          order: 1,
+          difficulty: Difficulty.MEDIUM,
+          passage:
+            'El realismo mágico es un movimiento literario surgido en América Latina durante el siglo XX. Sus narraciones mezclan lo cotidiano con elementos fantásticos de manera natural, sin llamar la atención sobre lo improbable. El lector acepta que un personaje pueda ascender al cielo o que una casa tenga un alma, porque en el universo de la historia esas maravillas son tan reales como cualquier objeto. Gabriel García Márquez, con su obra "Cien años de soledad", es considerado uno de los máximos exponentes de este estilo.',
+          statement: 'Según el texto, ¿qué característica distingue al realismo mágico?',
+          options: [
+            { id: 'a', text: 'A) Presenta hechos fantásticos como si fueran normales', isCorrect: true },
+            { id: 'b', text: 'B) Explica científicamente los fenómenos sobrenaturales', isCorrect: false },
+            { id: 'c', text: 'C) Solo describe la vida cotidiana sin fantasía', isCorrect: false },
+            { id: 'd', text: 'D) Rechaza cualquier elemento maravilloso', isCorrect: false },
+            { id: 'e', text: 'E) Se originó en Europa durante el siglo XIX', isCorrect: false },
+          ],
+          explanation: 'El texto indica que el realismo mágico mezcla lo cotidiano con lo fantástico de manera natural.',
+        },
+        {
+          courseSlug: 'literatura',
+          topicSlug: 'analisis-literario',
+          order: 2,
+          difficulty: Difficulty.MEDIUM,
+          passage:
+            'El realismo mágico es un movimiento literario surgido en América Latina durante el siglo XX. Sus narraciones mezclan lo cotidiano con elementos fantásticos de manera natural, sin llamar la atención sobre lo improbable. El lector acepta que un personaje pueda ascender al cielo o que una casa tenga un alma, porque en el universo de la historia esas maravillas son tan reales como cualquier objeto. Gabriel García Márquez, con su obra "Cien años de soledad", es considerado uno de los máximos exponentes de este estilo.',
+          statement: '¿Cuál de las siguientes obras es mencionada en el texto como ejemplo de realismo mágico?',
+          options: [
+            { id: 'a', text: 'A) Don Quijote de la Mancha', isCorrect: false },
+            { id: 'b', text: 'B) Cien años de soledad', isCorrect: true },
+            { id: 'c', text: 'C) Los ríos profundos', isCorrect: false },
+            { id: 'd', text: 'D) La ciudad y los perros', isCorrect: false },
+            { id: 'e', text: 'E) Pedro Páramo', isCorrect: false },
+          ],
+          explanation: 'El texto menciona explícitamente "Cien años de soledad" de Gabriel García Márquez.',
+        },
+        {
+          courseSlug: 'literatura',
+          topicSlug: 'analisis-literario',
+          order: 3,
+          difficulty: Difficulty.MEDIUM,
+          passage:
+            'El realismo mágico es un movimiento literario surgido en América Latina durante el siglo XX. Sus narraciones mezclan lo cotidiano con elementos fantásticos de manera natural, sin llamar la atención sobre lo improbable. El lector acepta que un personaje pueda ascender al cielo o que una casa tenga un alma, porque en el universo de la historia esas maravillas son tan reales como cualquier objeto. Gabriel García Márquez, con su obra "Cien años de soledad", es considerado uno de los máximos exponentes de este estilo.',
+          statement: 'Según el texto, ¿dónde surgió el realismo mágico?',
+          options: [
+            { id: 'a', text: 'A) En Europa durante el siglo XIX', isCorrect: false },
+            { id: 'b', text: 'B) En América Latina durante el siglo XX', isCorrect: true },
+            { id: 'c', text: 'C) En Asia durante el siglo XXI', isCorrect: false },
+            { id: 'd', text: 'D) En África durante el siglo XVIII', isCorrect: false },
+            { id: 'e', text: 'E) En Norteamérica durante el siglo XX', isCorrect: false },
+          ],
+          explanation: 'El primer párrafo señala que el realismo mágico surgió en América Latina en el siglo XX.',
+        },
+        {
+          courseSlug: 'fisica',
+          topicSlug: 'cinematica',
+          order: 4,
+          difficulty: Difficulty.EASY,
+          statement: 'Observa la gráfica y responde: ¿cuál es la velocidad del móvil en el tramo recto?',
+          imageUrl: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=800&q=80',
+          options: [
+            { id: 'a', text: 'A) 5 m/s', isCorrect: false },
+            { id: 'b', text: 'B) 10 m/s', isCorrect: true, imageUrl: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=400&q=80' },
+            { id: 'c', text: 'C) 15 m/s', isCorrect: false },
+            { id: 'd', text: 'D) 20 m/s', isCorrect: false },
+            { id: 'e', text: 'E) 25 m/s', isCorrect: false },
+          ],
+          explanation: 'La pendiente del tramo recto indica una velocidad constante de 10 m/s.',
+        },
+      ],
+    },
   ];
 
   for (const examSeed of exams) {
@@ -1426,6 +1533,8 @@ async function seedHistoricalExams() {
           examId: exam.id,
           order: q.order,
           statement: q.statement,
+          passage: (q as any).passage,
+          imageUrl: (q as any).imageUrl,
           options: q.options as any,
           explanation: q.explanation,
           difficulty: q.difficulty,

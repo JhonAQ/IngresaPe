@@ -44,6 +44,7 @@ export type ExamSummaryDto = z.infer<typeof examSummarySchema>;
 export const examQuestionOptionViewSchema = z.object({
   id: z.string(),
   text: z.string(),
+  imageUrl: z.string().nullable().optional(),
 });
 
 export const examQuestionViewSchema = z.object({
@@ -51,6 +52,8 @@ export const examQuestionViewSchema = z.object({
   examId: z.string(),
   order: z.number(),
   statement: z.string(),
+  passage: z.string().nullable().optional(),
+  imageUrl: z.string().nullable().optional(),
   options: z.array(examQuestionOptionViewSchema).min(2).max(5),
   difficulty: z.enum(['EASY', 'MEDIUM', 'HARD']),
   topicName: z.string(),

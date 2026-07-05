@@ -97,6 +97,9 @@ svg {
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom, 20px);
   }
+  .pb-bottom-nav {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
   .bg-app-canvas {
     background-color: #ffffff;
     background-image: linear-gradient(rgba(241, 245, 249, 0.4) 1.5px, transparent 1.5px),

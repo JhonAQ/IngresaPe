@@ -15,7 +15,7 @@ export function EntrenarClient() {
   };
 
   return (
-    <main className="flex-1 overflow-y-auto hide-scrollbar p-5 pt-4 pb-8 relative">
+    <main className="flex-1 overflow-y-auto hide-scrollbar p-5 pt-4 pb-bottom-nav relative">
       <div className="pt-4 pb-6 flex justify-center">
         <h2 className="font-black text-[34px] leading-[1.1] tracking-tight text-center">
           <span className="text-duo-dark">Modo</span>

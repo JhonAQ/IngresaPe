@@ -40,30 +40,40 @@ export const FichaOpticaModal = ({
   const [startY, setStartY] = useState(0);
   const [dragY, setDragY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [pointerId, setPointerId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isOpen) {
       setDragY(0);
       setIsDragging(false);
+      setPointerId(null);
     }
   }, [isOpen]);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setStartY(e.touches[0].clientY);
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0) return;
+    const target = e.currentTarget;
+    target.setPointerCapture?.(e.pointerId);
+    setStartY(e.clientY);
+    setPointerId(e.pointerId);
     setIsDragging(true);
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return;
-    const currentY = e.touches[0].clientY;
-    const diff = currentY - startY;
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDragging || e.pointerId !== pointerId) return;
+    const diff = e.clientY - startY;
     if (diff > 0) setDragY(diff);
   };
 
-  const handleTouchEnd = () => {
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (!isDragging || e.pointerId !== pointerId) return;
     setIsDragging(false);
-    if (dragY > 120) onClose();
-    else setDragY(0);
+    setPointerId(null);
+    if (dragY > 120) {
+      onClose();
+    } else {
+      setDragY(0);
+    }
   };
 
   const mid = Math.ceil(questions.length / 2);
@@ -157,9 +167,9 @@ export const FichaOpticaModal = ({
       >
         <div
           className="shrink-0 cursor-grab active:cursor-grabbing touch-none bg-white z-20"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
         >
           <div className="w-full flex justify-center pt-3 pb-1">
             <div className="w-12 h-1.5 bg-slate-200 rounded-full"></div>
