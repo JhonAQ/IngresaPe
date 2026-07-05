@@ -15,9 +15,9 @@ datasource db {
 
 // Roles de seguridad
 enum Role {
-  USER        // Estudiante
-  ADMIN       // Tú y los fundadores (Control total)
-  DATA_ENTRY  // Data Squad (Solo pueden subir preguntas e inventario)
+  USER // Estudiante
+  ADMIN // Tú y los fundadores (Control total)
+  DATA_ENTRY // Data Squad (Solo pueden subir preguntas e inventario)
 }
 
 // Las 3 áreas académicas de la UNSA
@@ -44,15 +44,28 @@ enum QuestionType {
 
 // Planes de suscripción (Modelo de Negocio)
 enum PlanType {
-  MONTHLY  // Plan "T-Rex" (S/ 9.90)
-  ANNUAL   // Plan "Cachimbo" (S/ 99.00)
+  MONTHLY // Plan "T-Rex" (S/ 9.90)
+  ANNUAL // Plan "Cachimbo" (S/ 99.00)
 }
 
 // Estado de los pagos manuales (Yape/Plin)
 enum PaymentStatus {
-  PENDING   // Foto enviada, esperando revisión del Admin
-  APPROVED  // Pago validado, beneficios activos
-  REJECTED  // Pago inválido o no recibido
+  PENDING // Foto enviada, esperando revisión del Admin
+  APPROVED // Pago validado, beneficios activos
+  REJECTED // Pago inválido o no recibido
+}
+
+// Origen de un intento de simulacro
+enum ExamMode {
+  ARCHIVE // Examen histórico completo
+  GENERATED // Simulacro armado por el generador IA
+}
+
+// Estado de un intento de examen
+enum ExamStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
 }
 
 // =========================================================
@@ -61,52 +74,60 @@ enum PaymentStatus {
 
 model User {
   // --- Datos Básicos ---
-  id            String    @id @default(uuid())
-  email         String    @unique
-  name          String?   // Ej: "Juan Pérez"
-  password      String?   // Puede estar vacío si entra con Google
-  image         String?   // URL del avatar (Aquí guardaremos la foto de Google)
-  
-  // --- OAuth (NUEVO: Para Login Social) ---
-  provider      String    @default("credentials") // 'google', 'facebook' o 'credentials'
-  providerId    String?   // El ID único que nos da Google/Facebook para este usuario
+  id       String  @id @default(uuid())
+  email    String  @unique
+  name     String? // Ej: "Juan Pérez"
+  password String? // Puede estar vacío si entra con Google
+  image    String? // URL del avatar (Aquí guardaremos la foto de Google)
 
-  role          Role      @default(USER)
-  createdAt     DateTime  @default(now())
+  // --- OAuth (NUEVO: Para Login Social) ---
+  provider   String  @default("credentials") // 'google', 'facebook' o 'credentials'
+  providerId String? // El ID único que nos da Google/Facebook para este usuario
+
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
 
   // --- Perfil Académico (CARRERA) ---
   // El usuario selecciona su carrera (ej: Civil), y a través de ella sabemos su Área.
-  careerId      String?   
-  career        Career?   @relation(fields: [careerId], references: [id])
+  careerId String?
+  career   Career? @relation(fields: [careerId], references: [id])
 
   // --- Gamificación (Stats rápidas para el Ranking) ---
-  energy        Int       @default(25)     // Moneda de juego (Max 25)
-  coins           Int       @default(100)        // Monedas (Empieza con 100 de regalo)
+  energy          Int       @default(25) // Moneda de juego (Max 25)
+  coins           Int       @default(100) // Monedas (Empieza con 100 de regalo)
   inventory       String[]  @default(["default"]) // Lista de IDs de items comprados
-  lastRefill    DateTime  @default(now())  // Hora de última recarga automática
-  totalXp       Int       @default(0)      // Puntaje total (Leaderboard)
-  streak        Int       @default(0)      // Racha de días consecutivos
-  lastInteraction   DateTime  @default(now())  // Para comparar si jugó ayer u hoy
+  lastRefill      DateTime  @default(now()) // Hora de última recarga automática
+  totalXp         Int       @default(0) // Puntaje total (Leaderboard)
+  streak          Int       @default(0) // Racha de días consecutivos
+  lastInteraction DateTime  @default(now()) // Para comparar si jugó ayer u hoy
   // --- Estado Premium ---
-  isPremium     Boolean   @default(false)  // TRUE = Energía ilimitada
-  subExpiresAt  DateTime? // Fecha de vencimiento de la suscripción
+  isPremium       Boolean   @default(false) // TRUE = Energía ilimitada
+  subExpiresAt    DateTime? // Fecha de vencimiento de la suscripción
+
+  // --- Simulacros ---
+  lastExamScore          Float? // Último puntaje obtenido en un simulacro (0-100)
+  freeSimAttemptsUsed    Int           @default(0) // Intentos free generados usados esta semana
+  freeSimAttemptsResetAt DateTime? // Momento en que se reinicia el contador semanal
+  attempts               ExamAttempt[] // Intentos de exámenes/simulacros
 
   // --- Historial y Relaciones ---
-  progress      UserProgress[] // Avance por cursos
+  progress        UserProgress[] // Avance por cursos
   nodeCompletions UserTopicNodeCompletion[] // Nodos completados por tema
-  subscriptions Subscription[] // Pagos realizados
-  answers       AnswerLog[]    // Respuestas dadas (Data para IA)
+  subscriptions   Subscription[] // Pagos realizados
+  answers         AnswerLog[] // Respuestas dadas (Data para IA)
 }
+
 // =========================================================
 // 3. CATALOGO DE CARRERAS (Nueva Tabla)
 // =========================================================
 
 model Career {
-  id      String @id @default(uuid())
-  name    String // Ej: "Ingeniería Civil", "Medicina", "Derecho"
-  area    Area   // Ej: INGENIERIAS, BIOMEDICAS (Define qué cursos ve el usuario)
-  
-  users   User[] // Lista de alumnos inscritos en esta carrera
+  id           String @id @default(uuid())
+  name         String // Ej: "Ingeniería Civil", "Medicina", "Derecho"
+  area         Area // Ej: INGENIERIAS, BIOMEDICAS (Define qué cursos ve el usuario)
+  minimumScore Float? // Puntaje mínimo histórico de ingreso (escala 0-100)
+
+  users User[] // Lista de alumnos inscritos en esta carrera
 }
 
 // =========================================================
@@ -114,56 +135,58 @@ model Career {
 // =========================================================
 
 model Course {
-  id          String   @id @default(uuid())
-  name        String   // Ej: "Química", "Álgebra"
-  slug        String   @unique // Ej: "quimica" (URL friendly)
-  iconUrl     String?  // Icono para el menú
-  
-  topics      Topic[]        // Temas del curso
-  progress    UserProgress[] // Progreso de los alumnos
+  id      String  @id @default(uuid())
+  name    String // Ej: "Química", "Álgebra"
+  slug    String  @unique // Ej: "quimica" (URL friendly)
+  iconUrl String? // Icono para el menú
+
+  topics        Topic[] // Temas del curso
+  progress      UserProgress[] // Progreso de los alumnos
+  examQuestions ExamQuestion[] // Preguntas de exámenes históricos de este curso
 }
 
 model Topic {
-  id          String   @id @default(uuid())
-  name        String   // Ej: "Átomos", "Ecuaciones Lineales"
-  slug        String   // Ej: "atomos"
-  order       Int      // 1, 2, 3... (Orden del camino de aprendizaje)
-  summary     Json?    // Resumen rico del tema: { introduccion, imagenUrl, puntosClave, formulaDestacada, tipExamen }
+  id      String @id @default(uuid())
+  name    String // Ej: "Átomos", "Ecuaciones Lineales"
+  slug    String // Ej: "atomos"
+  order   Int // 1, 2, 3... (Orden del camino de aprendizaje)
+  summary Json? // Resumen rico del tema: { introduccion, imagenUrl, puntosClave, formulaDestacada, tipExamen }
 
   // Nodos del tema: cada nodo es una lección de ~nodeSize preguntas.
-  nodeSize    Int      @default(7)
-  nodeCount   Int      @default(1)
+  nodeSize  Int @default(7)
+  nodeCount Int @default(1)
 
-  courseId    String
-  course      Course   @relation(fields: [courseId], references: [id])
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id])
 
-  questions   Question[] // Banco de preguntas del tema
+  questions       Question[] // Banco de preguntas del tema
+  examQuestions   ExamQuestion[] // Preguntas de exámenes históricos asociadas a este tema
   nodeCompletions UserTopicNodeCompletion[]
 }
 
 model Question {
-  id          String       @id @default(uuid())
-  type        QuestionType @default(MULTIPLE_CHOICE)
-  statement   String     // Enunciado (Soporta LaTeX $x^2$)
-  imageUrl    String?    // Imagen opcional
-  difficulty  Difficulty @default(MEDIUM)
-  
+  id         String       @id @default(uuid())
+  type       QuestionType @default(MULTIPLE_CHOICE)
+  statement  String // Enunciado (Soporta LaTeX $x^2$)
+  imageUrl   String? // Imagen opcional
+  difficulty Difficulty   @default(MEDIUM)
+
   // --- OPCIONES (JSONB) ---
   // Estructura: [{ "text": "A) 5", "isCorrect": false }, { "text": "B) 10", "isCorrect": true }]
-  options     Json?
+  options Json?
 
   // --- CONTENT (JSONB) ---
   // Payload especifico por tipo de pregunta (discriminated union).
   // Ejemplo: { type: "MULTIPLE_CHOICE", options: [{ id, text, isCorrect }] }
-  content     Json?       
-  
+  content Json?
+
   // --- FEEDBACK ---
-  explanation String?    // Explicación generada por IA para cuando fallan
-  
-  topicId     String
-  topic       Topic      @relation(fields: [topicId], references: [id])
-  
-  answers     AnswerLog[]
+  explanation String? // Explicación generada por IA para cuando fallan
+
+  topicId String
+  topic   Topic  @relation(fields: [topicId], references: [id])
+
+  answers AnswerLog[]
 }
 
 // =========================================================
@@ -172,51 +195,128 @@ model Question {
 
 // Avance de un usuario en un curso específico
 model UserProgress {
-  id            String   @id @default(uuid())
-  
-  userId        String
-  user          User     @relation(fields: [userId], references: [id])
-  
-  courseId      String
-  course        Course   @relation(fields: [courseId], references: [id])
-  
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id])
+
   // IDs de temas completados (Estrellas obtenidas)
-  completedTopicIds String[] 
-  
-  currentXp     Int      @default(0) // XP ganado en este curso
+  completedTopicIds String[]
+
+  currentXp Int @default(0) // XP ganado en este curso
 
   @@unique([userId, courseId]) // Solo un registro por curso/usuario
 }
 
 // Log individual de cada respuesta (Para detectar fallos y trampas)
 model AnswerLog {
-  id          String   @id @default(uuid())
-  createdAt   DateTime @default(now())
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
 
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  questionId  String
-  question    Question @relation(fields: [questionId], references: [id])
+  // Una respuesta pertenece al banco de práctica (path) o a un examen histórico.
+  questionId     String?
+  question       Question?     @relation(fields: [questionId], references: [id])
+  examQuestionId String?
+  examQuestion   ExamQuestion? @relation(fields: [examQuestionId], references: [id])
 
-  isCorrect   Boolean  // ¿Acertó?
-  selectedOption Int?   // LEGACY: indice de la opcion seleccionada (0, 1, 2...)
-  answer      Json?    // Respuesta generica por tipo de pregunta
-  timeTaken   Int?     // Segundos que tardó en responder
+  isCorrect      Boolean // ¿Acertó?
+  selectedOption Int? // LEGACY: indice de la opcion seleccionada (0, 1, 2...)
+  answer         Json? // Respuesta generica por tipo de pregunta
+  timeTaken      Int? // Segundos que tardó en responder
+
+  @@index([userId, questionId])
+  @@index([userId, examQuestionId])
+}
+
+// =========================================================
+// 5.5 EXÁMENES DE ADMISIÓN (Archivo histórico + simulacros)
+// =========================================================
+
+model Exam {
+  id               String  @id @default(uuid())
+  title            String // Ej: "Admisión UNSA 2024 - Fase I"
+  year             Int
+  phase            String? // "I", "II"
+  type             String? // "ORDINARIO", "CEPRUNSA", "EXTRA"
+  questionCount    Int
+  timeLimitMinutes Int
+
+  questions ExamQuestion[]
+  attempts  ExamAttempt[]
+
+  @@index([year, type])
+}
+
+model ExamQuestion {
+  id     String @id @default(uuid())
+  examId String
+  exam   Exam   @relation(fields: [examId], references: [id], onDelete: Cascade)
+  order  Int
+
+  statement   String
+  options     Json // [{ id, text, isCorrect }]
+  explanation String?
+  difficulty  Difficulty
+
+  topicId  String
+  topic    Topic  @relation(fields: [topicId], references: [id])
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id])
+
+  answers AnswerLog[]
+
+  @@index([examId, order])
+  @@index([topicId])
+}
+
+model ExamAttempt {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  examId String? // null si es simulacro generado
+  exam   Exam?    @relation(fields: [examId], references: [id])
+  mode   ExamMode
+
+  questionCount    Int
+  timeLimitSeconds Int
+  questionIds      String[] // IDs de ExamQuestion en orden
+  answers          Json? // Record<examQuestionId, { selectedOptionId, timeTaken }>
+
+  status          ExamStatus @default(IN_PROGRESS)
+  startedAt       DateTime   @default(now())
+  submittedAt     DateTime?
+  timeUsedSeconds Int?
+
+  correctCount   Int?
+  incorrectCount Int?
+  blankCount     Int?
+  score          Float? // 0-100
+
+  totalXpEarned    Int @default(0)
+  totalCoinsEarned Int @default(0)
+
+  @@index([userId, status, startedAt])
 }
 
 // Registro de nodos completados por usuario/tema (progreso estable del mapa)
 model UserTopicNodeCompletion {
-  id          String   @id @default(uuid())
-  createdAt   DateTime @default(now())
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
 
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  topicId     String
-  topic       Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  topicId String
+  topic   Topic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
 
-  nodeIndex   Int
+  nodeIndex Int
 
   @@unique([userId, topicId, nodeIndex])
   @@index([userId, topicId])
@@ -227,16 +327,16 @@ model UserTopicNodeCompletion {
 // =========================================================
 
 model Subscription {
-  id          String        @id @default(uuid())
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  
-  userId      String
-  user        User          @relation(fields: [userId], references: [id])
-  
-  plan        PlanType      // Mensual o Anual
-  amount      Float         // Precio pagado (Histórico)
-  proofUrl    String?       // Foto del voucher (Yape/Plin)
-  
-  status      PaymentStatus @default(PENDING) // Pendiente -> Aprobado
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  plan     PlanType // Mensual o Anual
+  amount   Float // Precio pagado (Histórico)
+  proofUrl String? // Foto del voucher (Yape/Plin)
+
+  status PaymentStatus @default(PENDING) // Pendiente -> Aprobado
 }

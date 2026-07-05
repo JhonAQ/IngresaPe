@@ -9,6 +9,10 @@ const updateProfileSchema = z.object({
   image: z.string().optional(),
 });
 
+const selectCareerSchema = z.object({
+  careerId: z.string().uuid(),
+});
+
 export const ENERGY_MAX = 25;
 export const NODE_ENERGY_COST = 5;
 export const ENERGY_RECHARGE_MS = 15 * 60 * 1000; // 1 energía cada 15 minutos
@@ -52,6 +56,7 @@ export class ProfileRouter {
               id: true,
               name: true,
               area: true,
+              minimumScore: true,
             },
           },
           energy: true,
@@ -63,6 +68,9 @@ export class ProfileRouter {
           lastInteraction: true,
           isPremium: true,
           subExpiresAt: true,
+          lastExamScore: true,
+          freeSimAttemptsUsed: true,
+          freeSimAttemptsResetAt: true,
         },
       });
 
@@ -73,6 +81,41 @@ export class ProfileRouter {
         energy: calculateEnergy(user.energy, user.lastRefill, user.isPremium),
       };
     }),
+
+    selectCareer: this.trpc.protectedProcedure
+      .input(selectCareerSchema)
+      .mutation(async ({ ctx, input }) => {
+        const career = await this.prisma.career.findUnique({
+          where: { id: input.careerId },
+          select: { id: true, name: true, area: true, minimumScore: true },
+        });
+
+        if (!career) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Carrera no encontrada' });
+        }
+
+        const updatedUser = await this.prisma.user.update({
+          where: { id: ctx.user.userId },
+          data: { careerId: career.id },
+          select: {
+            id: true,
+            careerId: true,
+            career: {
+              select: {
+                id: true,
+                name: true,
+                area: true,
+                minimumScore: true,
+              },
+            },
+          },
+        });
+
+        return {
+          message: 'Carrera seleccionada correctamente',
+          career: updatedUser.career,
+        };
+      }),
 
     update: this.trpc.protectedProcedure
       .input(updateProfileSchema)

@@ -6,7 +6,7 @@ import { Target, Flame } from 'lucide-react';
 interface GoalCardProps {
   career: string;
   currentScore: number;
-  targetScore: number;
+  targetScore?: number | null;
   isLoaded: boolean;
 }
 
@@ -16,8 +16,10 @@ export const GoalCard: React.FC<GoalCardProps> = ({
   targetScore,
   isLoaded,
 }) => {
-  const pointsNeeded = (targetScore - currentScore).toFixed(1);
-  const targetPercentage = Math.min((currentScore / targetScore) * 100, 100);
+  const target = targetScore ?? 0;
+  const hasTarget = target > 0;
+  const pointsNeeded = hasTarget ? (target - currentScore).toFixed(1) : null;
+  const targetPercentage = hasTarget ? Math.min((currentScore / target) * 100, 100) : 0;
 
   return (
     <div className="px-5 mb-6">
@@ -36,7 +38,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({
               Puntaje
             </span>
             <span className="text-xl font-black text-blue-600 leading-none">
-              {currentScore}
+              {currentScore.toFixed(1)}
             </span>
           </div>
         </div>
@@ -60,57 +62,65 @@ export const GoalCard: React.FC<GoalCardProps> = ({
           </motion.div>
 
           {/* EL CABEZAL DE PROPULSIÓN (Plasma Flare) */}
-          <motion.div
-            initial={{ left: 0 }}
-            animate={isLoaded ? { left: `${targetPercentage}%` } : {}}
-            transition={{ duration: 1.5, ease: [0.23, 1, 0.32, 1] }}
-            className="absolute top-1/2 -translate-y-1/2 -ml-1 flex items-center z-10 pointer-events-none"
-          >
-            {/* Estelas de energía hacia ADELANTE (Derecha) */}
-            {[0, 1, 2].map((i) => (
-              <motion.div
-                key={i}
-                animate={{
-                  x: [0, 40],
-                  opacity: [0.7, 0],
-                  scaleX: [1, 3],
-                  width: [4, 25],
-                }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 0.8,
-                  delay: i * 0.25,
-                  ease: 'easeOut',
-                }}
-                className="absolute left-0 h-[2.5px] bg-blue-400/60 blur-[1.5px] rounded-full"
-                style={{ top: `${(i - 1) * 5}px` }}
-              />
-            ))}
-
-            {/* El Flare Central (Sin círculos blancos sólidos) */}
+          {hasTarget && (
             <motion.div
-              animate={{
-                opacity: [0.6, 1, 0.6],
-                boxShadow: [
-                  '0 0 10px 1px rgba(255,255,255,0.7)',
-                  '0 0 25px 5px rgba(59,130,246,1)',
-                  '0 0 10px 1px rgba(255,255,255,0.7)',
-                ],
-              }}
-              transition={{ repeat: Infinity, duration: 1.2 }}
-              className="w-1 h-3 bg-white/90 blur-[0.5px] rounded-full"
-            />
-          </motion.div>
+              initial={{ left: 0 }}
+              animate={isLoaded ? { left: `${targetPercentage}%` } : {}}
+              transition={{ duration: 1.5, ease: [0.23, 1, 0.32, 1] }}
+              className="absolute top-1/2 -translate-y-1/2 -ml-1 flex items-center z-10 pointer-events-none"
+            >
+              {/* Estelas de energía hacia ADELANTE (Derecha) */}
+              {[0, 1, 2].map((i) => (
+                <motion.div
+                  key={i}
+                  animate={{
+                    x: [0, 40],
+                    opacity: [0.7, 0],
+                    scaleX: [1, 3],
+                    width: [4, 25],
+                  }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: 0.8,
+                    delay: i * 0.25,
+                    ease: 'easeOut',
+                  }}
+                  className="absolute left-0 h-[2.5px] bg-blue-400/60 blur-[1.5px] rounded-full"
+                  style={{ top: `${(i - 1) * 5}px` }}
+                />
+              ))}
+
+              {/* El Flare Central (Sin círculos blancos sólidos) */}
+              <motion.div
+                animate={{
+                  opacity: [0.6, 1, 0.6],
+                  boxShadow: [
+                    '0 0 10px 1px rgba(255,255,255,0.7)',
+                    '0 0 25px 5px rgba(59,130,246,1)',
+                    '0 0 10px 1px rgba(255,255,255,0.7)',
+                  ],
+                }}
+                transition={{ repeat: Infinity, duration: 1.2 }}
+                className="w-1 h-3 bg-white/90 blur-[0.5px] rounded-full"
+              />
+            </motion.div>
+          )}
         </div>
 
         <div className="flex justify-between items-center text-[11px] font-bold">
           <div className="flex items-center gap-1 text-slate-400">
             <Flame size={14} className="text-orange-500 fill-orange-500" />
-            Faltan{' '}
-            <span className="text-red-500 font-black">{pointsNeeded} pts</span>
+            {hasTarget ? (
+              <>
+                Faltan{' '}
+                <span className="text-red-500 font-black">{pointsNeeded} pts</span>
+              </>
+            ) : (
+              <span className="text-slate-400">Meta no definida</span>
+            )}
           </div>
           <span className="text-slate-400 uppercase tracking-widest">
-            Meta: {targetScore}
+            Meta: {hasTarget ? target : '—'}
           </span>
         </div>
       </div>

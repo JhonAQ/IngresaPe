@@ -21,6 +21,7 @@ import { ProfileRouter } from './routers/profile.routers';
 import { ShopRouter } from './routers/shop.router';
 import { LearningRouter } from './routers/learning.router';
 import { SubscriptionRouter } from './routers/subscription.router';
+import { SimulacroRouter } from './routers/simulacro.router';
 
 // Auth Components (REST & Strategies)
 import { AuthController } from './controllers/auth.controller';
@@ -61,6 +62,7 @@ import { GameService } from './services/game.service';
     ShopRouter,
     LearningRouter,
     SubscriptionRouter,
+    SimulacroRouter,
 
     // Lógica de Negocio Auth
     AuthService,

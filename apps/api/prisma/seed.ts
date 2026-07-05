@@ -1108,6 +1108,333 @@ async function main() {
   );
 
   console.log('✅ Base de datos poblada correctamente con cursos, temas y preguntas.');
+
+  // ---------------------------------------------------------
+  // 4. CARRERAS: puntajes mínimos históricos de ejemplo
+  // ---------------------------------------------------------
+  console.log('🎯 Asignando puntajes mínimos a carreras...');
+  const careerMinimumScores: Record<string, number> = {
+    'Medicina': 82.5,
+    'Enfermería': 72.0,
+    'Ingeniería Civil': 78.3,
+    'Ingeniería de Sistemas': 70.5,
+    'Ingeniería Industrial': 68.0,
+    'Arquitectura': 75.0,
+    'Derecho': 73.5,
+    'Psicología': 69.0,
+    'Administración': 65.0,
+    'Contabilidad': 64.0,
+    'Economía': 66.0,
+    'Ciencia de la Computación': 71.0,
+    'Física': 67.0,
+    'Química': 66.5,
+    'Biología': 68.5,
+    'Agronomía': 63.0,
+    'Marketing': 64.5,
+    'Trabajo Social': 62.0,
+  };
+
+  for (const [name, minimumScore] of Object.entries(careerMinimumScores)) {
+    await prisma.career.updateMany({
+      where: { name },
+      data: { minimumScore },
+    });
+  }
+
+  // ---------------------------------------------------------
+  // 5. EXÁMENES HISTÓRICOS DE EJEMPLO (archivo de simulacros)
+  // ---------------------------------------------------------
+  console.log('📜 Creando exámenes históricos de ejemplo...');
+  await seedHistoricalExams();
+
+  console.log('🌱 Sembrado completado.');
+}
+
+async function findTopicBySlug(courseSlug: string, topicSlug: string) {
+  return prisma.topic.findFirst({
+    where: {
+      slug: topicSlug,
+      course: { slug: courseSlug },
+    },
+  });
+}
+
+async function seedHistoricalExams() {
+  const exams = [
+    {
+      title: 'Admisión UNSA 2024 - Fase I',
+      year: 2024,
+      phase: 'I',
+      type: 'ORDINARIO',
+      timeLimitMinutes: 120,
+      questions: [
+        {
+          courseSlug: 'razonamiento-matematico',
+          topicSlug: 'planteo-ecuaciones',
+          order: 1,
+          difficulty: Difficulty.EASY,
+          statement: 'Si $x + 5 = 10$, hallar $x$.',
+          options: [
+            { id: 'a', text: 'A) 3', isCorrect: false },
+            { id: 'b', text: 'B) 5', isCorrect: true },
+            { id: 'c', text: 'C) 7', isCorrect: false },
+            { id: 'd', text: 'D) 10', isCorrect: false },
+            { id: 'e', text: 'E) 15', isCorrect: false },
+          ],
+          explanation: 'Restando 5 a ambos lados: $x = 10 - 5 = 5$',
+        },
+        {
+          courseSlug: 'razonamiento-matematico',
+          topicSlug: 'series-numericas',
+          order: 2,
+          difficulty: Difficulty.MEDIUM,
+          statement: 'Hallar el término que sigue: 1, 1, 2, 3, 5, 8, ...',
+          options: [
+            { id: 'a', text: 'A) 10', isCorrect: false },
+            { id: 'b', text: 'B) 11', isCorrect: false },
+            { id: 'c', text: 'C) 13', isCorrect: true },
+            { id: 'd', text: 'D) 15', isCorrect: false },
+            { id: 'e', text: 'E) 16', isCorrect: false },
+          ],
+          explanation: 'Serie de Fibonacci: cada término es la suma de los dos anteriores. $5 + 8 = 13$',
+        },
+        {
+          courseSlug: 'algebra',
+          topicSlug: 'ecuaciones-primer-grado',
+          order: 3,
+          difficulty: Difficulty.EASY,
+          statement: 'Resolver: $2x - 4 = 10$',
+          options: [
+            { id: 'a', text: 'A) 5', isCorrect: false },
+            { id: 'b', text: 'B) 6', isCorrect: false },
+            { id: 'c', text: 'C) 7', isCorrect: true },
+            { id: 'd', text: 'D) 8', isCorrect: false },
+            { id: 'e', text: 'E) 9', isCorrect: false },
+          ],
+          explanation: '$2x = 14 \\Rightarrow x = 7$',
+        },
+        {
+          courseSlug: 'geometria',
+          topicSlug: 'triangulos',
+          order: 4,
+          difficulty: Difficulty.EASY,
+          statement: 'La suma de los ángulos internos de un triángulo es:',
+          options: [
+            { id: 'a', text: 'A) 90°', isCorrect: false },
+            { id: 'b', text: 'B) 180°', isCorrect: true },
+            { id: 'c', text: 'C) 270°', isCorrect: false },
+            { id: 'd', text: 'D) 360°', isCorrect: false },
+            { id: 'e', text: 'E) 540°', isCorrect: false },
+          ],
+          explanation: 'Teorema fundamental: la suma de ángulos internos de un triángulo es siempre 180°',
+        },
+        {
+          courseSlug: 'quimica',
+          topicSlug: 'estructura-atomica',
+          order: 5,
+          difficulty: Difficulty.EASY,
+          statement: 'El núcleo del átomo está formado por:',
+          options: [
+            { id: 'a', text: 'A) Protones y electrones', isCorrect: false },
+            { id: 'b', text: 'B) Protones y neutrones', isCorrect: true },
+            { id: 'c', text: 'C) Electrones y neutrones', isCorrect: false },
+            { id: 'd', text: 'D) Solo protones', isCorrect: false },
+            { id: 'e', text: 'E) Solo electrones', isCorrect: false },
+          ],
+          explanation: 'El núcleo atómico contiene protones (carga +) y neutrones (sin carga)',
+        },
+        {
+          courseSlug: 'biologia',
+          topicSlug: 'la-celula',
+          order: 6,
+          difficulty: Difficulty.MEDIUM,
+          statement: '¿Cuál de las siguientes estructuras es característica de las células eucariotas pero no de las procariotas?',
+          options: [
+            { id: 'a', text: 'A) Membrana plasmática', isCorrect: false },
+            { id: 'b', text: 'B) Ribosomas', isCorrect: false },
+            { id: 'c', text: 'C) Núcleo definido', isCorrect: true },
+            { id: 'd', text: 'D) Citoplasma', isCorrect: false },
+            { id: 'e', text: 'E) ADN', isCorrect: false },
+          ],
+          explanation: 'Las células eucariotas poseen núcleo rodeado de membrana; las procariotas no.',
+        },
+        {
+          courseSlug: 'literatura',
+          topicSlug: 'literatura-universal',
+          order: 7,
+          difficulty: Difficulty.EASY,
+          statement: '¿Quién escribió "Don Quijote de la Mancha"?',
+          options: [
+            { id: 'a', text: 'A) Gabriel García Márquez', isCorrect: false },
+            { id: 'b', text: 'B) Miguel de Cervantes', isCorrect: true },
+            { id: 'c', text: 'C) William Shakespeare', isCorrect: false },
+            { id: 'd', text: 'D) Jorge Luis Borges', isCorrect: false },
+            { id: 'e', text: 'E) Pablo Neruda', isCorrect: false },
+          ],
+          explanation: 'Miguel de Cervantes Saavedra es el autor de esta obra cumbre de la literatura española',
+        },
+        {
+          courseSlug: 'historia-peru',
+          topicSlug: 'epoca-prehispanica',
+          order: 8,
+          difficulty: Difficulty.EASY,
+          statement: 'La capital del Imperio Inca fue:',
+          options: [
+            { id: 'a', text: 'A) Lima', isCorrect: false },
+            { id: 'b', text: 'B) Cusco', isCorrect: true },
+            { id: 'c', text: 'C) Arequipa', isCorrect: false },
+            { id: 'd', text: 'D) Machu Picchu', isCorrect: false },
+            { id: 'e', text: 'E) Ollantaytambo', isCorrect: false },
+          ],
+          explanation: 'Cusco (Qosqo en quechua: "ombligo del mundo") fue la capital del Tahuantinsuyo',
+        },
+      ],
+    },
+    {
+      title: 'CEPRUNSA 2024 - II Fase',
+      year: 2024,
+      phase: 'II',
+      type: 'CEPRUNSA',
+      timeLimitMinutes: 90,
+      questions: [
+        {
+          courseSlug: 'razonamiento-matematico',
+          topicSlug: 'conteo-combinatoria',
+          order: 1,
+          difficulty: Difficulty.MEDIUM,
+          statement: '¿De cuántas formas se pueden ordenar 3 libros en un estante?',
+          options: [
+            { id: 'a', text: 'A) 3', isCorrect: false },
+            { id: 'b', text: 'B) 6', isCorrect: true },
+            { id: 'c', text: 'C) 8', isCorrect: false },
+            { id: 'd', text: 'D) 9', isCorrect: false },
+            { id: 'e', text: 'E) 12', isCorrect: false },
+          ],
+          explanation: 'Permutaciones de 3 elementos: $3! = 6$',
+        },
+        {
+          courseSlug: 'algebra',
+          topicSlug: 'productos-notables',
+          order: 2,
+          difficulty: Difficulty.EASY,
+          statement: 'Desarrollar: $(x + 3)^2$',
+          options: [
+            { id: 'a', text: 'A) $x^2 + 6x + 9$', isCorrect: true },
+            { id: 'b', text: 'B) $x^2 + 9$', isCorrect: false },
+            { id: 'c', text: 'C) $x^2 + 3x + 9$', isCorrect: false },
+            { id: 'd', text: 'D) $x^2 + 6x + 6$', isCorrect: false },
+            { id: 'e', text: 'E) $x^2 + 3x + 6$', isCorrect: false },
+          ],
+          explanation: '$(a+b)^2 = a^2 + 2ab + b^2 = x^2 + 6x + 9$',
+        },
+        {
+          courseSlug: 'fisica',
+          topicSlug: 'cinematica',
+          order: 3,
+          difficulty: Difficulty.EASY,
+          statement: 'Si un auto viaja a 60 km/h durante 2 horas, ¿qué distancia recorre?',
+          options: [
+            { id: 'a', text: 'A) 30 km', isCorrect: false },
+            { id: 'b', text: 'B) 60 km', isCorrect: false },
+            { id: 'c', text: 'C) 120 km', isCorrect: true },
+            { id: 'd', text: 'D) 180 km', isCorrect: false },
+            { id: 'e', text: 'E) 240 km', isCorrect: false },
+          ],
+          explanation: 'Distancia = velocidad × tiempo = 60 km/h × 2 h = 120 km',
+        },
+        {
+          courseSlug: 'quimica',
+          topicSlug: 'tabla-periodica',
+          order: 4,
+          difficulty: Difficulty.MEDIUM,
+          statement: 'Los elementos del grupo 1 (metales alcalinos) tienen:',
+          options: [
+            { id: 'a', text: 'A) 1 electrón de valencia', isCorrect: true },
+            { id: 'b', text: 'B) 2 electrones de valencia', isCorrect: false },
+            { id: 'c', text: 'C) 3 electrones de valencia', isCorrect: false },
+            { id: 'd', text: 'D) 7 electrones de valencia', isCorrect: false },
+            { id: 'e', text: 'E) 8 electrones de valencia', isCorrect: false },
+          ],
+          explanation: 'Los metales alcalinos (grupo 1) tienen 1 electrón en su última capa',
+        },
+        {
+          courseSlug: 'biologia',
+          topicSlug: 'la-celula',
+          order: 5,
+          difficulty: Difficulty.MEDIUM,
+          statement: 'La función principal de las mitocondrias es:',
+          options: [
+            { id: 'a', text: 'A) Fotosíntesis', isCorrect: false },
+            { id: 'b', text: 'B) Respiración celular y producción de ATP', isCorrect: true },
+            { id: 'c', text: 'C) Síntesis de proteínas', isCorrect: false },
+            { id: 'd', text: 'D) Digestión de macromoléculas', isCorrect: false },
+            { id: 'e', text: 'E) Almacenamiento de agua', isCorrect: false },
+          ],
+          explanation: 'Las mitocondrias son la "central energética" celular: generan ATP mediante respiración celular.',
+        },
+        {
+          courseSlug: 'historia-peru',
+          topicSlug: 'independencia-peru',
+          order: 6,
+          difficulty: Difficulty.EASY,
+          statement: '¿En qué año se proclamó la Independencia del Perú?',
+          options: [
+            { id: 'a', text: 'A) 1810', isCorrect: false },
+            { id: 'b', text: 'B) 1821', isCorrect: true },
+            { id: 'c', text: 'C) 1824', isCorrect: false },
+            { id: 'd', text: 'D) 1830', isCorrect: false },
+            { id: 'e', text: 'E) 1814', isCorrect: false },
+          ],
+          explanation: 'José de San Martín proclamó la Independencia del Perú el 28 de julio de 1821 en Lima',
+        },
+      ],
+    },
+  ];
+
+  for (const examSeed of exams) {
+    const existing = await prisma.exam.findFirst({
+      where: { title: examSeed.title, year: examSeed.year },
+    });
+
+    if (existing) {
+      console.log(`  ↳ Examen "${examSeed.title}" ya existe, omitiendo.`);
+      continue;
+    }
+
+    const exam = await prisma.exam.create({
+      data: {
+        title: examSeed.title,
+        year: examSeed.year,
+        phase: examSeed.phase,
+        type: examSeed.type,
+        questionCount: examSeed.questions.length,
+        timeLimitMinutes: examSeed.timeLimitMinutes,
+      },
+    });
+
+    console.log(`  ✓ Examen: ${exam.title}`);
+
+    for (const q of examSeed.questions) {
+      const topic = await findTopicBySlug(q.courseSlug, q.topicSlug);
+      if (!topic) {
+        console.warn(`    ⚠ Tema no encontrado: ${q.courseSlug}/${q.topicSlug}`);
+        continue;
+      }
+
+      await prisma.examQuestion.create({
+        data: {
+          examId: exam.id,
+          order: q.order,
+          statement: q.statement,
+          options: q.options as any,
+          explanation: q.explanation,
+          difficulty: q.difficulty,
+          topicId: topic.id,
+          courseId: topic.courseId,
+        },
+      });
+    }
+  }
 }
 
 main()

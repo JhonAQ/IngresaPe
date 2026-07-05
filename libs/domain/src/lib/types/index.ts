@@ -4,3 +4,4 @@ export * from './temario';
 export * from './summary';
 export * from './entrenar';
 export * from './question';
+export * from './simulacro';
