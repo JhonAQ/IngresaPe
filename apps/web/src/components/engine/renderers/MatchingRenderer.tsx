@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { RendererProps } from '../registry';
 import type { MatchingView, MatchingAnswer } from '@ingresa-pe/domain';
@@ -38,167 +38,173 @@ export function MatchingRenderer({
     [view.pairs]
   );
 
-  const [selectedLeftId, setSelectedLeftId] = useState<string | null>(null);
-  const [selectedRightId, setSelectedRightId] = useState<string | null>(null);
-  const [shakingId, setShakingId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<{ id: string; side: 'left' | 'right' } | null>(
+    null
+  );
+  const [mismatch, setMismatch] = useState<{ leftId: string; rightId: string } | null>(
+    null
+  );
+  const [removedIds, setRemovedIds] = useState<string[]>([]);
+
+  // Desaparecer lentamente los pares ya emparejados (estilo Duolingo).
+  useEffect(() => {
+    const newlyMatched = matchedPairIds.filter((id) => !removedIds.includes(id));
+    if (newlyMatched.length === 0) return;
+
+    const timer = window.setTimeout(() => {
+      setRemovedIds((prev) => [...prev, ...newlyMatched]);
+    }, 500);
+
+    return () => window.clearTimeout(timer);
+  }, [matchedPairIds, removedIds]);
 
   const isMatched = (id: string) => matchedPairIds.includes(id);
+  const isRemoved = (id: string) => removedIds.includes(id);
+  const isMismatched = (id: string) =>
+    mismatch?.leftId === id || mismatch?.rightId === id;
 
-  const triggerShake = (id: string) => {
-    setShakingId(id);
-    window.setTimeout(() => setShakingId(null), 400);
+  const triggerMismatch = (leftId: string, rightId: string) => {
+    setMismatch({ leftId, rightId });
+    window.setTimeout(() => setMismatch(null), 550);
   };
 
   const confirmMatch = (id: string) => {
     if (isMatched(id)) return;
     const next = [...matchedPairIds, id];
     onAnswer({ type: 'MATCHING', matchedPairIds: next });
-    setSelectedLeftId(null);
-    setSelectedRightId(null);
   };
 
-  const handleLeftClick = (id: string) => {
-    if (disabled || isMatched(id)) return;
+  const handleItemClick = (side: 'left' | 'right', id: string) => {
+    if (disabled || isMatched(id) || isRemoved(id)) return;
 
-    if (selectedRightId) {
-      if (selectedRightId === id) {
-        confirmMatch(id);
-      } else {
-        triggerShake(id);
-      }
-      setSelectedRightId(null);
+    if (!selected) {
+      setSelected({ id, side });
       return;
     }
 
-    setSelectedLeftId((prev) => (prev === id ? null : id));
-  };
-
-  const handleRightClick = (id: string) => {
-    if (disabled || isMatched(id)) return;
-
-    if (selectedLeftId) {
-      if (selectedLeftId === id) {
-        confirmMatch(id);
-      } else {
-        triggerShake(id);
-      }
-      setSelectedLeftId(null);
+    // Deseleccionar si toca el mismo item.
+    if (selected.id === id && selected.side === side) {
+      setSelected(null);
       return;
     }
 
-    setSelectedRightId((prev) => (prev === id ? null : id));
+    // Cambiar selección dentro del mismo lado.
+    if (selected.side === side) {
+      setSelected({ id, side });
+      return;
+    }
+
+    // Selección cruzada.
+    if (selected.id === id) {
+      confirmMatch(id);
+    } else {
+      const leftId = selected.side === 'left' ? selected.id : id;
+      const rightId = selected.side === 'left' ? id : selected.id;
+      triggerMismatch(leftId, rightId);
+    }
+    setSelected(null);
   };
 
   const baseButtonClasses =
-    'w-full p-4 rounded-2xl border-2 border-b-[4px] text-center transition-all active:border-b-[2px] active:translate-y-[2px] flex items-center justify-center';
+    'w-full p-4 rounded-2xl border-2 border-b-[4px] text-center flex items-center justify-center overflow-hidden';
 
-  const getItemClasses = (side: 'left' | 'right', id: string) => {
-    const matched = isMatched(id);
-    const selected =
-      (side === 'left' && selectedLeftId === id) ||
-      (side === 'right' && selectedRightId === id);
-
-    if (matched) {
+  const getItemClasses = (id: string) => {
+    if (isMismatched(id)) {
+      return `${baseButtonClasses} border-[#ff4b4b] border-b-[#df2b2b] bg-[#ffdfe0] cursor-default`;
+    }
+    if (isMatched(id)) {
       return `${baseButtonClasses} border-[#58cc02] border-b-[#58a700] bg-[#d7ffb8] cursor-default`;
     }
-    if (selected) {
+    if (selected?.id === id) {
       return `${baseButtonClasses} border-[#84d8ff] border-b-[#1899d6] bg-[#ddf4ff]`;
     }
-    return `${baseButtonClasses} border-[#e5e5e5] border-b-[#e5e5e5] bg-white hover:bg-slate-50 cursor-pointer`;
+    return `${baseButtonClasses} border-[#e5e5e5] border-b-[#e5e5e5] bg-white hover:bg-slate-50 cursor-pointer transition-colors`;
+  };
+
+  const getTextColor = (id: string) => {
+    if (isMismatched(id)) return 'text-[#ea2b2b]';
+    if (isMatched(id)) return 'text-[#58a700]';
+    if (selected?.id === id) return 'text-[#1cb0f6]';
+    return 'text-[#3c3c3c]';
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col">
       <div className="grid grid-cols-2 gap-4">
         {/* Columna izquierda */}
-        <div className="flex flex-col gap-3">
-          {leftItems.map((item) => {
-            const matched = isMatched(item.id);
-            return (
-              <motion.button
-                key={item.id}
-                animate={
-                  shakingId === item.id
-                    ? { x: [0, -6, 6, -6, 6, 0] }
-                    : { x: 0 }
-                }
-                transition={{ duration: 0.35 }}
-                whileTap={!disabled && !matched ? { scale: 0.98 } : {}}
-                onClick={() => handleLeftClick(item.id)}
-                className={getItemClasses('left', item.id)}
-              >
-                <span
-                  className={`font-bold text-[16px] ${
-                    matched
-                      ? 'text-[#58a700]'
-                      : selectedLeftId === item.id
-                      ? 'text-[#1cb0f6]'
-                      : 'text-[#3c3c3c]'
-                  }`}
+        <AnimatePresence mode="popLayout">
+          <div className="flex flex-col gap-3">
+            {leftItems
+              .filter((item) => !isRemoved(item.id))
+              .map((item) => (
+                <motion.button
+                  key={item.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={
+                    isMatched(item.id)
+                      ? { opacity: 0, scale: 0, x: 0 }
+                      : isMismatched(item.id)
+                      ? { x: [0, -10, 10, -10, 10, -5, 5, 0] }
+                      : { opacity: 1, scale: 1, x: 0 }
+                  }
+                  exit={{ opacity: 0, scale: 0 }}
+                  transition={
+                    isMismatched(item.id)
+                      ? { duration: 0.45 }
+                      : { layout: { type: 'spring', stiffness: 300, damping: 25 } }
+                  }
+                  whileTap={
+                    !disabled && !isMatched(item.id) ? { scale: 0.96 } : {}
+                  }
+                  onClick={() => handleItemClick('left', item.id)}
+                  className={getItemClasses(item.id)}
                 >
-                  <LatexText text={item.text} />
-                </span>
-              </motion.button>
-            );
-          })}
-        </div>
+                  <span className={`font-bold text-[16px] ${getTextColor(item.id)}`}>
+                    <LatexText text={item.text} />
+                  </span>
+                </motion.button>
+              ))}
+          </div>
+        </AnimatePresence>
 
         {/* Columna derecha */}
-        <div className="flex flex-col gap-3">
-          {rightItems.map((item) => {
-            const matched = isMatched(item.id);
-            return (
-              <motion.button
-                key={item.id}
-                animate={
-                  shakingId === item.id
-                    ? { x: [0, -6, 6, -6, 6, 0] }
-                    : { x: 0 }
-                }
-                transition={{ duration: 0.35 }}
-                whileTap={!disabled && !matched ? { scale: 0.98 } : {}}
-                onClick={() => handleRightClick(item.id)}
-                className={getItemClasses('right', item.id)}
-              >
-                <span
-                  className={`font-bold text-[16px] ${
-                    matched
-                      ? 'text-[#58a700]'
-                      : selectedRightId === item.id
-                      ? 'text-[#1cb0f6]'
-                      : 'text-[#3c3c3c]'
-                  }`}
+        <AnimatePresence mode="popLayout">
+          <div className="flex flex-col gap-3">
+            {rightItems
+              .filter((item) => !isRemoved(item.id))
+              .map((item) => (
+                <motion.button
+                  key={item.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={
+                    isMatched(item.id)
+                      ? { opacity: 0, scale: 0, x: 0 }
+                      : isMismatched(item.id)
+                      ? { x: [0, 10, -10, 10, -10, 5, -5, 0] }
+                      : { opacity: 1, scale: 1, x: 0 }
+                  }
+                  exit={{ opacity: 0, scale: 0 }}
+                  transition={
+                    isMismatched(item.id)
+                      ? { duration: 0.45 }
+                      : { layout: { type: 'spring', stiffness: 300, damping: 25 } }
+                  }
+                  whileTap={
+                    !disabled && !isMatched(item.id) ? { scale: 0.96 } : {}
+                  }
+                  onClick={() => handleItemClick('right', item.id)}
+                  className={getItemClasses(item.id)}
                 >
-                  <LatexText text={item.text} />
-                </span>
-              </motion.button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Pares completados */}
-      <AnimatePresence>
-        {matchedPairIds.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            className="flex flex-wrap gap-2 justify-center"
-          >
-            {view.pairs
-              .filter((p) => matchedPairIds.includes(p.id))
-              .map((p) => (
-                <span
-                  key={p.id}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#d7ffb8] border-2 border-[#58cc02] text-[#58a700] font-black text-[12px]"
-                >
-                  <LatexText text={p.left} /> → <LatexText text={p.right} />
-                </span>
+                  <span className={`font-bold text-[16px] ${getTextColor(item.id)}`}>
+                    <LatexText text={item.text} />
+                  </span>
+                </motion.button>
               ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

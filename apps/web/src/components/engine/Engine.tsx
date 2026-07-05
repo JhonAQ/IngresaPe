@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEngine } from './useEngine';
@@ -9,6 +9,7 @@ import { getQuestionRenderer } from './registry';
 import { EngineHeader, FeedbackDrawer, DinoMaxModal, ExitConfirmModal } from './SharedEngineUI';
 import { LatexText } from '../ui/LatexText';
 import { EngineSkeleton } from '../ui/skeleton';
+import type { MatchingView } from '@ingresa-pe/domain';
 import type { ComponentType } from 'react';
 
 export function Engine() {
@@ -50,6 +51,22 @@ export function Engine() {
   const handleCancelExit = () => setIsExitModalOpen(false);
 
   useExitConfirm(isExitModalOpen, handleCloseRequest, handleCancelExit);
+
+  const isMatching = currentQuestion?.type === 'MATCHING';
+  const matchingTotal = isMatching
+    ? (currentQuestion.content as MatchingView).pairs.length
+    : 0;
+
+  useEffect(() => {
+    if (status !== 'idle') return;
+    if (
+      isMatching &&
+      answer?.type === 'MATCHING' &&
+      answer.matchedPairIds.length === matchingTotal
+    ) {
+      submit();
+    }
+  }, [isMatching, answer, matchingTotal, status, submit]);
 
   if (!topicId) {
     return (
@@ -145,6 +162,7 @@ export function Engine() {
         isCorrect={feedback?.isCorrect ?? null}
         isCheckDisabled={isCheckDisabled}
         correctAnswerText={feedback?.correctAnswerText}
+        hideCheck={isMatching}
         onCheck={submit}
         onContinue={continueNext}
         onOpenAI={() => setIsAiModalOpen(true)}

@@ -46,19 +46,26 @@ export const orderingContentSchema = z.object({
   correctOrder: z.array(z.string()),
 });
 
-export const matchingContentSchema = z.object({
-  type: z.literal(QuestionType.MATCHING),
-  pairs: z
-    .array(
-      z.object({
-        id: z.string(),
-        left: z.string().min(1),
-        right: z.string().min(1),
-      })
-    )
-    .min(2)
-    .max(6),
-});
+export const matchingContentSchema = z
+  .object({
+    type: z.literal(QuestionType.MATCHING),
+    pairs: z
+      .array(
+        z.object({
+          id: z.string(),
+          left: z.string().min(1),
+          right: z.string().min(1),
+        })
+      )
+      .min(2)
+      .max(6),
+  })
+  .refine(
+    (data) => new Set(data.pairs.map((p) => p.id)).size === data.pairs.length,
+    {
+      message: 'Los ids de los pares deben ser únicos',
+    }
+  );
 
 export const questionContentSchema = z.union([
   multipleChoiceContentSchema,

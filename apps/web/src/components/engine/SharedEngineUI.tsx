@@ -174,6 +174,7 @@ interface FeedbackDrawerProps {
   isCorrect: boolean | null;
   isCheckDisabled: boolean;
   correctAnswerText?: string;
+  hideCheck?: boolean;
   onCheck: () => void;
   onContinue: () => void;
   onOpenAI: () => void;
@@ -184,6 +185,7 @@ export function FeedbackDrawer({
   isCorrect,
   isCheckDisabled,
   correctAnswerText,
+  hideCheck,
   onCheck,
   onContinue,
   onOpenAI,
@@ -192,7 +194,7 @@ export function FeedbackDrawer({
     <div className="absolute bottom-0 left-0 right-0 z-30">
       <AnimatePresence mode="wait">
         {/* IDLE */}
-        {status === 'idle' && (
+        {status === 'idle' && !hideCheck && (
           <motion.div
             key="idle"
             initial={{ y: 100 }}
