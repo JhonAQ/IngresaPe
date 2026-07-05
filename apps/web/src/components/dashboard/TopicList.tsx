@@ -418,15 +418,16 @@ export function TopicList({
     {showReturnButton && activeNodeInfo && (
       <motion.button
         onClick={scrollToActiveNode}
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: [1, 1.08, 1], opacity: 1 }}
+        initial={{ x: '-50%', scale: 0, opacity: 0 }}
+        animate={{ x: '-50%', scale: [1, 1.08, 1], opacity: 1 }}
         transition={{
           opacity: { duration: 0.2 },
+          x: { duration: 0 },
           scale: { repeat: Infinity, duration: 1.4, ease: 'easeInOut' },
         }}
         whileHover={{ scale: 1.12 }}
-        whileTap={{ scale: 0.9 }}
-        className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 w-12 h-12 rounded-full bg-white text-[#1cb0f6] shadow-[0_6px_0_#e5e7eb] border-2 border-slate-100 flex items-center justify-center active:translate-y-[3px] active:shadow-none"
+        whileTap={{ scale: 0.9, y: 3 }}
+        className="fixed bottom-24 left-1/2 z-50 w-12 h-12 rounded-full bg-white text-[#1cb0f6] shadow-[0_6px_0_#e5e7eb] border-2 border-slate-100 flex items-center justify-center"
         aria-label="Volver al nodo activo"
       >
         {returnDirection === 'up' ? (

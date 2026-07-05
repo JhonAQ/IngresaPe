@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEngine } from './useEngine';
 import { getQuestionRenderer } from './registry';
-import { EngineHeader, FeedbackDrawer, DuoMaxModal } from './SharedEngineUI';
+import { EngineHeader, FeedbackDrawer, DinoMaxModal } from './SharedEngineUI';
 import { LatexText } from '../ui/LatexText';
 import { EngineSkeleton } from '../ui/skeleton';
 import type { ComponentType } from 'react';
@@ -128,7 +128,7 @@ export function Engine() {
         onOpenAI={() => setIsAiModalOpen(true)}
       />
 
-      <DuoMaxModal
+      <DinoMaxModal
         isOpen={isAiModalOpen}
         onClose={() => setIsAiModalOpen(false)}
         trick="Explicación paso a paso"

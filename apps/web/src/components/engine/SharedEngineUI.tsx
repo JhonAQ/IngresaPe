@@ -1,7 +1,8 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, CheckCircle2, Check, Flag } from 'lucide-react';
+import { LatexText } from '../ui/LatexText';
 
 // ============================================================================
 // ARTE SVG CUSTOM (Chunky & Flat 3D)
@@ -240,7 +241,7 @@ export function FeedbackDrawer({
 
             <button
               onClick={onContinue}
-              className="w-full bg-[#58cc02] text-white font-black text-[16px] uppercase tracking-widest py-3.5 rounded-2xl border-b-[4px] border-[#58a700] active:border-b-0 active:translate-y-[4px] transition-all"
+              className="w-full mb-2 bg-[#58cc02] text-white font-black text-[16px] uppercase tracking-widest py-3.5 rounded-2xl border-b-[4px] border-[#58a700] active:border-b-0 active:translate-y-[4px] transition-all"
             >
               Continuar
             </button>
@@ -291,7 +292,7 @@ export function FeedbackDrawer({
 
               <button
                 onClick={onContinue}
-                className="w-full bg-[#ff4b4b] text-white font-black text-[15px] uppercase tracking-widest py-3.5 rounded-2xl border-b-[4px] border-[#df2b2b] hover:bg-[#ef4444] active:border-b-0 active:translate-y-[4px] transition-all"
+                className="w-full mb-2 bg-[#ff4b4b] text-white font-black text-[15px] uppercase tracking-widest py-3.5 rounded-2xl border-b-[4px] border-[#df2b2b] hover:bg-[#ef4444] active:border-b-0 active:translate-y-[4px] transition-all"
               >
                 Continuar
               </button>
@@ -303,21 +304,48 @@ export function FeedbackDrawer({
   );
 }
 
-interface DuoMaxModalProps {
+interface DinoMaxModalProps {
   isOpen: boolean;
   onClose: () => void;
   trick?: string;
   explanation: string;
 }
 
-export function DuoMaxModal({
+export function DinoMaxModal({
   isOpen,
   onClose,
   trick,
   explanation,
-}: DuoMaxModalProps) {
+}: DinoMaxModalProps) {
   const [aiState, setAiState] = useState('idle');
   const [displayedText, setDisplayedText] = useState('');
+  const manualCloseRef = useRef(false);
+
+  const handleClose = useCallback(() => {
+    if (typeof window !== 'undefined' && window.history.state?.aiModal) {
+      manualCloseRef.current = true;
+      window.history.back();
+    }
+    onClose();
+  }, [onClose]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    if (typeof window !== 'undefined' && !window.history.state?.aiModal) {
+      window.history.pushState({ aiModal: true }, '');
+    }
+
+    const handlePop = () => {
+      if (manualCloseRef.current) {
+        manualCloseRef.current = false;
+        return;
+      }
+      if (isOpen) onClose();
+    };
+
+    window.addEventListener('popstate', handlePop);
+    return () => window.removeEventListener('popstate', handlePop);
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     let timeout: ReturnType<typeof setTimeout>;
@@ -363,7 +391,7 @@ export function DuoMaxModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={aiState === 'finished' ? onClose : undefined}
+            onClick={aiState === 'finished' ? handleClose : undefined}
             className="absolute inset-0 bg-[#0f172a]/30 backdrop-blur-[2px]"
           />
 
@@ -378,11 +406,11 @@ export function DuoMaxModal({
               <div className="flex items-center gap-2">
                 <Sparkles size={22} className="text-[#ce82ff] fill-[#ce82ff]" />
                 <span className="font-black text-white text-[18px]">
-                  Duo Max
+                  Dino Max
                 </span>
               </div>
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="w-8 h-8 bg-[#1e293b] rounded-full flex items-center justify-center text-white hover:bg-[#334155] transition-colors"
               >
                 <X size={18} strokeWidth={3} />
@@ -423,7 +451,7 @@ export function DuoMaxModal({
                       </motion.div>
                     )}
                     <p className="font-bold text-white/95 text-[15px] leading-relaxed whitespace-pre-wrap">
-                      {displayedText}
+                      <LatexText text={displayedText} />
                       {aiState === 'typing' && (
                         <motion.span
                           animate={{ opacity: [1, 0, 1] }}
@@ -437,13 +465,13 @@ export function DuoMaxModal({
               </div>
             </div>
 
-            <div className="pt-2 pb-2">
+            <div className="pt-2 pb-4">
               {aiState === 'finished' && (
                 <motion.button
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                  onClick={onClose}
+                  onClick={handleClose}
                   className="w-full bg-[#1cb0f6] text-white font-black text-[16px] uppercase tracking-widest py-3.5 rounded-2xl border-b-[4px] border-[#1899d6] active:border-b-0 active:translate-y-[4px] transition-all flex items-center justify-center gap-2"
                 >
                   <CheckCircle2 size={20} strokeWidth={3} />

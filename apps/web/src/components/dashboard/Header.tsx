@@ -52,25 +52,30 @@ export function DashboardHeader({
           {selectedCourse ? (
             <button
               onClick={onOpenCourseSelector}
-              className="flex items-center gap-1.5 min-w-0 px-2.5 py-1 rounded-full border-2 border-slate-100 bg-slate-50 active:scale-95 transition-transform"
+              className="flex items-center gap-2 min-w-0 pl-1 pr-3 py-1 rounded-full bg-white border-b-[4px] border-slate-200 shadow-sm active:border-b-0 active:translate-y-[4px] transition-all"
               aria-label="Cambiar curso"
             >
-              {selectedCourse.iconUrl ? (
-                <img
-                  src={selectedCourse.iconUrl}
-                  alt=""
-                  className="w-4 h-4 object-contain shrink-0"
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-              ) : (
-                <span
-                  className="w-2.5 h-2.5 rounded-full shrink-0"
-                  style={{ backgroundColor: getCourseColor(selectedCourse.name) }}
-                />
-              )}
-              <span className="font-black text-slate-700 text-[13px] truncate max-w-[120px]">
+              <span
+                className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+                style={{ backgroundColor: `${getCourseColor(selectedCourse.name)}20` }}
+              >
+                {selectedCourse.iconUrl ? (
+                  <img
+                    src={selectedCourse.iconUrl}
+                    alt=""
+                    className="w-4 h-4 object-contain shrink-0"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <span
+                    className="w-3 h-3 rounded-full shrink-0"
+                    style={{ backgroundColor: getCourseColor(selectedCourse.name) }}
+                  />
+                )}
+              </span>
+              <span className="font-black text-slate-700 text-[14px] truncate max-w-[120px]">
                 {selectedCourse.name}
               </span>
               <ChevronDown size={14} className="text-slate-400 shrink-0" strokeWidth={3} />

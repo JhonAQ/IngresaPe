@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { EngineHeader, FeedbackDrawer, DuoMaxModal } from './SharedEngineUI';
+import { EngineHeader, FeedbackDrawer, DinoMaxModal } from './SharedEngineUI';
 
 // ============================================================================
 // DATOS MOCK PARA EL ENGINE
@@ -159,7 +159,7 @@ export function BasicQuizEngine({ onClose }: { onClose: () => void }) {
         onOpenAI={() => setIsAiModalOpen(true)}
       />
 
-      <DuoMaxModal
+      <DinoMaxModal
         isOpen={isAiModalOpen}
         onClose={() => setIsAiModalOpen(false)}
         trick={question.trick}
