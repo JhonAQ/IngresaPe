@@ -8,6 +8,7 @@ import { TopicHeader } from '../../../components/dashboard/TopicHeader';
 import { SummaryModal } from '../../../components/dashboard/SummaryModal';
 import { useDashboardData } from '../../../hooks/useDashboardData';
 import { CourseSelector } from '../../../components/dashboard/CourseSelector';
+import { useSetDashboardCourse } from '../../../components/dashboard/DashboardCourseContext';
 import { trpc } from '../../../utils/trpc';
 import type { TemaData } from '@ingresa-pe/domain';
 import { DashboardSkeleton } from '../../../components/ui/skeleton';
@@ -81,6 +82,19 @@ function DashboardContent() {
   }, [typedTopics, activeTopicId]);
 
   const selectedCourse = courses.find((c) => c.id === courseId);
+  const setDashboardCourse = useSetDashboardCourse();
+
+  useEffect(() => {
+    if (selectedCourse) {
+      setDashboardCourse({
+        id: selectedCourse.id,
+        name: selectedCourse.name,
+        iconUrl: selectedCourse.iconUrl ?? undefined,
+      });
+    } else {
+      setDashboardCourse(null);
+    }
+  }, [selectedCourse, setDashboardCourse]);
 
   const handleCourseChange = (nextCourseId: string) => {
     setCourseId(nextCourseId);
@@ -143,11 +157,10 @@ function DashboardContent() {
         ref={mainRef}
         className="flex-1 flex flex-col gap-2 overflow-y-auto px-5 pb-32 hide-scrollbar bg-slate-50/50"
       >
-        <div className="sticky top-0 z-40 -mx-5 px-5 pt-2 pb-3 bg-slate-50/95 backdrop-blur-sm space-y-3">
+        <div className="sticky top-0 z-40 -mx-5 px-5 pt-2 pb-2 bg-slate-50/95 backdrop-blur-sm space-y-2">
           <CourseProgress
             courseName={selectedCourse?.name ?? 'Seleccionar curso'}
             progress={progress}
-            iconUrl={selectedCourse?.iconUrl ?? undefined}
           />
 
           {activeTopic && (

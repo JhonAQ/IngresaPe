@@ -60,6 +60,9 @@ export function DashboardHeader({
                   src={selectedCourse.iconUrl}
                   alt=""
                   className="w-4 h-4 object-contain shrink-0"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.display = 'none';
+                  }}
                 />
               ) : (
                 <span

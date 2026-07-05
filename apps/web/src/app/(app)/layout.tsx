@@ -1,39 +1,18 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { DashboardHeader } from '../../components/dashboard/Header';
 import { BottomNav } from '../../components/dashboard/BottomNav';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { AuthGuard } from '../../components/auth/AuthGuard';
 import { DashboardSkeleton } from '../../components/ui/skeleton';
 import { ImmersiveOverlayProvider, useImmersiveOverlay } from '../../components/dashboard/ImmersiveOverlayContext';
-import { trpc } from '../../utils/trpc';
-
-function useUrlCourseId() {
-  const [courseId, setCourseId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const read = () => {
-      setCourseId(new URLSearchParams(window.location.search).get('courseId'));
-    };
-    read();
-    window.addEventListener('popstate', read);
-    return () => window.removeEventListener('popstate', read);
-  }, []);
-
-  return courseId;
-}
+import { DashboardCourseProvider, useDashboardCourse } from '../../components/dashboard/DashboardCourseContext';
 
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const { data, isLoading } = useDashboardData();
   const { isOpen, open } = useImmersiveOverlay();
-  const courseId = useUrlCourseId();
-  const { data: courses = [] } = trpc.content.getCourses.useQuery(undefined, {
-    retry: false,
-    refetchOnWindowFocus: false,
-  });
-
-  const selectedCourse = courses.find((c) => c.id === courseId);
+  const selectedCourse = useDashboardCourse();
 
   return (
     <AuthGuard>
@@ -49,15 +28,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
           {!isOpen && (
             <DashboardHeader
               stats={data.stats}
-              selectedCourse={
-                selectedCourse
-                  ? {
-                      id: selectedCourse.id,
-                      name: selectedCourse.name,
-                      iconUrl: selectedCourse.iconUrl ?? undefined,
-                    }
-                  : null
-              }
+              selectedCourse={selectedCourse}
               onOpenCourseSelector={() => open('courseSelector')}
             />
           )}
@@ -76,7 +47,9 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <ImmersiveOverlayProvider>
-      <LayoutContent>{children}</LayoutContent>
+      <DashboardCourseProvider>
+        <LayoutContent>{children}</LayoutContent>
+      </DashboardCourseProvider>
     </ImmersiveOverlayProvider>
   );
 }
