@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import React, { useEffect, useRef } from 'react';
-import { Check, Lock, BookOpen, Target, Star } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Check, Lock, BookOpen, Target, Star, ChevronDown } from 'lucide-react';
 import { TemaData, SummaryBlock } from '@ingresa-pe/domain';
 import { MapNode, MapNodeColor } from '@ingresa-pe/ui';
 import { TopicDivider } from './TopicDivider';
@@ -217,9 +217,46 @@ export function TopicList({
 
   const nodeRefs = useRef(new Map<string, HTMLElement>());
   const lastScrolledKeyRef = useRef<string | null>(null);
+  const [showReturnButton, setShowReturnButton] = useState(false);
 
+  const activeNodeInfo = useMemo(() => {
+    for (let ti = 0; ti < mergedUnits.length; ti++) {
+      const acts = mergedUnits[ti].actividades;
+      const idx = acts.findIndex((a) => a.state === 'current');
+      if (idx !== -1) return { topicIndex: ti, actIndex: idx, key: `${ti}-${idx}` };
+    }
+    if (mergedUnits.length > 0) {
+      const lastTi = mergedUnits.length - 1;
+      const lastAi = mergedUnits[lastTi].actividades.length - 1;
+      if (lastAi >= 0) return { topicIndex: lastTi, actIndex: lastAi, key: `${lastTi}-${lastAi}` };
+    }
+    return null;
+  }, [mergedUnits]);
+
+  const scrollToActiveNode = useCallback(() => {
+    if (!scrollContainerRef?.current || !activeNodeInfo) return;
+    const container = scrollContainerRef.current;
+    const el = nodeRefs.current.get(activeNodeInfo.key);
+    if (!el) return;
+
+    const sticky = document.getElementById('course-progress-sticky');
+    const stickyHeight = sticky ? sticky.getBoundingClientRect().height : 110;
+    const containerRect = container.getBoundingClientRect();
+    const nodeRect = el.getBoundingClientRect();
+    const nodeTop = nodeRect.top - containerRect.top + container.scrollTop;
+    const visibleCenter = stickyHeight + (container.clientHeight - stickyHeight) / 2;
+
+    let target = nodeTop - visibleCenter + nodeRect.height / 2;
+    const maxScroll = container.scrollHeight - container.clientHeight;
+    if (target < 0) target = 0;
+    if (maxScroll > 0 && target > maxScroll) target = maxScroll;
+
+    container.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+  }, [activeNodeInfo, scrollContainerRef]);
+
+  // Auto-scroll al nodo activo siempre que el mapa cambie (carga, recarga, atrás, curso nuevo...)
   useEffect(() => {
-    if (!scrollContainerRef?.current) return;
+    if (!scrollContainerRef?.current || !activeNodeInfo) return;
 
     const scrollKey =
       mergedUnits
@@ -228,44 +265,30 @@ export function TopicList({
 
     if (lastScrolledKeyRef.current === scrollKey) return;
 
+    const raf = requestAnimationFrame(scrollToActiveNode);
+    lastScrolledKeyRef.current = scrollKey;
+
+    return () => cancelAnimationFrame(raf);
+  }, [mergedUnits, scrollContainerRef, courseId, activeNodeInfo, scrollToActiveNode]);
+
+  // Mostrar botón flotante cuando el nodo activo sale de la vista.
+  useEffect(() => {
+    if (!scrollContainerRef?.current || !activeNodeInfo) return;
+
     const container = scrollContainerRef.current;
-    const sticky = document.getElementById('course-progress-sticky');
-    const stickyHeight = sticky ? sticky.getBoundingClientRect().height : 110;
-
-    // Objetivo: primer nodo no completado del primer tema no completado.
-    // Si todo está completado, el último nodo del último tema.
-    let targetKey: string | null = null;
-    for (let ti = 0; ti < mergedUnits.length; ti++) {
-      const acts = mergedUnits[ti].actividades;
-      const firstIncomplete = acts.findIndex((a) => a.state !== 'completed');
-      if (firstIncomplete !== -1) {
-        targetKey = `${ti}-${firstIncomplete}`;
-        break;
-      }
-    }
-    if (!targetKey && mergedUnits.length > 0) {
-      const lastTi = mergedUnits.length - 1;
-      const lastAi = mergedUnits[lastTi].actividades.length - 1;
-      if (lastAi >= 0) targetKey = `${lastTi}-${lastAi}`;
-    }
-    if (!targetKey) return;
-
-    const el = nodeRefs.current.get(targetKey);
+    const el = nodeRefs.current.get(activeNodeInfo.key);
     if (!el) return;
 
-    const scroll = () => {
-      const containerRect = container.getBoundingClientRect();
-      const nodeRect = el.getBoundingClientRect();
-      const nodeTop = nodeRect.top - containerRect.top + container.scrollTop;
-      const visibleCenter = stickyHeight + (container.clientHeight - stickyHeight) / 2;
-      const target = nodeTop - visibleCenter + nodeRect.height / 2;
-      container.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
-      lastScrolledKeyRef.current = scrollKey;
-    };
+    const observer = new IntersectionObserver(
+      (entries) => {
+        setShowReturnButton(!entries[0].isIntersecting);
+      },
+      { root: container, threshold: 0 }
+    );
 
-    const raf = requestAnimationFrame(scroll);
-    return () => cancelAnimationFrame(raf);
-  }, [mergedUnits, scrollContainerRef, courseId]);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [activeNodeInfo, scrollContainerRef]);
 
   const setNodeRef =
     (key: string) =>
@@ -278,7 +301,8 @@ export function TopicList({
     };
 
   return (
-    <div className="space-y-12 py-6 relative z-10">
+    <>
+      <div className="space-y-12 py-6 relative z-10">
       {mergedUnits.map((unidad, index) => {
         const pathPositions = generatePathPositions(unidad.actividades.length);
         const pathD = buildPathD(pathPositions);
@@ -377,5 +401,16 @@ export function TopicList({
         );
       })}
     </div>
+
+    {showReturnButton && activeNodeInfo && (
+      <button
+        onClick={scrollToActiveNode}
+        className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 w-12 h-12 rounded-full bg-white text-[#1cb0f6] shadow-[0_6px_0_#e5e7eb] border-2 border-slate-100 flex items-center justify-center active:translate-y-[3px] active:shadow-none transition-all"
+        aria-label="Volver al nodo activo"
+      >
+        <ChevronDown size={28} strokeWidth={3} />
+      </button>
+    )}
+  </>
   );
 }
