@@ -37,7 +37,13 @@ export function Engine() {
   } = useEngine(topicId ?? '', courseId, {
     nodeIndex,
     nodeSize,
-    onClose: () => router.back(),
+    onClose: () => {
+      if (courseId) {
+        router.replace(`/dashboard?courseId=${courseId}`);
+      } else {
+        router.replace('/cursos');
+      }
+    },
   });
 
   const handleCloseRequest = () => setIsExitModalOpen(true);
