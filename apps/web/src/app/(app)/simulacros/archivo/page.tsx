@@ -3,81 +3,43 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { ChevronLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ChevronLeft, Lock } from 'lucide-react';
 import { DuoNotebook } from '../../../../components/simulacros/DuoNotebook';
+import { trpc } from '../../../../utils/trpc';
 
-// ============================================================================
-// DATOS MOCK SIMPLIFICADOS
-// ============================================================================
-const examLibrary = [
-  {
-    id: 1,
-    title: 'Admisión 2024',
-    phase: 'FASE II',
-    type: 'ORDINARIO',
-    year: '2024',
-    status: 'new',
-    score: null,
-  },
-  {
-    id: 2,
-    title: 'Admisión 2024',
-    phase: 'FASE I',
-    type: 'ORDINARIO',
-    year: '2024',
-    status: 'completed',
-    score: 65,
-  },
-  {
-    id: 3,
-    title: 'CEPRUNSA 2024',
-    phase: 'II FASE',
-    type: 'CEPRUNSA',
-    year: '2024',
-    status: 'new',
-    score: null,
-  },
-  {
-    id: 4,
-    title: 'Extraordinario',
-    phase: 'ÚNICA 2024',
-    type: 'EXTRA',
-    year: '2024',
-    status: 'new',
-    score: null,
-  },
-  {
-    id: 5,
-    title: 'Admisión 2023',
-    phase: 'FASE II',
-    type: 'ORDINARIO',
-    year: '2023',
-    status: 'completed',
-    score: 82,
-  },
-  {
-    id: 6,
-    title: 'CEPRUNSA 2023',
-    phase: 'I FASE',
-    type: 'CEPRUNSA',
-    year: '2023',
-    status: 'locked',
-    score: null,
-  },
-];
+const filters = ['Todos', 'Ordinario', 'CEPRUNSA', '2024', '2023'];
 
 export default function ArchivoExamenesPage() {
+  const router = useRouter();
   const [activeFilter, setActiveFilter] = useState('Todos');
-  const filters = ['Todos', 'Ordinario', 'CEPRUNSA', '2024', '2023'];
 
-  const filteredExams = examLibrary.filter((exam) => {
+  const { data: profile } = trpc.profile.getMe.useQuery();
+  const { data: exams = [], isLoading } = trpc.simulacro.getArchiveExams.useQuery();
+  const startAttempt = trpc.simulacro.startArchiveAttempt.useMutation({
+    onSuccess: (data) => {
+      router.push(`/simulator?attemptId=${data.attemptId}`);
+    },
+    onError: (err) => {
+      alert(err.message);
+    },
+  });
+
+  const isPremium = profile?.isPremium ?? false;
+
+  const filteredExams = exams.filter((exam) => {
     if (activeFilter === 'Todos') return true;
     if (activeFilter === 'Ordinario') return exam.type === 'ORDINARIO';
     if (activeFilter === 'CEPRUNSA') return exam.type === 'CEPRUNSA';
-    if (activeFilter === '2024') return exam.year === '2024';
-    if (activeFilter === '2023') return exam.year === '2023';
+    if (activeFilter === '2024') return exam.year === 2024;
+    if (activeFilter === '2023') return exam.year === 2023;
     return true;
   });
+
+  const handleStart = (examId: string, locked: boolean) => {
+    if (locked || startAttempt.isPending) return;
+    startAttempt.mutate({ examId });
+  };
 
   return (
     <div className="flex-1 overflow-y-auto hide-scrollbar flex flex-col pb-32 bg-white relative">
@@ -128,11 +90,21 @@ export default function ArchivoExamenesPage() {
       {/* GRID DE EXÁMENES ESTILO TIENDA/LOGROS */}
       <div className="px-5 py-2">
         <AnimatePresence mode="popLayout">
-          {filteredExams.length > 0 ? (
+          {isLoading ? (
+            <div className="grid grid-cols-2 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-[220px] bg-slate-100 rounded-[1.5rem] animate-pulse"
+                />
+              ))}
+            </div>
+          ) : filteredExams.length > 0 ? (
             <motion.div layout className="grid grid-cols-2 gap-4">
               {filteredExams.map((exam, index) => {
-                const isCompleted = exam.status === 'completed';
-                const isLocked = exam.status === 'locked';
+                const isLocked = !isPremium;
+                const isCompleted = false;
+                const status = isLocked ? 'locked' : isCompleted ? 'completed' : 'new';
 
                 return (
                   <motion.div
@@ -143,7 +115,7 @@ export default function ArchivoExamenesPage() {
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ duration: 0.2, delay: index * 0.05 }}
                     whileTap={!isLocked ? { scale: 0.95 } : {}}
-                    // LA TARJETA GORDA:
+                    onClick={() => handleStart(exam.id, isLocked)}
                     className={`bg-white rounded-[1.5rem] border-2 border-slate-200 border-b-[6px] p-4 flex flex-col items-center text-center transition-all cursor-pointer relative
                       ${
                         isLocked
@@ -151,9 +123,15 @@ export default function ArchivoExamenesPage() {
                           : 'active:border-b-[2px] active:translate-y-[4px] hover:bg-slate-50 border-b-slate-300'
                       }`}
                   >
+                    {isLocked && (
+                      <div className="absolute top-3 right-3 w-7 h-7 bg-slate-200 text-slate-500 rounded-full flex items-center justify-center">
+                        <Lock size={14} strokeWidth={3} />
+                      </div>
+                    )}
+
                     {/* Ícono Masivo SVG Custom */}
                     <div className="mb-3 mt-1 pointer-events-none">
-                      <DuoNotebook type={exam.type} status={exam.status} />
+                      <DuoNotebook type={exam.type ?? 'ORDINARIO'} status={status} />
                     </div>
 
                     {/* Textos Simplificados y Súper Bolds */}
@@ -165,13 +143,16 @@ export default function ArchivoExamenesPage() {
                       {exam.title}
                     </h3>
                     <p className="font-extrabold text-slate-400 text-[10px] uppercase tracking-widest mt-1">
-                      {exam.phase}
+                      {exam.phase ? `FASE ${exam.phase}` : 'EXAMEN'}
+                    </p>
+                    <p className="text-slate-400 font-bold text-[9px] mt-0.5">
+                      {exam.questionCount} preguntas
                     </p>
 
                     {/* Distintivo Minimalista de Puntaje (Sin cajas feas) */}
                     {isCompleted && (
                       <div className="mt-2 text-yellow-500 font-black text-[13px] uppercase tracking-widest flex items-center justify-center gap-1 drop-shadow-sm">
-                        ★ {exam.score}
+                        ★ —
                       </div>
                     )}
                   </motion.div>
