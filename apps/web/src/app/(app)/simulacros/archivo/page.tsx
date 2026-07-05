@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, Lock } from 'lucide-react';
+import { ChevronLeft, Lock, Crown } from 'lucide-react';
 import { DuoNotebook } from '../../../../components/simulacros/DuoNotebook';
 import { trpc } from '../../../../utils/trpc';
 
@@ -86,6 +86,22 @@ export default function ArchivoExamenesPage() {
           <span className="text-error-500">Histórico</span>
         </h2>
       </div>
+
+      {!isPremium && (
+        <div className="mx-5 mb-4 bg-amber-50 border-2 border-amber-200 rounded-[1.5rem] p-4 flex items-center gap-3">
+          <div className="w-10 h-10 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center shrink-0">
+            <Crown size={20} strokeWidth={2.5} />
+          </div>
+          <div className="text-left">
+            <p className="font-black text-amber-800 text-[13px] leading-tight">
+              Archivo histórico exclusivo para Premium
+            </p>
+            <p className="text-amber-700 font-bold text-[11px] mt-0.5">
+              Suscríbete para acceder a exámenes reales de admisión pasados.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* GRID DE EXÁMENES ESTILO TIENDA/LOGROS */}
       <div className="px-5 py-2">

@@ -61,6 +61,29 @@ export class AdminRouter {
               message: 'El orden correcto debe contener todos los items sin duplicados',
             });
           }
+        } else if (content.type === QuestionType.MATCHING) {
+          if (content.pairs.length < 2 || content.pairs.length > 6) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Las preguntas de matching deben tener entre 2 y 6 pares',
+            });
+          }
+          const uniqueIds = new Set(content.pairs.map((p) => p.id));
+          if (uniqueIds.size !== content.pairs.length) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Los ids de los pares de matching deben ser únicos',
+            });
+          }
+          const allTextsFilled = content.pairs.every(
+            (p) => p.left.trim().length > 0 && p.right.trim().length > 0
+          );
+          if (!allTextsFilled) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Las columnas izquierda y derecha no pueden estar vacías',
+            });
+          }
         }
 
         const topic = await this.prisma.topic.findUnique({

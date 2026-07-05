@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Brain, Play, Lock, Zap } from 'lucide-react';
+import { Sparkles, Brain, Play, Lock, Zap, Clock } from 'lucide-react';
 import { Button3D } from '../ui/Button3D';
 
 interface AIExamCardProps {
@@ -11,6 +11,8 @@ interface AIExamCardProps {
   setTimeLimit: (mins: number) => void;
   isPremium: boolean;
   freeAttemptsRemaining: number;
+  freeAttemptsLimit?: number;
+  freeAttemptsResetAt?: string | Date | null;
   isLoading: boolean;
   onStart: (params: { mode: 'AI' | 'RANDOM' }) => void;
 }
@@ -22,10 +24,22 @@ export const AIExamCard: React.FC<AIExamCardProps> = ({
   setTimeLimit,
   isPremium,
   freeAttemptsRemaining,
+  freeAttemptsLimit = 1,
+  freeAttemptsResetAt,
   isLoading,
   onStart,
 }) => {
   const isLocked = !isPremium && freeAttemptsRemaining <= 0;
+
+  const resetLabel = React.useMemo(() => {
+    if (!freeAttemptsResetAt) return 'próximo lunes';
+    const date = typeof freeAttemptsResetAt === 'string' ? new Date(freeAttemptsResetAt) : freeAttemptsResetAt;
+    return date.toLocaleDateString('es-PE', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    });
+  }, [freeAttemptsResetAt]);
 
   return (
     <div className="px-5 mb-8">
@@ -120,19 +134,35 @@ export const AIExamCard: React.FC<AIExamCardProps> = ({
           </div>
 
           <div className="flex items-center justify-between gap-3 mb-4">
-            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider">
-              {isPremium ? (
-                <>
-                  <Zap size={12} className="text-amber-400 fill-amber-400" />
-                  <span className="text-amber-400">Premium ilimitado</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles size={12} className="text-cyan-400" />
-                  <span className={freeAttemptsRemaining > 0 ? 'text-cyan-300' : 'text-rose-400'}>
-                    {freeAttemptsRemaining} gratis esta semana
-                  </span>
-                </>
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider">
+                {isPremium ? (
+                  <>
+                    <Zap size={12} className="text-amber-400 fill-amber-400" />
+                    <span className="text-amber-400">Premium ilimitado</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={12} className="text-cyan-400" />
+                    <span
+                      className={
+                        freeAttemptsRemaining > 0 ? 'text-cyan-300' : 'text-rose-400'
+                      }
+                    >
+                      {freeAttemptsRemaining} de {freeAttemptsLimit} gratis esta semana
+                    </span>
+                  </>
+                )}
+              </div>
+              {!isPremium && (
+                <div className="flex items-center gap-1 text-[9px] font-bold text-slate-500">
+                  <Clock size={10} />
+                  {freeAttemptsRemaining > 0 ? (
+                    <span>Se reinicia el {resetLabel}</span>
+                  ) : (
+                    <span>Disponible de nuevo el {resetLabel}</span>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -147,7 +177,7 @@ export const AIExamCard: React.FC<AIExamCardProps> = ({
               <>Generando...</>
             ) : isLocked ? (
               <>
-                <Lock size={16} /> BLOQUEADO
+                <Lock size={16} /> LÍMITE ALCANZADO
               </>
             ) : (
               <>
@@ -155,6 +185,12 @@ export const AIExamCard: React.FC<AIExamCardProps> = ({
               </>
             )}
           </Button3D>
+
+          {!isPremium && isLocked && (
+            <p className="mt-3 text-center text-[10px] font-bold text-slate-400">
+              Sube a Premium para simulacros ilimitados cada semana.
+            </p>
+          )}
         </div>
       </div>
     </div>

@@ -11,11 +11,14 @@ import {
   type FlashcardAnswer,
   type OrderingView,
   type OrderingAnswer,
+  type MatchingView,
+  type MatchingAnswer,
 } from '@ingresa-pe/domain';
 import { MultipleChoiceRenderer } from './renderers/MultipleChoiceRenderer';
 import { TrueFalseSwipeRenderer } from './renderers/TrueFalseSwipeRenderer';
 import { FlashcardRenderer } from './renderers/FlashcardRenderer';
 import { OrderingRenderer } from './renderers/OrderingRenderer';
+import { MatchingRenderer } from './renderers/MatchingRenderer';
 
 /**
  * Contracto que debe cumplir cada renderer de pregunta.
@@ -40,6 +43,7 @@ type RendererMap = {
   [QuestionType.TRUE_FALSE_SWIPE]: ComponentType<RendererProps<TrueFalseView, TrueFalseAnswer>>;
   [QuestionType.FLASHCARD]: ComponentType<RendererProps<FlashcardView, FlashcardAnswer>>;
   [QuestionType.ORDERING]: ComponentType<RendererProps<OrderingView, OrderingAnswer>>;
+  [QuestionType.MATCHING]: ComponentType<RendererProps<MatchingView, MatchingAnswer>>;
 };
 
 export const questionRendererRegistry: RendererMap = {
@@ -47,6 +51,7 @@ export const questionRendererRegistry: RendererMap = {
   [QuestionType.TRUE_FALSE_SWIPE]: TrueFalseSwipeRenderer,
   [QuestionType.FLASHCARD]: FlashcardRenderer,
   [QuestionType.ORDERING]: OrderingRenderer,
+  [QuestionType.MATCHING]: MatchingRenderer,
 };
 
 /**

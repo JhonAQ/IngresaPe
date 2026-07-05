@@ -59,6 +59,12 @@ export class QuestionViewService {
           items: content.items,
         };
 
+      case QuestionType.MATCHING:
+        return {
+          type: QuestionType.MATCHING,
+          pairs: content.pairs,
+        };
+
       default:
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',

@@ -138,6 +138,42 @@ describe('QuestionGraderService', () => {
     });
   });
 
+  describe('MATCHING', () => {
+    const question = makeQuestion({
+      type: QuestionType.MATCHING,
+      pairs: [
+        { id: 'a', left: 'Sol', right: 'Estrella' },
+        { id: 'b', left: 'Luna', right: 'Satélite' },
+        { id: 'c', left: 'Tierra', right: 'Planeta' },
+      ],
+    });
+
+    it('acepta cuando todos los pares están emparejados', () => {
+      const result = grader.grade(question, {
+        type: QuestionType.MATCHING,
+        matchedPairIds: ['a', 'b', 'c'],
+      });
+      expect(result.isCorrect).toBe(true);
+      expect(result.correctAnswerText).toBe('Sol → Estrella, Luna → Satélite, Tierra → Planeta');
+    });
+
+    it('rechaza cuando falta un par', () => {
+      const result = grader.grade(question, {
+        type: QuestionType.MATCHING,
+        matchedPairIds: ['a', 'b'],
+      });
+      expect(result.isCorrect).toBe(false);
+    });
+
+    it('rechaza cuando hay un id extra', () => {
+      const result = grader.grade(question, {
+        type: QuestionType.MATCHING,
+        matchedPairIds: ['a', 'b', 'c', 'd'],
+      });
+      expect(result.isCorrect).toBe(false);
+    });
+  });
+
   describe('computeRewards', () => {
     it('devuelve recompensas por dificultad cuando acierta', () => {
       expect(grader.computeRewards(Difficulty.EASY, true)).toEqual({ xp: 10, coins: 5 });

@@ -10,12 +10,13 @@ import React, {
   useRef,
 } from 'react';
 
-export type ImmersiveOverlayMode = 'courseSelector' | 'summary';
+export type ImmersiveOverlayMode = 'courseSelector' | 'summary' | 'academicDna';
 
 interface ImmersiveOverlayContextValue {
   mode: ImmersiveOverlayMode | null;
+  payload: unknown;
   isOpen: boolean;
-  open: (mode: ImmersiveOverlayMode) => void;
+  open: (mode: ImmersiveOverlayMode, payload?: unknown) => void;
   close: (options?: { popHistory?: boolean }) => void;
 }
 
@@ -23,11 +24,13 @@ const ImmersiveOverlayContext = createContext<ImmersiveOverlayContextValue | nul
 
 export function ImmersiveOverlayProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<ImmersiveOverlayMode | null>(null);
+  const [payload, setPayload] = useState<unknown>(null);
   const isOpen = mode !== null;
   const manualCloseRef = useRef(false);
 
-  const open = useCallback((nextMode: ImmersiveOverlayMode) => {
+  const open = useCallback((nextMode: ImmersiveOverlayMode, nextPayload?: unknown) => {
     setMode(nextMode);
+    setPayload(nextPayload ?? null);
     if (typeof window !== 'undefined' && !window.history.state?.immersiveOverlay) {
       window.history.pushState({ immersiveOverlay: true }, '');
     }
@@ -44,6 +47,7 @@ export function ImmersiveOverlayProvider({ children }: { children: ReactNode }) 
       }
     }
     setMode(null);
+    setPayload(null);
   }, []);
 
   useEffect(() => {
@@ -54,6 +58,7 @@ export function ImmersiveOverlayProvider({ children }: { children: ReactNode }) 
       }
       if (isOpen) {
         setMode(null);
+        setPayload(null);
       }
     };
 
@@ -62,7 +67,7 @@ export function ImmersiveOverlayProvider({ children }: { children: ReactNode }) 
   }, [isOpen]);
 
   return (
-    <ImmersiveOverlayContext.Provider value={{ mode, isOpen, open, close }}>
+    <ImmersiveOverlayContext.Provider value={{ mode, payload, isOpen, open, close }}>
       {children}
     </ImmersiveOverlayContext.Provider>
   );

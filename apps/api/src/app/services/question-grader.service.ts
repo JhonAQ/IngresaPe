@@ -14,6 +14,8 @@ import {
   FlashcardAnswer,
   OrderingContent,
   OrderingAnswer,
+  MatchingContent,
+  MatchingAnswer,
 } from '@ingresa-pe/domain';
 import { Difficulty, Question } from '@prisma/client';
 
@@ -54,6 +56,11 @@ export class QuestionGraderService {
         return this.gradeOrdering(
           content as OrderingContent,
           answer as OrderingAnswer
+        );
+      case QuestionType.MATCHING:
+        return this.gradeMatching(
+          content as MatchingContent,
+          answer as MatchingAnswer
         );
       default:
         throw new TRPCError({
@@ -170,6 +177,28 @@ export class QuestionGraderService {
     return {
       isCorrect,
       correctAnswerText: correctText,
+      explanation: null,
+    };
+  }
+
+  private gradeMatching(
+    content: MatchingContent,
+    answer: MatchingAnswer
+  ): GradeResult {
+    const expectedIds = new Set(content.pairs.map((p) => p.id));
+    const submittedIds = new Set(answer.matchedPairIds);
+
+    const isCorrect =
+      submittedIds.size === expectedIds.size &&
+      content.pairs.every((p) => submittedIds.has(p.id));
+
+    const correctAnswerText = content.pairs
+      .map((p) => `${p.left} → ${p.right}`)
+      .join(', ');
+
+    return {
+      isCorrect,
+      correctAnswerText,
       explanation: null,
     };
   }

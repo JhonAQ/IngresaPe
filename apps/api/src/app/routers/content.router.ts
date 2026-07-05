@@ -3,7 +3,7 @@ import { TrpcService } from '../trpc.service';
 import { PrismaService } from '../prisma.service';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { Difficulty, Prisma } from '@prisma/client';
+import { Difficulty, Prisma, QuestionType } from '@prisma/client';
 import { QuestionViewService } from '../services/question-view.service';
 import { parseSummaryBlocks } from '@ingresa-pe/domain';
 
@@ -146,31 +146,17 @@ export class ContentRouter {
           if (!topic) throw new TRPCError({ code: 'NOT_FOUND', message: 'Tema no encontrado' });
           if (nodeIndex >= topic.nodeCount) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Nodo inválido' });
 
-          const allQuestionIds = await this.prisma.question.findMany({
-            where: { topicId },
-            orderBy: { id: 'asc' },
-            select: { id: true },
-          });
+          const deliveredIds = await this.getNodeDeliveredQuestionIds(
+            topicId,
+            nodeIndex,
+            userId,
+            excludeAnswered
+          );
 
-          const start = nodeIndex * topic.nodeSize;
-          const end = Math.min(start + topic.nodeSize, allQuestionIds.length);
-          let poolIds = allQuestionIds.slice(start, end).map((q) => q.id);
-
-          if (poolIds.length === 0) return [];
-
-          if (excludeAnswered) {
-            const answered = await this.prisma.answerLog.findMany({
-              where: { userId, questionId: { in: poolIds } },
-              select: { questionId: true },
-            });
-            const answeredIds = new Set(answered.map((a) => a.questionId));
-            poolIds = poolIds.filter((id) => !answeredIds.has(id));
-          }
-
-          if (poolIds.length === 0) return [];
+          if (deliveredIds.length === 0) return [];
 
           const questions = await this.prisma.question.findMany({
-            where: { id: { in: poolIds.slice(0, limit) } },
+            where: { id: { in: deliveredIds.slice(0, limit) } },
           });
 
           const shuffled = questions.sort(() => Math.random() - 0.5);
@@ -246,32 +232,22 @@ export class ContentRouter {
         const { topicId, nodeIndex } = input;
         const userId = ctx.user.userId;
 
-        const topic = await this.prisma.topic.findUnique({
-          where: { id: topicId },
-          select: { nodeSize: true, nodeCount: true },
-        });
-        if (!topic) throw new TRPCError({ code: 'NOT_FOUND', message: 'Tema no encontrado' });
-        if (nodeIndex >= topic.nodeCount) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Nodo inválido' });
+        const deliveredIds = await this.getNodeDeliveredQuestionIds(
+          topicId,
+          nodeIndex,
+          userId,
+          false
+        );
 
-        const allQuestionIds = await this.prisma.question.findMany({
-          where: { topicId },
-          orderBy: { id: 'asc' },
-          select: { id: true },
-        });
-
-        const start = nodeIndex * topic.nodeSize;
-        const end = Math.min(start + topic.nodeSize, allQuestionIds.length);
-        const poolIds = allQuestionIds.slice(start, end).map((q) => q.id);
-
-        if (poolIds.length === 0) {
+        if (deliveredIds.length === 0) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'Nodo sin preguntas' });
         }
 
         const answeredCount = await this.prisma.answerLog.count({
-          where: { userId, questionId: { in: poolIds } },
+          where: { userId, questionId: { in: deliveredIds } },
         });
 
-        if (answeredCount < poolIds.length) {
+        if (answeredCount < deliveredIds.length) {
           throw new TRPCError({ code: 'FORBIDDEN', message: 'Aún faltan preguntas por responder en este nodo' });
         }
 
@@ -284,4 +260,61 @@ export class ContentRouter {
         return { success: true, completedNodeIndex: nodeIndex };
       }),
   });
+
+  private async getNodeDeliveredQuestionIds(
+    topicId: string,
+    nodeIndex: number,
+    userId: string,
+    excludeAnswered: boolean
+  ): Promise<string[]> {
+    const topic = await this.prisma.topic.findUnique({
+      where: { id: topicId },
+      select: { nodeSize: true, nodeCount: true },
+    });
+    if (!topic) throw new TRPCError({ code: 'NOT_FOUND', message: 'Tema no encontrado' });
+    if (nodeIndex >= topic.nodeCount) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Nodo inválido' });
+
+    const allQuestionIds = await this.prisma.question.findMany({
+      where: { topicId },
+      orderBy: { id: 'asc' },
+      select: { id: true },
+    });
+
+    const start = nodeIndex * topic.nodeSize;
+    const end = Math.min(start + topic.nodeSize, allQuestionIds.length);
+    let deliveredIds = allQuestionIds.slice(start, end).map((q) => q.id);
+
+    if (deliveredIds.length === 0) return [];
+
+    // Garantizar al menos una pregunta MATCHING por nodo cuando haya disponibles.
+    const hasMatching = await this.prisma.question.count({
+      where: { id: { in: deliveredIds }, type: QuestionType.MATCHING },
+    });
+    if (hasMatching === 0) {
+      const matching = await this.prisma.question.findFirst({
+        where: {
+          topicId,
+          type: QuestionType.MATCHING,
+          id: { notIn: deliveredIds },
+          answers: { none: { userId } },
+        },
+        orderBy: { id: 'asc' },
+        select: { id: true },
+      });
+      if (matching) {
+        deliveredIds[deliveredIds.length - 1] = matching.id;
+      }
+    }
+
+    if (excludeAnswered) {
+      const answered = await this.prisma.answerLog.findMany({
+        where: { userId, questionId: { in: deliveredIds } },
+        select: { questionId: true },
+      });
+      const answeredIds = new Set(answered.map((a) => a.questionId));
+      deliveredIds = deliveredIds.filter((id) => !answeredIds.has(id));
+    }
+
+    return deliveredIds;
+  }
 }

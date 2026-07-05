@@ -40,6 +40,7 @@ enum QuestionType {
   TRUE_FALSE_SWIPE
   FLASHCARD
   ORDERING
+  MATCHING
 }
 
 // Planes de suscripción (Modelo de Negocio)

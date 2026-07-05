@@ -42,10 +42,16 @@ export function RadarChart({
 
   const ringScales = [0.25, 0.5, 0.75, 1];
 
+  const getVisualAccuracy = (accuracy: number, hasData: boolean) =>
+    hasData ? accuracy : 15;
+
   const dataPoints = useMemo(
     () =>
       axes.map((axis, i) => ({
-        ...getPoint((axis.accuracy / 100) * maxR, i),
+        ...getPoint(
+          (getVisualAccuracy(axis.accuracy, axis.hasData) / 100) * maxR,
+          i
+        ),
         axis,
         index: i,
       })),

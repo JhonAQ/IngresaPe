@@ -123,6 +123,11 @@ async function main() {
     explanation: string;
   }
 
+  interface MatchingPairSeed {
+    left: string;
+    right: string;
+  }
+
   type SummaryBlockSeed =
     | { type: 'HEADING'; level: 1 | 2 | 3; text: string }
     | { type: 'PARAGRAPH'; text: string }
@@ -142,6 +147,7 @@ async function main() {
     nombre: string;
     slug: string;
     preguntas: PreguntaSeed[];
+    matching?: MatchingPairSeed[];
     summary?: SummaryBlockSeed[];
   }
 
@@ -152,6 +158,17 @@ async function main() {
         id: makeOptionId(i),
         text: o.text,
         isCorrect: o.isCorrect,
+      })),
+    };
+  }
+
+  function buildMatchingContent(pairs: MatchingPairSeed[]) {
+    return {
+      type: QuestionType.MATCHING,
+      pairs: pairs.map((p, i) => ({
+        id: `m-${makeOptionId(i)}`,
+        left: p.left,
+        right: p.right,
       })),
     };
   }
@@ -176,6 +193,15 @@ async function main() {
         explanation: `Respuesta de prueba para ${temaNombre}, pregunta ${n}.`,
       };
     });
+  }
+
+  function generarMatchingPlaceholder(temaNombre: string): MatchingPairSeed[] {
+    return [
+      { left: `Concepto clave 1 de ${temaNombre}`, right: 'Definición correspondiente 1' },
+      { left: `Concepto clave 2 de ${temaNombre}`, right: 'Definición correspondiente 2' },
+      { left: `Concepto clave 3 de ${temaNombre}`, right: 'Definición correspondiente 3' },
+      { left: `Concepto clave 4 de ${temaNombre}`, right: 'Definición correspondiente 4' },
+    ];
   }
 
   // Función helper para crear cursos con temas y preguntas
@@ -230,6 +256,19 @@ async function main() {
             type: QuestionType.MULTIPLE_CHOICE,
             content: buildMultipleChoiceContent(pregunta.options),
             explanation: pregunta.explanation,
+          },
+        });
+      }
+
+      const matchingPairs = tema.matching ?? generarMatchingPlaceholder(tema.nombre);
+      if (matchingPairs.length >= 2) {
+        await prisma.question.create({
+          data: {
+            topicId: topicCreated.id,
+            difficulty: Difficulty.MEDIUM,
+            statement: 'Relaciona cada concepto de la columna izquierda con su correspondiente de la derecha.',
+            type: QuestionType.MATCHING,
+            content: buildMatchingContent(matchingPairs),
           },
         });
       }

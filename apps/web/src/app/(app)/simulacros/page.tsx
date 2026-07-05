@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { AlertCircle } from 'lucide-react';
 import {
   GoalCard,
   AIExamCard,
@@ -16,6 +17,7 @@ export default function SimulacrosDashboardPage() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [numQuestions, setNumQuestions] = useState(40);
   const [timeLimit, setTimeLimit] = useState(60);
+  const [startError, setStartError] = useState<string | null>(null);
 
   const { data: profile, isLoading: isProfileLoading } = trpc.profile.getMe.useQuery();
   const { data: stats, isLoading: isStatsLoading } = trpc.simulacro.getStats.useQuery();
@@ -26,7 +28,11 @@ export default function SimulacrosDashboardPage() {
 
   const startGenerated = trpc.simulacro.startGeneratedAttempt.useMutation({
     onSuccess: (data) => {
+      setStartError(null);
       router.push(`/simulator?attemptId=${data.attemptId}`);
+    },
+    onError: (err) => {
+      setStartError(err.message ?? 'No se pudo generar el simulacro');
     },
   });
 
@@ -42,6 +48,7 @@ export default function SimulacrosDashboardPage() {
     isProfileLoading || isStatsLoading || isArchiveLoading || isAttemptsLoading;
 
   const handleStartGenerated = (params: { mode: 'AI' | 'RANDOM' }) => {
+    setStartError(null);
     startGenerated.mutate({
       questionCount: numQuestions,
       timeLimitMinutes: timeLimit,
@@ -83,6 +90,15 @@ export default function SimulacrosDashboardPage() {
         />
       )}
 
+      {startError && (
+        <div className="px-5 mb-4">
+          <div className="bg-rose-50 border-2 border-rose-200 rounded-[1.5rem] p-4 flex items-start gap-3">
+            <AlertCircle className="shrink-0 text-rose-500 mt-0.5" size={18} strokeWidth={2.5} />
+            <p className="text-rose-700 font-bold text-[13px] leading-snug">{startError}</p>
+          </div>
+        </div>
+      )}
+
       <AIExamCard
         numQuestions={numQuestions}
         setNumQuestions={setNumQuestions}
@@ -90,11 +106,13 @@ export default function SimulacrosDashboardPage() {
         setTimeLimit={setTimeLimit}
         isPremium={stats?.isPremium ?? false}
         freeAttemptsRemaining={stats?.freeAttemptsRemaining ?? 0}
+        freeAttemptsLimit={stats?.freeAttemptsLimit ?? 1}
+        freeAttemptsResetAt={stats?.freeAttemptsResetAt}
         isLoading={startGenerated.isPending}
         onStart={handleStartGenerated}
       />
 
-      <HistoryArchive pastExams={archiveExams ?? []} />
+      <HistoryArchive pastExams={archiveExams ?? []} isPremium={stats?.isPremium ?? false} />
 
       <RecentAttempts attempts={recentAttempts ?? []} />
 

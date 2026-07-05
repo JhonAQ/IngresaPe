@@ -5,6 +5,7 @@ import { LogOut } from 'lucide-react';
 import { ProfileHeader } from '../../../components/perfil/ProfileHeader';
 import { StatsRow } from '../../../components/perfil/StatsRow';
 import { AcademicDNA } from '../../../components/perfil/AcademicDNA';
+import { AcademicDnaOverlay } from '../../../components/perfil/AcademicDnaOverlay';
 import { TrophyRoom } from '../../../components/perfil/TrophyRoom';
 import { CourseProgressList } from '../../../components/perfil/CourseProgressList';
 import { useProfileData } from '../../../hooks/useProfileData';
@@ -78,6 +79,8 @@ export default function PerfilPage() {
       <div className="px-5 mt-6">
         <TrophyRoom streak={user?.streak ?? 0} rank={rank} />
       </div>
+
+      <AcademicDnaOverlay />
 
       <div className="px-5 py-8">
         <ChunkyButton

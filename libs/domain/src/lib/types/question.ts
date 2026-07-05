@@ -5,6 +5,7 @@ export const QuestionType = {
   TRUE_FALSE_SWIPE: 'TRUE_FALSE_SWIPE',
   FLASHCARD: 'FLASHCARD',
   ORDERING: 'ORDERING',
+  MATCHING: 'MATCHING',
 } as const;
 export type QuestionType = (typeof QuestionType)[keyof typeof QuestionType];
 
@@ -45,16 +46,32 @@ export const orderingContentSchema = z.object({
   correctOrder: z.array(z.string()),
 });
 
+export const matchingContentSchema = z.object({
+  type: z.literal(QuestionType.MATCHING),
+  pairs: z
+    .array(
+      z.object({
+        id: z.string(),
+        left: z.string().min(1),
+        right: z.string().min(1),
+      })
+    )
+    .min(2)
+    .max(6),
+});
+
 export const questionContentSchema = z.union([
   multipleChoiceContentSchema,
   trueFalseContentSchema,
   flashcardContentSchema,
   orderingContentSchema,
+  matchingContentSchema,
 ]);
 export type MultipleChoiceContent = z.infer<typeof multipleChoiceContentSchema>;
 export type TrueFalseContent = z.infer<typeof trueFalseContentSchema>;
 export type FlashcardContent = z.infer<typeof flashcardContentSchema>;
 export type OrderingContent = z.infer<typeof orderingContentSchema>;
+export type MatchingContent = z.infer<typeof matchingContentSchema>;
 export type QuestionContent = z.infer<typeof questionContentSchema>;
 
 // ============================================================================
@@ -82,16 +99,32 @@ export const orderingViewSchema = z.object({
   items: z.array(z.object({ id: z.string(), text: z.string() })).min(2),
 });
 
+export const matchingViewSchema = z.object({
+  type: z.literal(QuestionType.MATCHING),
+  pairs: z
+    .array(
+      z.object({
+        id: z.string(),
+        left: z.string(),
+        right: z.string(),
+      })
+    )
+    .min(2)
+    .max(6),
+});
+
 export const questionViewSchema = z.union([
   multipleChoiceViewSchema,
   trueFalseViewSchema,
   flashcardViewSchema,
   orderingViewSchema,
+  matchingViewSchema,
 ]);
 export type MultipleChoiceView = z.infer<typeof multipleChoiceViewSchema>;
 export type TrueFalseView = z.infer<typeof trueFalseViewSchema>;
 export type FlashcardView = z.infer<typeof flashcardViewSchema>;
 export type OrderingView = z.infer<typeof orderingViewSchema>;
+export type MatchingView = z.infer<typeof matchingViewSchema>;
 export type QuestionView = z.infer<typeof questionViewSchema>;
 
 // ============================================================================
@@ -118,16 +151,23 @@ export const orderingAnswerSchema = z.object({
   itemIds: z.array(z.string()),
 });
 
+export const matchingAnswerSchema = z.object({
+  type: z.literal(QuestionType.MATCHING),
+  matchedPairIds: z.array(z.string()),
+});
+
 export const answerSubmissionSchema = z.union([
   multipleChoiceAnswerSchema,
   trueFalseAnswerSchema,
   flashcardAnswerSchema,
   orderingAnswerSchema,
+  matchingAnswerSchema,
 ]);
 export type MultipleChoiceAnswer = z.infer<typeof multipleChoiceAnswerSchema>;
 export type TrueFalseAnswer = z.infer<typeof trueFalseAnswerSchema>;
 export type FlashcardAnswer = z.infer<typeof flashcardAnswerSchema>;
 export type OrderingAnswer = z.infer<typeof orderingAnswerSchema>;
+export type MatchingAnswer = z.infer<typeof matchingAnswerSchema>;
 export type AnswerSubmission = z.infer<typeof answerSubmissionSchema>;
 
 // ============================================================================

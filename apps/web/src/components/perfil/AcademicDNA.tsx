@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useMemo, useState, useEffect } from 'react';
-import { Dna, Sparkles } from 'lucide-react';
+import { Dna, Sparkles, ChevronRight } from 'lucide-react';
 import { trpc } from '../../utils/trpc';
+import { useImmersiveOverlay } from '../dashboard/ImmersiveOverlayContext';
 import { RadarChart } from './dna/RadarChart';
-import { AxisDetailPanel } from './dna/AxisDetailPanel';
 
 export function AcademicDNA() {
   const { data, isLoading } = trpc.profile.getAcademicDNA.useQuery();
+  const { open } = useImmersiveOverlay();
   const [selectedAxisId, setSelectedAxisId] = useState<string | null>(null);
 
   const axes = useMemo(
@@ -30,10 +31,14 @@ export function AcademicDNA() {
     setSelectedAxisId(weakAxis?.id ?? firstWithData?.id ?? data.axes[0]?.id ?? null);
   }, [data, selectedAxisId]);
 
-  const selectedAxis = useMemo(
-    () => data?.axes.find((a) => a.id === selectedAxisId) ?? null,
-    [data, selectedAxisId]
-  );
+  const handleOpenOverlay = (axisId?: string) => {
+    if (axisId) {
+      setSelectedAxisId(axisId);
+      open('academicDna', { axisId });
+    } else {
+      open('academicDna');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -78,16 +83,26 @@ export function AcademicDNA() {
   return (
     <div className="bg-white rounded-2xl border-2 border-slate-200 border-b-[4px] border-b-slate-300 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-3 px-5 pt-5 pb-2">
-        <div className="w-10 h-10 rounded-xl bg-duo-purple/15 flex items-center justify-center shrink-0">
-          <Dna size={22} className="text-duo-purple" strokeWidth={2.5} />
+      <div className="flex items-center justify-between gap-3 px-5 pt-5 pb-2">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-duo-purple/15 flex items-center justify-center shrink-0">
+            <Dna size={22} className="text-duo-purple" strokeWidth={2.5} />
+          </div>
+          <div>
+            <h3 className="font-black text-[18px] text-slate-800 leading-tight">
+              Tu ADN Académico
+            </h3>
+            <p className="text-[12px] font-bold text-slate-400">Estadísticas globales</p>
+          </div>
         </div>
-        <div>
-          <h3 className="font-black text-[18px] text-slate-800 leading-tight">
-            Tu ADN Académico
-          </h3>
-          <p className="text-[12px] font-bold text-slate-400">Estadísticas globales</p>
-        </div>
+
+        <button
+          onClick={() => handleOpenOverlay()}
+          className="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-surface-100 text-duo-dark hover:bg-surface-200 active:scale-95 transition-colors"
+          aria-label="Ver detalle completo del ADN"
+        >
+          <ChevronRight size={24} strokeWidth={3} />
+        </button>
       </div>
 
       {/* Radar chart */}
@@ -95,13 +110,13 @@ export function AcademicDNA() {
         <RadarChart
           axes={axes}
           selectedAxisId={selectedAxisId}
-          onSelectAxis={setSelectedAxisId}
+          onSelectAxis={(id) => handleOpenOverlay(id)}
           size={320}
         />
       </div>
 
       {/* Insight pills */}
-      <div className="px-5 pb-4">
+      <div className="px-5 pb-5">
         <div className="flex flex-wrap gap-2 justify-center">
           {data.strongAxisId && (
             <span className="inline-flex items-center gap-1.5 bg-success-50 text-success-600 border border-success-100 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider">
@@ -114,15 +129,6 @@ export function AcademicDNA() {
             </span>
           )}
         </div>
-      </div>
-
-      {/* Detail panel */}
-      <div className="px-5 pb-5">
-        <AxisDetailPanel
-          axis={selectedAxis}
-          isStrong={selectedAxis?.id === data.strongAxisId}
-          isWeak={selectedAxis?.id === data.weakAxisId}
-        />
       </div>
     </div>
   );
