@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Mail, Lock, ChevronRight, Loader2 } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ChevronRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { ChunkyButton } from '../../../components/ui/ChunkyButton';
 import { trpc } from '../../../utils/trpc';
@@ -17,6 +17,7 @@ function LoginContent() {
   const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
   const [isLoadingEmail, setIsLoadingEmail] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Efecto para verificar si volvemos desde Google OAuth en Nest
   useEffect(() => {
@@ -119,11 +120,19 @@ function LoginContent() {
               />
               <input
                 name="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 required
-                className="w-full bg-slate-50 border-2 border-slate-200 text-slate-700 font-bold focus:bg-white focus:border-blue-500 focus:outline-none transition-all rounded-2xl h-14 sm:h-16 pl-11 sm:pl-14 text-sm sm:text-base"
+                className="w-full bg-slate-50 border-2 border-slate-200 text-slate-700 font-bold focus:bg-white focus:border-blue-500 focus:outline-none transition-all rounded-2xl h-14 sm:h-16 pl-11 sm:pl-14 pr-11 sm:pr-14 text-sm sm:text-base"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors"
+                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
             </div>
           </div>
 
