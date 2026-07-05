@@ -407,17 +407,9 @@ export function TopicList({
                   <Icon size={32} strokeWidth={2.5} />
                 );
 
-                const nodeContent = (
-                  <MapNode
-                    status={act.state}
-                    currentColor={act.color ?? 'warning'}
-                    icon={RenderedIcon}
-                  />
-                );
-
                 const isLoadingNode =
                   spendEnergy.isPending &&
-                  pendingNode?.topicId === unidad.id &&
+                  pendingNode?.topicId === String(unidad.id) &&
                   pendingNode?.nodeIndex === actIndex;
 
                 return (
@@ -427,21 +419,18 @@ export function TopicList({
                     className="absolute transform -translate-x-1/2 -translate-y-1/2"
                     style={{ left: pos.x, top: pos.y, zIndex: 10 }}
                   >
-                    {isLocked ? (
-                      nodeContent
-                    ) : (
-                      <button
-                        onClick={() =>
-                          startNode(String(unidad.id), actIndex, act.nodeSize ?? 7)
-                        }
-                        disabled={isLoadingNode}
-                        className={`block relative ${
-                          isLoadingNode ? 'opacity-60 cursor-wait' : ''
-                        }`}
-                      >
-                        {nodeContent}
-                      </button>
-                    )}
+                    <MapNode
+                      status={act.state}
+                      currentColor={act.color ?? 'warning'}
+                      icon={RenderedIcon}
+                      disabled={isLocked || isLoadingNode}
+                      onClick={
+                        isLocked
+                          ? undefined
+                          : () => startNode(String(unidad.id), actIndex, act.nodeSize ?? 7)
+                      }
+                      className={isLoadingNode ? 'opacity-60 cursor-wait' : ''}
+                    />
                   </div>
                 );
               })}

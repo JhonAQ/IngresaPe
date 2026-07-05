@@ -21,24 +21,11 @@ export class GameService {
    * Lógica central de validación y guardado de respuesta
    */
   async submitAnswer({ userId, questionId, answer }: SubmitAnswerInput) {
-    // 1. Validar Usuario y Energía
+    // 1. Validar Usuario
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
 
     if (!user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Usuario no encontrado' });
-    }
-
-    // 1.5 Recargar energía antes de validar (si ha pasado tiempo)
-    const { energy: refilledEnergy, lastRefill: newLastRefill } = this.refillEnergy(
-      user.energy,
-      user.lastRefill
-    );
-
-    if (!user.isPremium && refilledEnergy <= 0) {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: '¡Sin energía! ⚡ Espera a que se recargue o hazte Premium.',
-      });
+      throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Usuario no encontrado' });
     }
 
     // 2. Obtener Pregunta
@@ -56,8 +43,7 @@ export class GameService {
 
     // 4. Calcular Recompensas
     const rewards = this.grader.computeRewards(question.difficulty, isCorrect);
-    const { xp: xpEarned } = rewards;
-    const energyCost = user.isPremium ? 0 : 1;
+    const { xp: xpEarned, coins: coinsEarned } = rewards;
 
     // 5. Calcular Nueva Racha (Streak)
     const { newStreak, shouldUpdateDate } = this.calculateNewStreak(
@@ -67,15 +53,14 @@ export class GameService {
 
     // 6. Transacción Atómica: Guardar Intento y Actualizar User
     return await this.prisma.$transaction(async (tx) => {
-      // A. Actualizar Stats del Usuario (Ahora con Streak y recarga de energía)
+      // A. Actualizar Stats del Usuario (XP, monedas y racha)
       const updatedUser = await tx.user.update({
         where: { id: userId },
         data: {
-          energy: { set: Math.max(0, refilledEnergy - energyCost) },
           totalXp: { increment: xpEarned },
+          coins: { increment: coinsEarned },
           streak: newStreak,
           lastInteraction: shouldUpdateDate ? new Date() : undefined,
-          lastRefill: newLastRefill,
         },
       });
 
@@ -104,33 +89,6 @@ export class GameService {
         },
       };
     });
-  }
-
-  /**
-   * ⚡ Algoritmo de Recarga de Energía
-   * Regenera +1 de energía por cada 30 minutos transcurridos desde lastRefill,
-   * hasta un máximo de 25.
-   */
-  private refillEnergy(currentEnergy: number, lastRefill: Date) {
-    const MAX_ENERGY = 25;
-    const REFILL_INTERVAL_MINUTES = 30;
-
-    const now = new Date();
-    const last = new Date(lastRefill);
-    const minutesSinceRefill = Math.floor(
-      (now.getTime() - last.getTime()) / (1000 * 60)
-    );
-
-    const energyToAdd = Math.floor(minutesSinceRefill / REFILL_INTERVAL_MINUTES);
-
-    if (energyToAdd <= 0 || currentEnergy >= MAX_ENERGY) {
-      return { energy: currentEnergy, lastRefill: last };
-    }
-
-    return {
-      energy: Math.min(MAX_ENERGY, currentEnergy + energyToAdd),
-      lastRefill: now,
-    };
   }
 
   /**

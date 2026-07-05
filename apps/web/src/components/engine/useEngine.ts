@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { trpc } from '../../utils/trpc';
 import type { AnswerSubmission, QuestionDto } from '@ingresa-pe/domain';
 
-export type EngineStatus = 'loading' | 'idle' | 'submitting' | 'feedback' | 'completed' | 'error';
+export type EngineStatus = 'loading' | 'idle' | 'submitting' | 'feedback' | 'completed' | 'failed' | 'error';
 
 export interface FeedbackState {
   isCorrect: boolean;
@@ -72,7 +72,6 @@ export function useEngine(
     },
     onError: (err) => {
       // No bloqueamos la UI; solo registramos el error.
-      // eslint-disable-next-line no-console
       console.error('Error completando nodo:', err.message);
     },
   });
@@ -139,6 +138,12 @@ export function useEngine(
     setAnswerState(null);
     setFeedback(null);
 
+    // Si se agotaron las vidas del nodo, se marca como no pasado.
+    if (lives <= 0) {
+      setStatus('failed');
+      return;
+    }
+
     if (currentIndex < questions.length - 1) {
       setCurrentIndex((prev) => prev + 1);
       setStatus('idle');
@@ -148,7 +153,7 @@ export function useEngine(
         completeNode.mutate({ topicId, nodeIndex });
       }
     }
-  }, [currentIndex, questions.length, topicId, nodeIndex, completeNode]);
+  }, [currentIndex, lives, questions.length, topicId, nodeIndex, completeNode]);
 
   const handleClose = useCallback(() => {
     onClose?.();
