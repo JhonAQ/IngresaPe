@@ -107,9 +107,30 @@ export class AdminRouter {
               message: 'TRUE_FALSE_SWIPE debe tener isTrue (legacy) o category + correctSide (arcade)',
             });
           }
-        }
+          } else if (content.type === QuestionType.FILL_IN_BLANK) {
+            const slotCount = (content.sentence.match(/\[slot\]/g) ?? []).length;
+            const bankIds = new Set(content.bank.map((w) => w.id));
+            const hasDuplicates = bankIds.size !== content.bank.length;
+            const correctInBank = content.correctWordIds.every((id) => bankIds.has(id));
+            const correctUnique =
+              new Set(content.correctWordIds).size === content.correctWordIds.length;
 
-        const topic = await this.prisma.topic.findUnique({
+            if (
+              slotCount < 1 ||
+              slotCount !== content.correctWordIds.length ||
+              !correctInBank ||
+              !correctUnique ||
+              hasDuplicates
+            ) {
+              throw new TRPCError({
+                code: 'BAD_REQUEST',
+                message:
+                  'FILL_IN_BLANK requiere al menos un [slot], correctWordIds que existan en el banco, sin duplicados, y coincidan con la cantidad de slots',
+              });
+            }
+          }
+
+          const topic = await this.prisma.topic.findUnique({
           where: { id: input.topicId },
         });
 

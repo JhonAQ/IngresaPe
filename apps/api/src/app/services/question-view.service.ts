@@ -72,6 +72,13 @@ export class QuestionViewService {
           pairs: content.pairs,
         };
 
+      case QuestionType.FILL_IN_BLANK:
+        return {
+          type: QuestionType.FILL_IN_BLANK,
+          sentence: content.sentence,
+          bank: content.bank,
+        };
+
       default:
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',

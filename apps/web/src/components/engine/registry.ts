@@ -13,12 +13,15 @@ import {
   type OrderingAnswer,
   type MatchingView,
   type MatchingAnswer,
+  type FillInBlankView,
+  type FillInBlankAnswer,
 } from '@ingresa-pe/domain';
 import { MultipleChoiceRenderer } from './renderers/MultipleChoiceRenderer';
 import { TrueFalseSwipeRenderer } from './renderers/TrueFalseSwipeRenderer';
 import { FlashcardRenderer } from './renderers/FlashcardRenderer';
 import { OrderingRenderer } from './renderers/OrderingRenderer';
 import { MatchingRenderer } from './renderers/MatchingRenderer';
+import { FillInBlankRenderer } from './renderers/FillInBlankRenderer';
 import type { FeedbackState } from './useEngine';
 
 /**
@@ -46,6 +49,7 @@ type RendererMap = {
   [QuestionType.FLASHCARD]: ComponentType<RendererProps<FlashcardView, FlashcardAnswer>>;
   [QuestionType.ORDERING]: ComponentType<RendererProps<OrderingView, OrderingAnswer>>;
   [QuestionType.MATCHING]: ComponentType<RendererProps<MatchingView, MatchingAnswer>>;
+  [QuestionType.FILL_IN_BLANK]: ComponentType<RendererProps<FillInBlankView, FillInBlankAnswer>>;
 };
 
 export const questionRendererRegistry: RendererMap = {
@@ -54,6 +58,7 @@ export const questionRendererRegistry: RendererMap = {
   [QuestionType.FLASHCARD]: FlashcardRenderer,
   [QuestionType.ORDERING]: OrderingRenderer,
   [QuestionType.MATCHING]: MatchingRenderer,
+  [QuestionType.FILL_IN_BLANK]: FillInBlankRenderer,
 };
 
 /**

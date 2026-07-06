@@ -221,6 +221,19 @@ async function main() {
     };
   }
 
+  function buildFillInBlankContent(
+    sentence: string,
+    bank: { id: string; text: string }[],
+    correctWordIds: string[]
+  ) {
+    return {
+      type: QuestionType.FILL_IN_BLANK,
+      sentence,
+      bank,
+      correctWordIds,
+    };
+  }
+
   function generarTrueFalsePlaceholder(temaNombre: string) {
     const opciones = [
       {
@@ -237,6 +250,20 @@ async function main() {
       },
     ];
     return opciones[temaNombre.length % opciones.length];
+  }
+
+  function generarFillInBlankPlaceholder(temaNombre: string) {
+    return {
+      statement: 'Completa la oración con las palabras correctas del banco.',
+      sentence: `El estudio de [slot] permite comprender las [slot] en el tema de ${temaNombre}.`,
+      bank: [
+        { id: 'f-a', text: 'conceptos' },
+        { id: 'f-b', text: 'relaciones' },
+        { id: 'f-c', text: 'fórmulas' },
+        { id: 'f-d', text: 'ejemplos' },
+      ],
+      correctWordIds: ['f-a', 'f-b'],
+    };
   }
 
   // Función helper para crear cursos con temas y preguntas
@@ -322,6 +349,21 @@ async function main() {
             'Verdadero'
           ),
           explanation: tfPlaceholder.explanation,
+        },
+      });
+
+      const fibPlaceholder = generarFillInBlankPlaceholder(tema.nombre);
+      await prisma.question.create({
+        data: {
+          topicId: topicCreated.id,
+          difficulty: Difficulty.MEDIUM,
+          statement: fibPlaceholder.statement,
+          type: QuestionType.FILL_IN_BLANK,
+          content: buildFillInBlankContent(
+            fibPlaceholder.sentence,
+            fibPlaceholder.bank,
+            fibPlaceholder.correctWordIds
+          ),
         },
       });
     }

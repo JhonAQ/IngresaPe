@@ -298,6 +298,14 @@ export class ContentRouter {
       [QuestionType.MATCHING]
     );
 
+    // Garantizar al menos una pregunta FILL_IN_BLANK por nodo cuando haya disponibles.
+    await this.ensureTypePresent(
+      deliveredIds,
+      topicId,
+      QuestionType.FILL_IN_BLANK,
+      [QuestionType.MATCHING, QuestionType.TRUE_FALSE_SWIPE]
+    );
+
     return deliveredIds;
   }
 

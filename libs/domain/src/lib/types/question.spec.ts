@@ -148,3 +148,73 @@ describe('true_false_swipe schemas', () => {
     expect(result.success).toBe(false);
   });
 });
+
+describe('fill_in_blank schemas', () => {
+  const validContent = {
+    type: QuestionType.FILL_IN_BLANK,
+    sentence: 'La [slot] es la organela de la [slot].',
+    bank: [
+      { id: 'w1', text: 'Mitocondria' },
+      { id: 'w2', text: 'respiración' },
+      { id: 'w3', text: 'digestión' },
+    ],
+    correctWordIds: ['w1', 'w2'],
+  };
+
+  it('acepta contenido válido', () => {
+    const result = questionContentSchema.safeParse(validContent);
+    expect(result.success).toBe(true);
+  });
+
+  it('acepta vista válida', () => {
+    const result = questionViewSchema.safeParse({
+      type: QuestionType.FILL_IN_BLANK,
+      sentence: validContent.sentence,
+      bank: validContent.bank,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('acepta respuesta válida', () => {
+    const result = answerSubmissionSchema.safeParse({
+      type: QuestionType.FILL_IN_BLANK,
+      selectedWordIds: ['w1', 'w2'],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rechaza cuando [slot] no coincide con correctWordIds', () => {
+    const result = questionContentSchema.safeParse({
+      ...validContent,
+      correctWordIds: ['w1'],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rechaza cuando un correctWordIds no está en el banco', () => {
+    const result = questionContentSchema.safeParse({
+      ...validContent,
+      correctWordIds: ['w1', 'w4'],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rechaza ids duplicados en el banco', () => {
+    const result = questionContentSchema.safeParse({
+      ...validContent,
+      bank: [
+        { id: 'w1', text: 'A' },
+        { id: 'w1', text: 'B' },
+      ],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rechaza respuesta con palabras repetidas', () => {
+    const result = answerSubmissionSchema.safeParse({
+      type: QuestionType.FILL_IN_BLANK,
+      selectedWordIds: ['w1', 'w1'],
+    });
+    expect(result.success).toBe(false);
+  });
+});

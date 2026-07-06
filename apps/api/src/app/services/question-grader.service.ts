@@ -16,6 +16,8 @@ import {
   OrderingAnswer,
   MatchingContent,
   MatchingAnswer,
+  FillInBlankContent,
+  FillInBlankAnswer,
 } from '@ingresa-pe/domain';
 import { Difficulty, Question } from '@prisma/client';
 
@@ -61,6 +63,11 @@ export class QuestionGraderService {
         return this.gradeMatching(
           content as MatchingContent,
           answer as MatchingAnswer
+        );
+      case QuestionType.FILL_IN_BLANK:
+        return this.gradeFillInBlank(
+          content as FillInBlankContent,
+          answer as FillInBlankAnswer
         );
       default:
         throw new TRPCError({
@@ -213,6 +220,36 @@ export class QuestionGraderService {
     const correctAnswerText = content.pairs
       .map((p) => `${p.left} → ${p.right}`)
       .join(', ');
+
+    return {
+      isCorrect,
+      correctAnswerText,
+      explanation: null,
+    };
+  }
+
+  private gradeFillInBlank(
+    content: FillInBlankContent,
+    answer: FillInBlankAnswer
+  ): GradeResult {
+    const bankById = new Map(content.bank.map((w) => [w.id, w]));
+    const slotCount = (content.sentence.match(/\[slot\]/g) ?? []).length;
+    const selected = answer.selectedWordIds;
+
+    const isComplete =
+      selected.length === slotCount &&
+      new Set(selected).size === selected.length &&
+      selected.every((id) => bankById.has(id));
+
+    const isCorrect =
+      isComplete &&
+      content.correctWordIds.every((id, idx) => id === selected[idx]);
+
+    let i = 0;
+    const correctAnswerText = content.sentence.replace(/\[slot\]/g, () => {
+      const id = content.correctWordIds[i++];
+      return bankById.get(id)?.text ?? '___';
+    });
 
     return {
       isCorrect,

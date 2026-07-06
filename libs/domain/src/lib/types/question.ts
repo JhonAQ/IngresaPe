@@ -6,6 +6,7 @@ export const QuestionType = {
   FLASHCARD: 'FLASHCARD',
   ORDERING: 'ORDERING',
   MATCHING: 'MATCHING',
+  FILL_IN_BLANK: 'FILL_IN_BLANK',
 } as const;
 export type QuestionType = (typeof QuestionType)[keyof typeof QuestionType];
 
@@ -97,18 +98,66 @@ export const matchingContentSchema = z
     }
   );
 
+export const wordBankItemSchema = z.object({
+  id: z.string(),
+  text: z.string().min(1),
+});
+export type WordBankItem = z.infer<typeof wordBankItemSchema>;
+
+export const fillInBlankContentSchema = z
+  .object({
+    type: z.literal(QuestionType.FILL_IN_BLANK),
+    sentence: z.string().min(1),
+    bank: z.array(wordBankItemSchema).min(2),
+    correctWordIds: z.array(z.string()).min(1),
+  })
+  .refine(
+    (data) => {
+      const slotCount = (data.sentence.match(/\[slot\]/g) ?? []).length;
+      return slotCount >= 1 && slotCount === data.correctWordIds.length;
+    },
+    {
+      message:
+        'La cantidad de [slot] debe ser mayor a 0 y coincidir con correctWordIds',
+    }
+  )
+  .refine(
+    (data) => {
+      const bankIds = new Set(data.bank.map((w) => w.id));
+      return data.correctWordIds.every((id) => bankIds.has(id));
+    },
+    {
+      message: 'Cada correctWordIds debe existir en el banco',
+    }
+  )
+  .refine(
+    (data) => new Set(data.bank.map((w) => w.id)).size === data.bank.length,
+    {
+      message: 'Los ids del banco deben ser únicos',
+    }
+  )
+  .refine(
+    (data) =>
+      new Set(data.correctWordIds).size === data.correctWordIds.length,
+    {
+      message: 'Los correctWordIds deben ser únicos',
+    }
+  );
+
 export const questionContentSchema = z.union([
   multipleChoiceContentSchema,
   trueFalseContentSchema,
   flashcardContentSchema,
   orderingContentSchema,
   matchingContentSchema,
+  fillInBlankContentSchema,
 ]);
 export type MultipleChoiceContent = z.infer<typeof multipleChoiceContentSchema>;
 export type TrueFalseContent = z.infer<typeof trueFalseContentSchema>;
 export type FlashcardContent = z.infer<typeof flashcardContentSchema>;
 export type OrderingContent = z.infer<typeof orderingContentSchema>;
 export type MatchingContent = z.infer<typeof matchingContentSchema>;
+export type FillInBlankContent = z.infer<typeof fillInBlankContentSchema>;
 export type QuestionContent = z.infer<typeof questionContentSchema>;
 
 // ============================================================================
@@ -154,18 +203,26 @@ export const matchingViewSchema = z.object({
     .max(6),
 });
 
+export const fillInBlankViewSchema = z.object({
+  type: z.literal(QuestionType.FILL_IN_BLANK),
+  sentence: z.string().min(1),
+  bank: z.array(wordBankItemSchema).min(2),
+});
+
 export const questionViewSchema = z.union([
   multipleChoiceViewSchema,
   trueFalseViewSchema,
   flashcardViewSchema,
   orderingViewSchema,
   matchingViewSchema,
+  fillInBlankViewSchema,
 ]);
 export type MultipleChoiceView = z.infer<typeof multipleChoiceViewSchema>;
 export type TrueFalseView = z.infer<typeof trueFalseViewSchema>;
 export type FlashcardView = z.infer<typeof flashcardViewSchema>;
 export type OrderingView = z.infer<typeof orderingViewSchema>;
 export type MatchingView = z.infer<typeof matchingViewSchema>;
+export type FillInBlankView = z.infer<typeof fillInBlankViewSchema>;
 export type QuestionView = z.infer<typeof questionViewSchema>;
 
 // ============================================================================
@@ -211,18 +268,32 @@ export const matchingAnswerSchema = z.object({
   matchedPairIds: z.array(z.string()),
 });
 
+export const fillInBlankAnswerSchema = z
+  .object({
+    type: z.literal(QuestionType.FILL_IN_BLANK),
+    selectedWordIds: z.array(z.string()).min(1),
+  })
+  .refine(
+    (data) => new Set(data.selectedWordIds).size === data.selectedWordIds.length,
+    {
+      message: 'No se puede usar la misma palabra en dos slots',
+    }
+  );
+
 export const answerSubmissionSchema = z.union([
   multipleChoiceAnswerSchema,
   trueFalseAnswerSchema,
   flashcardAnswerSchema,
   orderingAnswerSchema,
   matchingAnswerSchema,
+  fillInBlankAnswerSchema,
 ]);
 export type MultipleChoiceAnswer = z.infer<typeof multipleChoiceAnswerSchema>;
 export type TrueFalseAnswer = z.infer<typeof trueFalseAnswerSchema>;
 export type FlashcardAnswer = z.infer<typeof flashcardAnswerSchema>;
 export type OrderingAnswer = z.infer<typeof orderingAnswerSchema>;
 export type MatchingAnswer = z.infer<typeof matchingAnswerSchema>;
+export type FillInBlankAnswer = z.infer<typeof fillInBlankAnswerSchema>;
 export type AnswerSubmission = z.infer<typeof answerSubmissionSchema>;
 
 // ============================================================================

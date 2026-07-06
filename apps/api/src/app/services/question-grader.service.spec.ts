@@ -219,6 +219,54 @@ describe('QuestionGraderService', () => {
     });
   });
 
+  describe('FILL_IN_BLANK', () => {
+    const question = makeQuestion({
+      type: QuestionType.FILL_IN_BLANK,
+      sentence: 'La [slot] es la organela de la [slot].',
+      bank: [
+        { id: 'w1', text: 'Mitocondria' },
+        { id: 'w2', text: 'respiración' },
+        { id: 'w3', text: 'digestión' },
+      ],
+      correctWordIds: ['w1', 'w2'],
+    });
+
+    it('acepta respuesta correcta en orden', () => {
+      const result = grader.grade(question, {
+        type: QuestionType.FILL_IN_BLANK,
+        selectedWordIds: ['w1', 'w2'],
+      });
+      expect(result.isCorrect).toBe(true);
+      expect(result.correctAnswerText).toBe(
+        'La Mitocondria es la organela de la respiración.'
+      );
+    });
+
+    it('rechaza orden incorrecto', () => {
+      const result = grader.grade(question, {
+        type: QuestionType.FILL_IN_BLANK,
+        selectedWordIds: ['w2', 'w1'],
+      });
+      expect(result.isCorrect).toBe(false);
+    });
+
+    it('rechaza respuesta incompleta', () => {
+      const result = grader.grade(question, {
+        type: QuestionType.FILL_IN_BLANK,
+        selectedWordIds: ['w1'],
+      });
+      expect(result.isCorrect).toBe(false);
+    });
+
+    it('rechaza palabra fuera del banco', () => {
+      const result = grader.grade(question, {
+        type: QuestionType.FILL_IN_BLANK,
+        selectedWordIds: ['w1', 'w4'],
+      });
+      expect(result.isCorrect).toBe(false);
+    });
+  });
+
   describe('computeRewards', () => {
     it('devuelve recompensas por dificultad cuando acierta', () => {
       expect(grader.computeRewards(Difficulty.EASY, true)).toEqual({ xp: 10, coins: 5 });

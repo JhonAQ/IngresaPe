@@ -41,6 +41,7 @@ enum QuestionType {
   FLASHCARD
   ORDERING
   MATCHING
+  FILL_IN_BLANK
 }
 
 // Planes de suscripción (Modelo de Negocio)

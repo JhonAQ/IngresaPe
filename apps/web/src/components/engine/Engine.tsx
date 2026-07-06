@@ -9,7 +9,7 @@ import { getQuestionRenderer } from './registry';
 import { EngineHeader, FeedbackDrawer, DinoMaxModal, ExitConfirmModal } from './SharedEngineUI';
 import { LatexText } from '../ui/LatexText';
 import { EngineSkeleton } from '../ui/skeleton';
-import type { MatchingView } from '@ingresa-pe/domain';
+import type { MatchingView, FillInBlankView } from '@ingresa-pe/domain';
 import type { ComponentType } from 'react';
 
 export function Engine() {
@@ -58,6 +58,10 @@ export function Engine() {
     : 0;
 
   const isTrueFalseSwipe = currentQuestion?.type === 'TRUE_FALSE_SWIPE';
+  const isFillInBlank = currentQuestion?.type === 'FILL_IN_BLANK';
+  const fillBlankSlotCount = isFillInBlank
+    ? ((currentQuestion.content as FillInBlankView).sentence.match(/\[slot\]/g) ?? []).length
+    : 0;
 
   useEffect(() => {
     if (status !== 'idle') return;
@@ -134,7 +138,13 @@ export function Engine() {
   }
 
   const Renderer = getQuestionRenderer(currentQuestion.type) as ComponentType<any>;
-  const isCheckDisabled = !answer || status === 'submitting';
+
+  const isAnswerComplete =
+    !!answer &&
+    (answer.type !== 'FILL_IN_BLANK' ||
+      answer.selectedWordIds.length === fillBlankSlotCount);
+
+  const isCheckDisabled = !isAnswerComplete || status === 'submitting';
 
   return (
     <div className="w-full max-w-md mx-auto relative bg-[#ffffff] h-[100dvh] flex flex-col font-sans border-x border-[#e5e5e5] overflow-hidden">
