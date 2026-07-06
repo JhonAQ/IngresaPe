@@ -16,7 +16,7 @@ function addJsExtensions(dir) {
 
       // Añadir .js a imports relativos que no tengan extensión
       content = content.replace(
-        /from\s+['"](\.[\/][^'"]+?)['"]/g,
+        /from\s+['"](\.\/[^'"]+?)['"]/g,
         (match, importPath) => {
           // Si ya tiene extensión, no modificar
           if (importPath.endsWith('.js') || importPath.endsWith('.json')) {

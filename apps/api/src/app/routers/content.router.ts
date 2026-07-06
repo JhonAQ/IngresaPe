@@ -284,25 +284,73 @@ export class ContentRouter {
     if (deliveredIds.length === 0) return [];
 
     // Garantizar al menos una pregunta MATCHING por nodo cuando haya disponibles.
-    const hasMatching = await this.prisma.question.count({
-      where: { id: { in: deliveredIds }, type: QuestionType.MATCHING },
+    await this.ensureTypePresent(
+      deliveredIds,
+      topicId,
+      userId,
+      QuestionType.MATCHING
+    );
+
+    // Garantizar al menos una pregunta TRUE_FALSE_SWIPE por nodo cuando haya disponibles.
+    await this.ensureTypePresent(
+      deliveredIds,
+      topicId,
+      userId,
+      QuestionType.TRUE_FALSE_SWIPE,
+      [QuestionType.MATCHING]
+    );
+
+    return deliveredIds;
+  }
+
+  private async ensureTypePresent(
+    deliveredIds: string[],
+    topicId: string,
+    userId: string,
+    type: QuestionType,
+    protectedTypes: QuestionType[] = []
+  ): Promise<void> {
+    const hasType = await this.prisma.question.count({
+      where: { id: { in: deliveredIds }, type },
     });
-    if (hasMatching === 0) {
-      const matching = await this.prisma.question.findFirst({
-        where: {
-          topicId,
-          type: QuestionType.MATCHING,
-          id: { notIn: deliveredIds },
-          answers: { none: { userId } },
-        },
-        orderBy: { id: 'asc' },
-        select: { id: true },
-      });
-      if (matching) {
-        deliveredIds[deliveredIds.length - 1] = matching.id;
+    if (hasType > 0) return;
+
+    const candidate = await this.prisma.question.findFirst({
+      where: {
+        topicId,
+        type,
+        id: { notIn: deliveredIds },
+        answers: { none: { userId } },
+      },
+      orderBy: { id: 'asc' },
+      select: { id: true },
+    });
+
+    if (!candidate) return;
+
+    const currentQuestions = await this.prisma.question.findMany({
+      where: { id: { in: deliveredIds } },
+      select: { id: true, type: true },
+    });
+    const typeById = new Map(currentQuestions.map((q) => [q.id, q.type]));
+
+    let replaceIndex = -1;
+    for (let i = deliveredIds.length - 1; i >= 0; i--) {
+      const currentType = typeById.get(deliveredIds[i]);
+      if (
+        currentType &&
+        currentType !== type &&
+        !protectedTypes.includes(currentType)
+      ) {
+        replaceIndex = i;
+        break;
       }
     }
 
-    return deliveredIds;
+    if (replaceIndex === -1) {
+      replaceIndex = deliveredIds.length - 1;
+    }
+
+    deliveredIds[replaceIndex] = candidate.id;
   }
 }

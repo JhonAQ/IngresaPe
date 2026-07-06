@@ -59,14 +59,14 @@ describe('QuestionGraderService', () => {
   });
 
   describe('TRUE_FALSE_SWIPE', () => {
-    const question = makeQuestion({
-      type: QuestionType.TRUE_FALSE_SWIPE,
-      isTrue: true,
-      trueLabel: 'Verdadero',
-      falseLabel: 'Falso',
-    });
+    it('modo legacy: acepta respuesta verdadera cuando es correcta', () => {
+      const question = makeQuestion({
+        type: QuestionType.TRUE_FALSE_SWIPE,
+        isTrue: true,
+        trueLabel: 'Verdadero',
+        falseLabel: 'Falso',
+      });
 
-    it('acepta respuesta verdadera cuando es correcta', () => {
       const result = grader.grade(question, {
         type: QuestionType.TRUE_FALSE_SWIPE,
         isTrue: true,
@@ -75,10 +75,55 @@ describe('QuestionGraderService', () => {
       expect(result.correctAnswerText).toBe('Verdadero');
     });
 
-    it('rechaza respuesta falsa cuando es verdadera', () => {
+    it('modo legacy: rechaza respuesta falsa cuando es verdadera', () => {
+      const question = makeQuestion({
+        type: QuestionType.TRUE_FALSE_SWIPE,
+        isTrue: true,
+        trueLabel: 'Verdadero',
+        falseLabel: 'Falso',
+      });
+
       const result = grader.grade(question, {
         type: QuestionType.TRUE_FALSE_SWIPE,
         isTrue: false,
+      });
+      expect(result.isCorrect).toBe(false);
+      expect(result.correctAnswerText).toBe('Verdadero');
+    });
+
+    it('modo arcade: acepta lado correcto', () => {
+      const question = makeQuestion({
+        type: QuestionType.TRUE_FALSE_SWIPE,
+        category: {
+          left: { label: 'Falso', color: '#ff4b4b', darkColor: '#df2b2b' },
+          right: { label: 'Verdadero', color: '#58cc02', darkColor: '#58a700' },
+        },
+        correctSide: 'right',
+        cardText: 'La Tierra es redonda.',
+      });
+
+      const result = grader.grade(question, {
+        type: QuestionType.TRUE_FALSE_SWIPE,
+        side: 'right',
+      });
+      expect(result.isCorrect).toBe(true);
+      expect(result.correctAnswerText).toBe('Verdadero');
+    });
+
+    it('modo arcade: rechaza lado incorrecto', () => {
+      const question = makeQuestion({
+        type: QuestionType.TRUE_FALSE_SWIPE,
+        category: {
+          left: { label: 'Falso', color: '#ff4b4b', darkColor: '#df2b2b' },
+          right: { label: 'Verdadero', color: '#58cc02', darkColor: '#58a700' },
+        },
+        correctSide: 'right',
+        cardText: 'La Tierra es redonda.',
+      });
+
+      const result = grader.grade(question, {
+        type: QuestionType.TRUE_FALSE_SWIPE,
+        side: 'left',
       });
       expect(result.isCorrect).toBe(false);
       expect(result.correctAnswerText).toBe('Verdadero');

@@ -27,12 +27,42 @@ export const multipleChoiceContentSchema = z.object({
     .max(5),
 });
 
-export const trueFalseContentSchema = z.object({
-  type: z.literal(QuestionType.TRUE_FALSE_SWIPE),
-  isTrue: z.boolean(),
-  trueLabel: z.string().optional(),
-  falseLabel: z.string().optional(),
+export const swipeCategorySchema = z.object({
+  label: z.string().min(1),
+  color: z.string().min(1),
+  darkColor: z.string().min(1),
 });
+
+export type SwipeCategory = z.infer<typeof swipeCategorySchema>;
+
+/**
+ * TRUE_FALSE_SWIPE soporta dos formatos:
+ * - Legacy: { isTrue, trueLabel?, falseLabel? }
+ * - Arcade (Motor Swipe): { category: { left, right }, correctSide, cardText? }
+ */
+export const trueFalseContentSchema = z
+  .object({
+    type: z.literal(QuestionType.TRUE_FALSE_SWIPE),
+    // Legacy
+    isTrue: z.boolean().optional(),
+    trueLabel: z.string().optional(),
+    falseLabel: z.string().optional(),
+    // Arcade
+    category: z.object({ left: swipeCategorySchema, right: swipeCategorySchema }).optional(),
+    correctSide: z.enum(['left', 'right']).optional(),
+    cardText: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      const isLegacy = typeof data.isTrue === 'boolean';
+      const isModern = data.category !== undefined && data.correctSide !== undefined;
+      return (isLegacy && !isModern) || (!isLegacy && isModern);
+    },
+    {
+      message:
+        'TRUE_FALSE_SWIPE debe usar o bien {isTrue} (legacy) o bien {category, correctSide} (arcade); no ambos ni faltar ambos.',
+    }
+  );
 
 export const flashcardContentSchema = z.object({
   type: z.literal(QuestionType.FLASHCARD),
@@ -92,8 +122,12 @@ export const multipleChoiceViewSchema = z.object({
 
 export const trueFalseViewSchema = z.object({
   type: z.literal(QuestionType.TRUE_FALSE_SWIPE),
+  // Legacy
   trueLabel: z.string().optional(),
   falseLabel: z.string().optional(),
+  // Arcade
+  category: z.object({ left: swipeCategorySchema, right: swipeCategorySchema }).optional(),
+  cardText: z.string().optional(),
 });
 
 export const flashcardViewSchema = z.object({
@@ -143,10 +177,24 @@ export const multipleChoiceAnswerSchema = z.object({
   selectedOptionId: z.string(),
 });
 
-export const trueFalseAnswerSchema = z.object({
-  type: z.literal(QuestionType.TRUE_FALSE_SWIPE),
-  isTrue: z.boolean(),
-});
+export const trueFalseAnswerSchema = z
+  .object({
+    type: z.literal(QuestionType.TRUE_FALSE_SWIPE),
+    // Legacy
+    isTrue: z.boolean().optional(),
+    // Arcade
+    side: z.enum(['left', 'right']).optional(),
+  })
+  .refine(
+    (data) => {
+      const hasIsTrue = typeof data.isTrue === 'boolean';
+      const hasSide = data.side !== undefined;
+      return (hasIsTrue && !hasSide) || (!hasIsTrue && hasSide);
+    },
+    {
+      message: 'Debe enviar isTrue (legacy) o side (arcade), no ambos ni ninguno.',
+    }
+  );
 
 export const flashcardAnswerSchema = z.object({
   type: z.literal(QuestionType.FLASHCARD),

@@ -204,6 +204,41 @@ async function main() {
     ];
   }
 
+  function buildTrueFalseContent(
+    correctSide: 'left' | 'right',
+    cardText: string,
+    leftLabel = 'Falso',
+    rightLabel = 'Verdadero'
+  ) {
+    return {
+      type: QuestionType.TRUE_FALSE_SWIPE,
+      category: {
+        left: { label: leftLabel, color: '#ff4b4b', darkColor: '#df2b2b' },
+        right: { label: rightLabel, color: '#58cc02', darkColor: '#58a700' },
+      },
+      correctSide,
+      cardText,
+    };
+  }
+
+  function generarTrueFalsePlaceholder(temaNombre: string) {
+    const opciones = [
+      {
+        statement: 'Clasifica la siguiente afirmación como verdadera o falsa.',
+        cardText: `El tema "${temaNombre}" no es evaluado en el examen de admisión UNSA.`,
+        correctSide: 'left' as const,
+        explanation: 'Todos los temas del plan de estudios pueden aparecer en el examen.',
+      },
+      {
+        statement: 'Desliza la tarjeta hacia la categoría correcta.',
+        cardText: `Es importante repasar "${temaNombre}" para el examen de admisión UNSA.`,
+        correctSide: 'right' as const,
+        explanation: 'Sí es un tema relevante para la preparación.',
+      },
+    ];
+    return opciones[temaNombre.length % opciones.length];
+  }
+
   // Función helper para crear cursos con temas y preguntas
   const DEFAULT_NODE_SIZE = 7;
 
@@ -272,6 +307,23 @@ async function main() {
           },
         });
       }
+
+      const tfPlaceholder = generarTrueFalsePlaceholder(tema.nombre);
+      await prisma.question.create({
+        data: {
+          topicId: topicCreated.id,
+          difficulty: Difficulty.MEDIUM,
+          statement: tfPlaceholder.statement,
+          type: QuestionType.TRUE_FALSE_SWIPE,
+          content: buildTrueFalseContent(
+            tfPlaceholder.correctSide,
+            tfPlaceholder.cardText,
+            'Falso',
+            'Verdadero'
+          ),
+          explanation: tfPlaceholder.explanation,
+        },
+      });
     }
   }
 

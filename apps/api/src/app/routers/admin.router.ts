@@ -84,6 +84,29 @@ export class AdminRouter {
               message: 'Las columnas izquierda y derecha no pueden estar vacías',
             });
           }
+        } else if (content.type === QuestionType.TRUE_FALSE_SWIPE) {
+          if (content.category) {
+            const { left, right } = content.category;
+            const categoryValid =
+              left.label.trim().length > 0 &&
+              left.color.trim().length > 0 &&
+              left.darkColor.trim().length > 0 &&
+              right.label.trim().length > 0 &&
+              right.color.trim().length > 0 &&
+              right.darkColor.trim().length > 0 &&
+              (content.correctSide === 'left' || content.correctSide === 'right');
+            if (!categoryValid) {
+              throw new TRPCError({
+                code: 'BAD_REQUEST',
+                message: 'TRUE_FALSE_SWIPE arcade requiere categorías izquierda/derecha válidas y un lado correcto',
+              });
+            }
+          } else if (typeof content.isTrue !== 'boolean') {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'TRUE_FALSE_SWIPE debe tener isTrue (legacy) o category + correctSide (arcade)',
+            });
+          }
         }
 
         const topic = await this.prisma.topic.findUnique({

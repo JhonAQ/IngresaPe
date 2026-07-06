@@ -41,6 +41,13 @@ export class QuestionViewService {
         };
 
       case QuestionType.TRUE_FALSE_SWIPE:
+        if (content.category) {
+          return {
+            type: QuestionType.TRUE_FALSE_SWIPE,
+            category: content.category,
+            cardText: content.cardText,
+          };
+        }
         return {
           type: QuestionType.TRUE_FALSE_SWIPE,
           trueLabel: content.trueLabel,

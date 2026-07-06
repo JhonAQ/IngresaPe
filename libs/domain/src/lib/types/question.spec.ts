@@ -62,3 +62,89 @@ describe('matching schemas', () => {
     expect(result.success).toBe(false);
   });
 });
+
+describe('true_false_swipe schemas', () => {
+  const legacyContent = {
+    type: QuestionType.TRUE_FALSE_SWIPE,
+    isTrue: true,
+    trueLabel: 'Verdadero',
+    falseLabel: 'Falso',
+  };
+
+  const modernContent = {
+    type: QuestionType.TRUE_FALSE_SWIPE,
+    category: {
+      left: { label: 'Falso', color: '#ff4b4b', darkColor: '#df2b2b' },
+      right: { label: 'Verdadero', color: '#58cc02', darkColor: '#58a700' },
+    },
+    correctSide: 'right',
+    cardText: 'La Tierra es plana.',
+  };
+
+  it('acepta contenido legacy válido', () => {
+    const result = questionContentSchema.safeParse(legacyContent);
+    expect(result.success).toBe(true);
+  });
+
+  it('acepta contenido arcade/moderno válido', () => {
+    const result = questionContentSchema.safeParse(modernContent);
+    expect(result.success).toBe(true);
+  });
+
+  it('acepta vista arcade válida', () => {
+    const result = questionViewSchema.safeParse({
+      type: QuestionType.TRUE_FALSE_SWIPE,
+      category: modernContent.category,
+      cardText: modernContent.cardText,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('acepta respuesta legacy válida', () => {
+    const result = answerSubmissionSchema.safeParse({
+      type: QuestionType.TRUE_FALSE_SWIPE,
+      isTrue: true,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('acepta respuesta arcade válida', () => {
+    const result = answerSubmissionSchema.safeParse({
+      type: QuestionType.TRUE_FALSE_SWIPE,
+      side: 'right',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rechaza contenido que mezcla legacy y arcade', () => {
+    const result = questionContentSchema.safeParse({
+      ...modernContent,
+      isTrue: true,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rechaza contenido arcade sin correctSide', () => {
+    const result = questionContentSchema.safeParse({
+      type: QuestionType.TRUE_FALSE_SWIPE,
+      category: modernContent.category,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rechaza respuesta sin isTrue ni side', () => {
+    const result = answerSubmissionSchema.safeParse({
+      type: QuestionType.TRUE_FALSE_SWIPE,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rechaza respuesta con ambos isTrue y side', () => {
+    const result = answerSubmissionSchema.safeParse({
+      type: QuestionType.TRUE_FALSE_SWIPE,
+      isTrue: true,
+      side: 'right',
+    });
+    expect(result.success).toBe(false);
+  });
+});

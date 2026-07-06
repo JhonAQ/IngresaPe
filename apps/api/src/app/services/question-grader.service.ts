@@ -140,13 +140,31 @@ export class QuestionGraderService {
     content: TrueFalseContent,
     answer: TrueFalseAnswer
   ): GradeResult {
-    return {
-      isCorrect: answer.isTrue === content.isTrue,
-      correctAnswerText: content.isTrue
-        ? content.trueLabel ?? 'Verdadero'
-        : content.falseLabel ?? 'Falso',
-      explanation: null,
-    };
+    // Modo arcade: categorías laterales (Motor Swipe)
+    if (content.category && content.correctSide) {
+      const isCorrect = answer.side === content.correctSide;
+      return {
+        isCorrect,
+        correctAnswerText: content.category[content.correctSide].label,
+        explanation: null,
+      };
+    }
+
+    // Modo legacy: isTrue
+    if (typeof content.isTrue === 'boolean') {
+      return {
+        isCorrect: answer.isTrue === content.isTrue,
+        correctAnswerText: content.isTrue
+          ? content.trueLabel ?? 'Verdadero'
+          : content.falseLabel ?? 'Falso',
+        explanation: null,
+      };
+    }
+
+    throw new TRPCError({
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'Contenido TRUE_FALSE_SWIPE inválido',
+    });
   }
 
   private gradeFlashcard(

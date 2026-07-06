@@ -57,8 +57,11 @@ export function Engine() {
     ? (currentQuestion.content as MatchingView).pairs.length
     : 0;
 
+  const isTrueFalseSwipe = currentQuestion?.type === 'TRUE_FALSE_SWIPE';
+
   useEffect(() => {
     if (status !== 'idle') return;
+
     if (
       isMatching &&
       answer?.type === 'MATCHING' &&
@@ -66,7 +69,11 @@ export function Engine() {
     ) {
       submit();
     }
-  }, [isMatching, answer, matchingTotal, status, submit]);
+
+    if (isTrueFalseSwipe && answer?.type === 'TRUE_FALSE_SWIPE') {
+      submit();
+    }
+  }, [isMatching, isTrueFalseSwipe, answer, matchingTotal, status, submit]);
 
   if (!topicId) {
     return (
@@ -162,7 +169,7 @@ export function Engine() {
         isCorrect={feedback?.isCorrect ?? null}
         isCheckDisabled={isCheckDisabled}
         correctAnswerText={feedback?.correctAnswerText}
-        hideCheck={isMatching}
+        hideCheck={isMatching || isTrueFalseSwipe}
         onCheck={submit}
         onContinue={continueNext}
         onOpenAI={() => setIsAiModalOpen(true)}
