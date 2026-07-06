@@ -114,7 +114,7 @@ export default function SimulacrosDashboardPage() {
 
       <HistoryArchive pastExams={archiveExams ?? []} isPremium={stats?.isPremium ?? false} />
 
-      <RecentAttempts attempts={recentAttempts ?? []} />
+      <RecentAttempts attempts={recentAttempts ?? []} limit={2} showViewAll />
 
       <CareerSelectorModal
         isOpen={!career}

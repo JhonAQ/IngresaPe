@@ -56,7 +56,7 @@ export function MatchingRenderer({
 
     const timer = window.setTimeout(() => {
       setFadedIds((prev) => [...prev, ...newlyMatched]);
-    }, 350);
+    }, 500);
 
     return () => window.clearTimeout(timer);
   }, [matchedPairIds, fadingIds]);
@@ -120,10 +120,10 @@ export function MatchingRenderer({
       return `${baseButtonClasses} border-[#ff4b4b] border-b-[#df2b2b] bg-[#ffdfe0] cursor-default`;
     }
     if (isFaded(id)) {
-      return `${baseButtonClasses} border-[#58cc02] border-b-[#58a700] bg-[#d7ffb8] opacity-0 pointer-events-none cursor-default transition-opacity duration-700`;
+      return `${baseButtonClasses} border-[#58cc02] border-b-[#58a700] bg-[#d7ffb8] pointer-events-none cursor-default`;
     }
     if (isMatched(id)) {
-      return `${baseButtonClasses} border-[#58cc02] border-b-[#58a700] bg-[#d7ffb8] cursor-default transition-opacity duration-700`;
+      return `${baseButtonClasses} border-[#58cc02] border-b-[#58a700] bg-[#d7ffb8] cursor-default`;
     }
     if (isSelected(id, side)) {
       return `${baseButtonClasses} border-[#84d8ff] border-b-[#1899d6] bg-[#ddf4ff]`;
@@ -140,17 +140,23 @@ export function MatchingRenderer({
 
   const renderItem = (side: 'left' | 'right', item: MatchingItem) => {
     const id = item.id;
-    const shake = isMismatched(id, side)
-      ? side === 'left'
-        ? { x: [0, -10, 10, -10, 10, -5, 5, 0] }
-        : { x: [0, 10, -10, 10, -10, 5, -5, 0] }
-      : { x: 0 };
+    const mismatched = isMismatched(id, side);
+    const shakeKeyframes =
+      side === 'left'
+        ? [0, -10, 10, -10, 10, -5, 5, 0]
+        : [0, 10, -10, 10, -10, 5, -5, 0];
 
     return (
       <motion.button
         key={id}
-        animate={shake}
-        transition={{ duration: 0.45 }}
+        animate={{
+          opacity: isFaded(id) ? 0 : 1,
+          x: mismatched ? shakeKeyframes : 0,
+        }}
+        transition={{
+          opacity: { delay: 0.5, duration: 0.8 },
+          x: { duration: 0.45 },
+        }}
         whileTap={
           !disabled && !isMatched(id) && !isFaded(id) ? { scale: 0.96 } : {}
         }

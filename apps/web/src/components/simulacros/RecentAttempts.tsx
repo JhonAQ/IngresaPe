@@ -1,17 +1,22 @@
 'use client';
 import React from 'react';
+import Link from 'next/link';
 import {
   BarChart3,
   CheckCircle,
   XCircle,
   Clock,
   RotateCcw,
+  ChevronRight,
 } from 'lucide-react';
 import { Button3D } from '../ui/Button3D';
 import type { ExamAttemptSummaryDto } from '@ingresa-pe/domain';
 
 interface RecentAttemptsProps {
   attempts: ExamAttemptSummaryDto[];
+  limit?: number;
+  showViewAll?: boolean;
+  title?: string;
 }
 
 function formatRelativeDate(date: Date | string): string {
@@ -44,14 +49,31 @@ function getAttemptTitle(attempt: ExamAttemptSummaryDto): string {
   return attempt.mode === 'GENERATED' ? 'Simulacro IA' : 'Simulacro';
 }
 
-export const RecentAttempts: React.FC<RecentAttemptsProps> = ({ attempts }) => {
+export const RecentAttempts: React.FC<RecentAttemptsProps> = ({
+  attempts,
+  limit,
+  showViewAll,
+  title = 'Mis Intentos Recientes',
+}) => {
+  const displayed = limit ? attempts.slice(0, limit) : attempts;
+
   return (
     <div className="px-5 pb-12">
-      <h3 className="font-black text-slate-400 text-[11px] uppercase tracking-[0.25em] mb-4 flex items-center gap-2">
-        <BarChart3 size={14} /> Mis Intentos Recientes
-      </h3>
+      <div className="flex justify-between items-end mb-4">
+        <h3 className="font-black text-slate-400 text-[11px] uppercase tracking-[0.25em] flex items-center gap-2">
+          <BarChart3 size={14} /> {title}
+        </h3>
+        {showViewAll && attempts.length > (limit ?? 0) && (
+          <Link
+            href="/simulacros/historial"
+            className="text-blue-500 font-black text-[11px] uppercase flex items-center gap-0.5"
+          >
+            Ver todos <ChevronRight size={14} />
+          </Link>
+        )}
+      </div>
       <div className="space-y-4">
-        {attempts.length === 0 && (
+        {displayed.length === 0 && (
           <div className="text-center py-8 rounded-[2rem] border-2 border-dashed border-slate-200">
             <p className="text-slate-400 font-bold text-[13px]">
               Aún no has dado ningún simulacro.
@@ -59,7 +81,7 @@ export const RecentAttempts: React.FC<RecentAttemptsProps> = ({ attempts }) => {
           </div>
         )}
 
-        {attempts.map((attempt) => {
+        {displayed.map((attempt) => {
           const correct = attempt.correctCount ?? 0;
           const incorrect = attempt.incorrectCount ?? 0;
           const score = attempt.score ?? 0;

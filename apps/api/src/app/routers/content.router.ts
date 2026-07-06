@@ -149,8 +149,7 @@ export class ContentRouter {
           const deliveredIds = await this.getNodeDeliveredQuestionIds(
             topicId,
             nodeIndex,
-            userId,
-            excludeAnswered
+            userId
           );
 
           if (deliveredIds.length === 0) return [];
@@ -235,8 +234,7 @@ export class ContentRouter {
         const deliveredIds = await this.getNodeDeliveredQuestionIds(
           topicId,
           nodeIndex,
-          userId,
-          false
+          userId
         );
 
         if (deliveredIds.length === 0) {
@@ -264,8 +262,7 @@ export class ContentRouter {
   private async getNodeDeliveredQuestionIds(
     topicId: string,
     nodeIndex: number,
-    userId: string,
-    excludeAnswered: boolean
+    userId: string
   ): Promise<string[]> {
     const topic = await this.prisma.topic.findUnique({
       where: { id: topicId },
@@ -282,7 +279,7 @@ export class ContentRouter {
 
     const start = nodeIndex * topic.nodeSize;
     const end = Math.min(start + topic.nodeSize, allQuestionIds.length);
-    let deliveredIds = allQuestionIds.slice(start, end).map((q) => q.id);
+    const deliveredIds = allQuestionIds.slice(start, end).map((q) => q.id);
 
     if (deliveredIds.length === 0) return [];
 
@@ -304,15 +301,6 @@ export class ContentRouter {
       if (matching) {
         deliveredIds[deliveredIds.length - 1] = matching.id;
       }
-    }
-
-    if (excludeAnswered) {
-      const answered = await this.prisma.answerLog.findMany({
-        where: { userId, questionId: { in: deliveredIds } },
-        select: { questionId: true },
-      });
-      const answeredIds = new Set(answered.map((a) => a.questionId));
-      deliveredIds = deliveredIds.filter((id) => !answeredIds.has(id));
     }
 
     return deliveredIds;

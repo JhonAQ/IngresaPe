@@ -73,6 +73,26 @@ export class SimulacroRouter {
           ? Number((scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1))
           : null;
 
+      const recentAttempts = await this.prisma.examAttempt.findMany({
+        where: {
+          userId: user.id,
+          status: 'COMPLETED',
+          score: { not: null },
+        },
+        orderBy: { submittedAt: 'desc' },
+        take: 5,
+        select: { score: true },
+      });
+
+      const recentScores = recentAttempts
+        .map((a) => a.score)
+        .filter((s): s is number => s !== null);
+
+      const recentAverageScore =
+        recentScores.length > 0
+          ? Number((recentScores.reduce((a, b) => a + b, 0) / recentScores.length).toFixed(1))
+          : null;
+
       const totalAttempts = await this.prisma.examAttempt.count({
         where: { userId: user.id },
       });
@@ -80,7 +100,8 @@ export class SimulacroRouter {
       const { remaining, resetAt } = this.computeFreeAttemptState(user);
 
       return {
-        lastExamScore: user.lastExamScore ?? null,
+        lastExamScore: recentAverageScore ?? user.lastExamScore ?? null,
+        recentAverageScore,
         bestScore,
         averageScore,
         totalAttempts,
@@ -97,7 +118,6 @@ export class SimulacroRouter {
         where: { userId: ctx.user.userId },
         include: { exam: { select: { title: true } } },
         orderBy: { startedAt: 'desc' },
-        take: 10,
       });
 
       return attempts.map((a) => ({
