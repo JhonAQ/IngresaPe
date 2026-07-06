@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import type { RendererProps } from '../registry';
 import type { MatchingView, MatchingAnswer } from '@ingresa-pe/domain';
@@ -44,22 +44,33 @@ export function MatchingRenderer({
   const [mismatch, setMismatch] = useState<{ leftId: string; rightId: string } | null>(
     null
   );
-  const [fadingIds, setFadingIds] = useState<string[]>([]);
   const [fadedIds, setFadedIds] = useState<string[]>([]);
+  const processedIdsRef = useRef<Set<string>>(new Set());
+  const timersRef = useRef<number[]>([]);
 
   // Cuando un par se empareja, lo marcamos verde y luego lo desvanecemos poco a poco.
   useEffect(() => {
-    const newlyMatched = matchedPairIds.filter((id) => !fadingIds.includes(id));
+    const newlyMatched = matchedPairIds.filter(
+      (id) => !processedIdsRef.current.has(id)
+    );
     if (newlyMatched.length === 0) return;
 
-    setFadingIds((prev) => [...prev, ...newlyMatched]);
+    newlyMatched.forEach((id) => processedIdsRef.current.add(id));
 
-    const timer = window.setTimeout(() => {
-      setFadedIds((prev) => [...prev, ...newlyMatched]);
-    }, 500);
+    newlyMatched.forEach((id) => {
+      const timer = window.setTimeout(() => {
+        setFadedIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+      }, 500);
+      timersRef.current.push(timer);
+    });
+  }, [matchedPairIds]);
 
-    return () => window.clearTimeout(timer);
-  }, [matchedPairIds, fadingIds]);
+  useEffect(() => {
+    return () => {
+      timersRef.current.forEach((t) => window.clearTimeout(t));
+      timersRef.current = [];
+    };
+  }, []);
 
   const isMatched = (id: string) => matchedPairIds.includes(id);
   const isFaded = (id: string) => fadedIds.includes(id);
