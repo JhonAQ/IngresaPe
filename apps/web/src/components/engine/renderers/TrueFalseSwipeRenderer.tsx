@@ -106,7 +106,7 @@ function SwipeArcade({
   onAnswer,
 }: RendererProps<ModernTrueFalseView, TrueFalseAnswer>) {
   const disabled = status !== 'idle';
-  const showLabels = status === 'idle';
+  const isIdle = status === 'idle';
   const selectedSide =
     answer?.type === 'TRUE_FALSE_SWIPE' ? answer.side : undefined;
 
@@ -122,7 +122,7 @@ function SwipeArcade({
 
   // En idle el stamp preview sigue al arrastre; después de responder muestra
   // siempre la categoría correcta.
-  const stampSide = status === 'idle' ? selectedSide : correctSide;
+  const stampSide = isIdle ? selectedSide : correctSide;
 
   const x = useMotionValue(0);
   const controls = useAnimation();
@@ -147,11 +147,18 @@ function SwipeArcade({
   const commit = (side: 'left' | 'right') => {
     if (disabled || selectedSide) return;
     // Pequeño movimiento de confirmación y volvemos al centro para que el stamp
-    // quede visible sin salirse de la pantalla.
-    void controls.start({
-      x: side === 'right' ? 28 : -28,
-      transition: { type: 'spring', stiffness: 400, damping: 25 },
-    });
+    // correcto quede visible sin salirse de la pantalla.
+    void controls
+      .start({
+        x: side === 'right' ? 30 : -30,
+        transition: { type: 'spring', stiffness: 450, damping: 22 },
+      })
+      .then(() =>
+        controls.start({
+          x: 0,
+          transition: { type: 'spring', stiffness: 400, damping: 25 },
+        })
+      );
     onAnswer({ type: 'TRUE_FALSE_SWIPE', side });
   };
 
@@ -173,14 +180,6 @@ function SwipeArcade({
     <div className="flex flex-col h-full">
       {/* Área de swipe */}
       <div className="relative flex-1 flex items-center justify-center min-h-[260px] overflow-visible">
-        {/* Labels laterales (solo visibles antes de responder) */}
-        {showLabels && (
-          <>
-            <SwipeLabel category={left} progress={leftProgress} align="left" />
-            <SwipeLabel category={right} progress={rightProgress} align="right" />
-          </>
-        )}
-
         {/* Tarjeta arrastrable */}
         <motion.div
           drag="x"
@@ -192,8 +191,20 @@ function SwipeArcade({
           className="relative z-10 w-[260px] min-h-[260px] bg-white rounded-[2rem] shadow-[0_12px_0_#e5e5e5] border-2 border-[#e5e5e5] flex flex-col items-center justify-center p-6 cursor-grab active:cursor-grabbing"
         >
           {/* Stamp superpuesto: siempre la respuesta correcta tras responder */}
-          <SwipeStamp side="left" category={left} progress={leftProgress} selected={stampSide === 'left'} />
-          <SwipeStamp side="right" category={right} progress={rightProgress} selected={stampSide === 'right'} />
+          <SwipeStamp
+            side="left"
+            category={left}
+            progress={leftProgress}
+            active={stampSide === 'left'}
+            isIdle={isIdle}
+          />
+          <SwipeStamp
+            side="right"
+            category={right}
+            progress={rightProgress}
+            active={stampSide === 'right'}
+            isIdle={isIdle}
+          />
 
           {/* Contenido de la tarjeta */}
           <div className="text-center">
@@ -223,50 +234,21 @@ function SwipeArcade({
 // SUBCOMPONENTES
 // =============================================================================
 
-interface SwipeLabelProps {
-  category: SwipeCategory;
-  progress: MotionValue<number>;
-  align: 'left' | 'right';
-}
-
-function SwipeLabel({ category, progress, align }: SwipeLabelProps) {
-  const opacity = useTransform(progress, [0, 1], [0.65, 1]);
-  const scale = useTransform(progress, [0, 1], [0.9, 1.12]);
-
-  return (
-    <motion.div
-      style={{
-        opacity,
-        scale,
-        transformOrigin: align === 'left' ? 'left center' : 'right center',
-      }}
-      className={`absolute top-1/2 -translate-y-1/2 z-0 px-3.5 py-2 rounded-xl border-2 border-b-[4px] bg-white shadow-[0_4px_0_#e5e5e5] whitespace-nowrap ${
-        align === 'left' ? 'left-4' : 'right-4'
-      }`}
-    >
-      <span
-        className="font-black text-[15px] uppercase tracking-wider"
-        style={{ color: category.darkColor }}
-      >
-        {category.label}
-      </span>
-    </motion.div>
-  );
-}
-
 interface SwipeStampProps {
   side: 'left' | 'right';
   category: SwipeCategory;
   progress: MotionValue<number>;
-  selected: boolean;
+  active: boolean;
+  isIdle: boolean;
 }
 
-function SwipeStamp({ side, category, progress, selected }: SwipeStampProps) {
-  const opacity = useTransform(progress, [0, 0.5, 1], [0, 1, 1]);
+function SwipeStamp({ side, category, progress, active, isIdle }: SwipeStampProps) {
+  const previewOpacity = useTransform(progress, [0, 0.5, 1], [0, 1, 1]);
+  const opacity = active ? 1 : isIdle ? previewOpacity : 0;
 
   return (
     <motion.div
-      style={{ opacity: selected ? 1 : opacity }}
+      style={{ opacity }}
       className={`absolute inset-0 flex items-center justify-center pointer-events-none ${
         side === 'left' ? '-rotate-12' : 'rotate-12'
       }`}
