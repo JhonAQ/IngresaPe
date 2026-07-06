@@ -36,6 +36,16 @@ export default function SimulacrosDashboardPage() {
     },
   });
 
+  const startArchive = trpc.simulacro.startArchiveAttempt.useMutation({
+    onSuccess: (data) => {
+      setStartError(null);
+      router.push(`/simulator?attemptId=${data.attemptId}`);
+    },
+    onError: (err) => {
+      setStartError(err.message ?? 'No se pudo iniciar el examen');
+    },
+  });
+
   useEffect(() => {
     setIsLoaded(true);
   }, []);
@@ -112,7 +122,12 @@ export default function SimulacrosDashboardPage() {
         onStart={handleStartGenerated}
       />
 
-      <HistoryArchive pastExams={archiveExams ?? []} isPremium={stats?.isPremium ?? false} />
+      <HistoryArchive
+        pastExams={archiveExams ?? []}
+        isPremium={stats?.isPremium ?? false}
+        onStartExam={(examId) => startArchive.mutate({ examId })}
+        startingExamId={startArchive.variables?.examId}
+      />
 
       <RecentAttempts attempts={recentAttempts ?? []} limit={2} showViewAll />
 

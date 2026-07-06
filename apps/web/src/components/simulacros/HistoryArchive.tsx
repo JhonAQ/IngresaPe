@@ -8,12 +8,21 @@ import type { ExamSummaryDto } from '@ingresa-pe/domain';
 interface HistoryArchiveProps {
   pastExams: ExamSummaryDto[];
   isPremium?: boolean;
+  onStartExam?: (examId: string) => void;
+  startingExamId?: string;
 }
 
 export const HistoryArchive: React.FC<HistoryArchiveProps> = ({
   pastExams,
   isPremium = false,
+  onStartExam,
+  startingExamId,
 }) => {
+  const handleStart = (examId: string, locked: boolean) => {
+    if (locked || !onStartExam || startingExamId === examId) return;
+    onStartExam(examId);
+  };
+
   return (
     <div className="mb-8">
       <div className="flex justify-between items-end px-7 mb-3">
@@ -31,12 +40,14 @@ export const HistoryArchive: React.FC<HistoryArchiveProps> = ({
         <div className="flex overflow-x-auto hide-scrollbar gap-4 px-1 pb-4 snap-x">
           {pastExams.map((exam) => {
             const isLocked = !isPremium;
+            const isStarting = startingExamId === exam.id;
             return (
               <motion.div
                 key={exam.id}
-                whileTap={{ scale: 0.95 }}
-                className={`snap-start shrink-0 w-[135px] h-[180px] bg-white rounded-[1.5rem] border-2 border-slate-200 border-b-[6px] border-b-slate-300 p-3.5 flex flex-col shadow-sm cursor-pointer group relative
-                  ${isLocked ? 'opacity-70' : ''}`}
+                whileTap={!isLocked && !isStarting ? { scale: 0.95 } : {}}
+                onClick={() => handleStart(exam.id, isLocked)}
+                className={`snap-start shrink-0 w-[135px] h-[180px] bg-white rounded-[1.5rem] border-2 border-slate-200 border-b-[6px] border-b-slate-300 p-3.5 flex flex-col shadow-sm group relative
+                  ${isLocked || isStarting ? 'opacity-70 cursor-default' : 'cursor-pointer'}`}
               >
                 {isLocked && (
                   <div className="absolute top-3 right-3 w-7 h-7 bg-slate-200 text-slate-500 rounded-full flex items-center justify-center z-10">
@@ -61,7 +72,7 @@ export const HistoryArchive: React.FC<HistoryArchiveProps> = ({
                   </div>
                   <div className="w-full py-1.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center text-[9px] font-black text-slate-500 uppercase tracking-widest group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors"
                   >
-                    {isLocked ? 'Premium' : 'Iniciar'}
+                    {isStarting ? '...' : isLocked ? 'Premium' : 'Iniciar'}
                   </div>
                 </div>
               </motion.div>
