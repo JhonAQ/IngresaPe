@@ -287,7 +287,6 @@ export class ContentRouter {
     await this.ensureTypePresent(
       deliveredIds,
       topicId,
-      userId,
       QuestionType.MATCHING
     );
 
@@ -295,7 +294,6 @@ export class ContentRouter {
     await this.ensureTypePresent(
       deliveredIds,
       topicId,
-      userId,
       QuestionType.TRUE_FALSE_SWIPE,
       [QuestionType.MATCHING]
     );
@@ -303,10 +301,15 @@ export class ContentRouter {
     return deliveredIds;
   }
 
+  /**
+   * Garantiza la presencia de un tipo de pregunta en el nodo. El candidato se elige
+   * de forma determinista (primer id no presente, ordenado por id) para que
+   * `getQuestions` y `completeNode` vean exactamente el mismo conjunto aunque el
+   * usuario ya haya respondido algunas preguntas.
+   */
   private async ensureTypePresent(
     deliveredIds: string[],
     topicId: string,
-    userId: string,
     type: QuestionType,
     protectedTypes: QuestionType[] = []
   ): Promise<void> {
@@ -315,12 +318,14 @@ export class ContentRouter {
     });
     if (hasType > 0) return;
 
+    // Búsqueda determinista: NO filtrar por respuestas del usuario. Si el
+    // candidato ya fue respondido, seguirá formando parte del nodo y contará
+    // como respondido al completar, evitando el error de "faltan preguntas".
     const candidate = await this.prisma.question.findFirst({
       where: {
         topicId,
         type,
         id: { notIn: deliveredIds },
-        answers: { none: { userId } },
       },
       orderBy: { id: 'asc' },
       select: { id: true },
