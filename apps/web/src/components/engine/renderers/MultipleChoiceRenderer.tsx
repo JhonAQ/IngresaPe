@@ -10,6 +10,7 @@ export function MultipleChoiceRenderer({
   view,
   answer,
   status,
+  feedback,
   onAnswer,
 }: RendererProps<MultipleChoiceView, MultipleChoiceAnswer>) {
   const selectedOptionId = answer?.type === 'MULTIPLE_CHOICE' ? answer.selectedOptionId : null;

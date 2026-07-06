@@ -8,6 +8,7 @@ export function OrderingRenderer({
   view,
   answer,
   status,
+  feedback,
   onAnswer,
 }: RendererProps<OrderingView, OrderingAnswer>) {
   const [items, setItems] = useState(view.items);

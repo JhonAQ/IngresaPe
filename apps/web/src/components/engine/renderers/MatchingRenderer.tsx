@@ -24,6 +24,7 @@ export function MatchingRenderer({
   view,
   answer,
   status,
+  feedback,
   onAnswer,
 }: RendererProps<MatchingView, MatchingAnswer>) {
   const disabled = status !== 'idle';

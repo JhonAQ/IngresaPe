@@ -23,6 +23,7 @@ export function TrueFalseSwipeRenderer({
   view,
   answer,
   status,
+  feedback,
   onAnswer,
 }: RendererProps<TrueFalseView, TrueFalseAnswer>) {
   const isModern = view.category != null;
@@ -33,6 +34,7 @@ export function TrueFalseSwipeRenderer({
         view={view}
         answer={answer}
         status={status}
+        feedback={feedback}
         onAnswer={onAnswer}
       />
     );
@@ -43,6 +45,7 @@ export function TrueFalseSwipeRenderer({
       view={view as ModernTrueFalseView}
       answer={answer}
       status={status}
+      feedback={feedback}
       onAnswer={onAnswer}
     />
   );
@@ -99,11 +102,27 @@ function SwipeArcade({
   view,
   answer,
   status,
+  feedback,
   onAnswer,
 }: RendererProps<ModernTrueFalseView, TrueFalseAnswer>) {
   const disabled = status !== 'idle';
+  const showLabels = status === 'idle';
   const selectedSide =
     answer?.type === 'TRUE_FALSE_SWIPE' ? answer.side : undefined;
+
+  // Lado correcto: si acertó, es lo que eligió; si falló, es el contrario.
+  const correctSide: 'left' | 'right' | undefined =
+    selectedSide == null
+      ? undefined
+      : feedback == null || feedback.isCorrect
+      ? selectedSide
+      : selectedSide === 'left'
+      ? 'right'
+      : 'left';
+
+  // En idle el stamp preview sigue al arrastre; después de responder muestra
+  // siempre la categoría correcta.
+  const stampSide = status === 'idle' ? selectedSide : correctSide;
 
   const x = useMotionValue(0);
   const controls = useAnimation();
@@ -154,9 +173,13 @@ function SwipeArcade({
     <div className="flex flex-col h-full">
       {/* Área de swipe */}
       <div className="relative flex-1 flex items-center justify-center min-h-[260px] overflow-visible">
-        {/* Labels laterales */}
-        <SwipeLabel category={left} progress={leftProgress} align="left" />
-        <SwipeLabel category={right} progress={rightProgress} align="right" />
+        {/* Labels laterales (solo visibles antes de responder) */}
+        {showLabels && (
+          <>
+            <SwipeLabel category={left} progress={leftProgress} align="left" />
+            <SwipeLabel category={right} progress={rightProgress} align="right" />
+          </>
+        )}
 
         {/* Tarjeta arrastrable */}
         <motion.div
@@ -168,9 +191,9 @@ function SwipeArcade({
           style={{ x, rotate: cardRotate, scale: cardScale }}
           className="relative z-10 w-[260px] min-h-[260px] bg-white rounded-[2rem] shadow-[0_12px_0_#e5e5e5] border-2 border-[#e5e5e5] flex flex-col items-center justify-center p-6 cursor-grab active:cursor-grabbing"
         >
-          {/* Stamp superpuesto */}
-          <SwipeStamp side="left" category={left} progress={leftProgress} selected={selectedSide === 'left'} />
-          <SwipeStamp side="right" category={right} progress={rightProgress} selected={selectedSide === 'right'} />
+          {/* Stamp superpuesto: siempre la respuesta correcta tras responder */}
+          <SwipeStamp side="left" category={left} progress={leftProgress} selected={stampSide === 'left'} />
+          <SwipeStamp side="right" category={right} progress={rightProgress} selected={stampSide === 'right'} />
 
           {/* Contenido de la tarjeta */}
           <div className="text-center">

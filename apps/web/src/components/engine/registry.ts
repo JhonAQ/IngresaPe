@@ -19,6 +19,7 @@ import { TrueFalseSwipeRenderer } from './renderers/TrueFalseSwipeRenderer';
 import { FlashcardRenderer } from './renderers/FlashcardRenderer';
 import { OrderingRenderer } from './renderers/OrderingRenderer';
 import { MatchingRenderer } from './renderers/MatchingRenderer';
+import type { FeedbackState } from './useEngine';
 
 /**
  * Contracto que debe cumplir cada renderer de pregunta.
@@ -31,6 +32,7 @@ export interface RendererProps<
   view: TView;
   answer: TAnswer | null;
   status: 'idle' | 'submitting' | 'feedback';
+  feedback: FeedbackState | null;
   onAnswer: (answer: TAnswer) => void;
 }
 

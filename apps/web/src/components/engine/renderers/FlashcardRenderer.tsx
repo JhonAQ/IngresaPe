@@ -8,6 +8,7 @@ export function FlashcardRenderer({
   view,
   answer,
   status,
+  feedback,
   onAnswer,
 }: RendererProps<FlashcardView, FlashcardAnswer>) {
   const remembered = answer?.type === 'FLASHCARD' ? answer.remembered : null;

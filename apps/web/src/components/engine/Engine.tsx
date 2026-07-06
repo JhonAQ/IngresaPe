@@ -158,6 +158,7 @@ export function Engine() {
               view={currentQuestion.content}
               answer={answer}
               status={status === 'submitting' ? 'submitting' : status === 'feedback' ? 'feedback' : 'idle'}
+              feedback={feedback}
               onAnswer={setAnswer}
             />
           </motion.div>
