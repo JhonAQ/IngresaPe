@@ -119,7 +119,7 @@ function SwipeArcade({
   const cardScale = useTransform(
     x,
     [-SWIPE_MAX, -SWIPE_THRESHOLD, 0, SWIPE_THRESHOLD, SWIPE_MAX],
-    [0.94, 0.98, 1, 0.98, 0.94]
+    [0.96, 0.99, 1, 0.99, 0.96]
   );
 
   const { left, right } = view.category;
@@ -127,9 +127,11 @@ function SwipeArcade({
 
   const commit = (side: 'left' | 'right') => {
     if (disabled || selectedSide) return;
+    // Pequeño movimiento de confirmación y volvemos al centro para que el stamp
+    // quede visible sin salirse de la pantalla.
     void controls.start({
-      x: side === 'right' ? SWIPE_MAX : -SWIPE_MAX,
-      transition: { type: 'spring', stiffness: 350, damping: 25 },
+      x: side === 'right' ? 28 : -28,
+      transition: { type: 'spring', stiffness: 400, damping: 25 },
     });
     onAnswer({ type: 'TRUE_FALSE_SWIPE', side });
   };
@@ -151,17 +153,7 @@ function SwipeArcade({
   return (
     <div className="flex flex-col h-full">
       {/* Área de swipe */}
-      <div className="relative flex-1 flex items-center justify-center min-h-[240px]">
-        {/* Fondos laterales que se revelan al arrastrar */}
-        <motion.div
-          className="absolute inset-y-0 left-0 w-1/2 rounded-l-3xl"
-          style={{ backgroundColor: left.color, opacity: leftProgress }}
-        />
-        <motion.div
-          className="absolute inset-y-0 right-0 w-1/2 rounded-r-3xl"
-          style={{ backgroundColor: right.color, opacity: rightProgress }}
-        />
-
+      <div className="relative flex-1 flex items-center justify-center min-h-[260px] overflow-visible">
         {/* Labels laterales */}
         <SwipeLabel category={left} progress={leftProgress} align="left" />
         <SwipeLabel category={right} progress={rightProgress} align="right" />
@@ -170,7 +162,7 @@ function SwipeArcade({
         <motion.div
           drag="x"
           dragConstraints={{ left: 0, right: 0 }}
-          dragElastic={0.75}
+          dragElastic={0.7}
           onDragEnd={handleDragEnd}
           animate={controls}
           style={{ x, rotate: cardRotate, scale: cardScale }}
@@ -215,18 +207,22 @@ interface SwipeLabelProps {
 }
 
 function SwipeLabel({ category, progress, align }: SwipeLabelProps) {
-  const opacity = useTransform(progress, [0, 1], [0.35, 1]);
-  const scale = useTransform(progress, [0, 1], [0.85, 1.15]);
+  const opacity = useTransform(progress, [0, 1], [0.65, 1]);
+  const scale = useTransform(progress, [0, 1], [0.9, 1.12]);
 
   return (
     <motion.div
-      style={{ opacity, scale }}
-      className={`absolute top-1/2 -translate-y-1/2 z-0 px-3 py-1.5 rounded-xl border-2 border-b-[4px] bg-white shadow-sm ${
-        align === 'left' ? 'left-2' : 'right-2'
+      style={{
+        opacity,
+        scale,
+        transformOrigin: align === 'left' ? 'left center' : 'right center',
+      }}
+      className={`absolute top-1/2 -translate-y-1/2 z-0 px-3.5 py-2 rounded-xl border-2 border-b-[4px] bg-white shadow-[0_4px_0_#e5e5e5] whitespace-nowrap ${
+        align === 'left' ? 'left-4' : 'right-4'
       }`}
     >
       <span
-        className="font-black text-[14px] uppercase tracking-wider"
+        className="font-black text-[15px] uppercase tracking-wider"
         style={{ color: category.darkColor }}
       >
         {category.label}
