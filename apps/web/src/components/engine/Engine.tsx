@@ -144,6 +144,8 @@ export function Engine() {
     (answer.type !== 'FILL_IN_BLANK' ||
       answer.selectedWordIds.length === fillBlankSlotCount);
 
+  const showAIFeedback = currentQuestion?.type !== 'MATCHING';
+
   const isCheckDisabled = !isAnswerComplete || status === 'submitting';
 
   return (
@@ -181,6 +183,7 @@ export function Engine() {
         isCheckDisabled={isCheckDisabled}
         correctAnswerText={feedback?.correctAnswerText}
         hideCheck={isMatching || isTrueFalseSwipe}
+        showAIFeedback={showAIFeedback}
         onCheck={submit}
         onContinue={continueNext}
         onOpenAI={() => setIsAiModalOpen(true)}

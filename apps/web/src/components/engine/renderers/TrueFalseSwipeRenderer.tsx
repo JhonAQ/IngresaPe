@@ -17,6 +17,7 @@ const SWIPE_MAX = 160;
 
 interface ModernTrueFalseView extends TrueFalseView {
   category: { left: SwipeCategory; right: SwipeCategory };
+  correctSide: 'left' | 'right';
 }
 
 export function TrueFalseSwipeRenderer({
@@ -110,19 +111,9 @@ function SwipeArcade({
   const selectedSide =
     answer?.type === 'TRUE_FALSE_SWIPE' ? answer.side : undefined;
 
-  // Lado correcto: si acertó, es lo que eligió; si falló, es el contrario.
-  const correctSide: 'left' | 'right' | undefined =
-    selectedSide == null
-      ? undefined
-      : feedback == null || feedback.isCorrect
-      ? selectedSide
-      : selectedSide === 'left'
-      ? 'right'
-      : 'left';
-
-  // En idle el stamp preview sigue al arrastre; después de responder muestra
-  // siempre la categoría correcta.
-  const stampSide = isIdle ? selectedSide : correctSide;
+  // Después de responder siempre señalamos la categoría correcta, no la elección
+  // del usuario. Durante el arrastre seguimos el preview de la selección.
+  const stampSide = isIdle ? selectedSide : view.correctSide;
 
   const x = useMotionValue(0);
   const controls = useAnimation();

@@ -311,13 +311,20 @@ async function main() {
         where: { courseId: curso.id, slug: tema.slug },
       });
 
+      const specialTypesCount = (tema.matching ?? []).length >= 2 ? 4 : 3;
+      const totalQuestions = tema.preguntas.length + specialTypesCount;
+      const nodeSize = Math.min(
+        Math.max(DEFAULT_NODE_SIZE, specialTypesCount + 1),
+        totalQuestions
+      );
+
       const topicData = {
         name: tema.nombre,
         slug: tema.slug,
         order: i + 1,
         summary: tema.summary ? (tema.summary as any) : undefined,
-        nodeSize: DEFAULT_NODE_SIZE,
-        nodeCount: Math.max(1, Math.ceil(tema.preguntas.length / DEFAULT_NODE_SIZE)),
+        nodeSize,
+        nodeCount: Math.max(1, Math.ceil(totalQuestions / nodeSize)),
       };
 
       const topicCreated = existingTopic

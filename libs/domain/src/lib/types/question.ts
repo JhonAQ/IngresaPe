@@ -195,6 +195,8 @@ export const trueFalseViewSchema = z.object({
   // Arcade
   category: z.object({ left: swipeCategorySchema, right: swipeCategorySchema }).optional(),
   cardText: z.string().optional(),
+  // Exposed for post-answer feedback (same strategy as ORDERING/FILL_IN_BLANK)
+  correctSide: z.enum(['left', 'right']).optional(),
 });
 
 export const flashcardViewSchema = z.object({

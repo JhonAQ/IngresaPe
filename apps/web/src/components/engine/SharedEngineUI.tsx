@@ -175,6 +175,7 @@ interface FeedbackDrawerProps {
   isCheckDisabled: boolean;
   correctAnswerText?: string;
   hideCheck?: boolean;
+  showAIFeedback?: boolean;
   onCheck: () => void;
   onContinue: () => void;
   onOpenAI: () => void;
@@ -186,6 +187,7 @@ export function FeedbackDrawer({
   isCheckDisabled,
   correctAnswerText,
   hideCheck,
+  showAIFeedback = true,
   onCheck,
   onContinue,
   onOpenAI,
@@ -247,6 +249,16 @@ export function FeedbackDrawer({
             >
               Continuar
             </button>
+
+            {showAIFeedback && (
+              <button
+                onClick={onOpenAI}
+                className="w-full bg-[#1e293b] text-[#ce82ff] font-black text-[15px] uppercase tracking-widest py-3.5 rounded-2xl border-b-[4px] border-[#0f172a] hover:bg-[#334155] active:border-b-0 active:translate-y-[4px] transition-all flex items-center justify-center gap-2 shadow-sm"
+              >
+                <Sparkles size={20} className="fill-[#ce82ff]" />
+                Retroalimentación IA
+              </button>
+            )}
           </motion.div>
         )}
 
@@ -284,13 +296,15 @@ export function FeedbackDrawer({
             </div>
 
             <div className="flex flex-col gap-2.5">
-              <button
-                onClick={onOpenAI}
-                className="w-full bg-[#1e293b] text-[#ce82ff] font-black text-[15px] uppercase tracking-widest py-3.5 rounded-2xl border-b-[4px] border-[#0f172a] hover:bg-[#334155] active:border-b-0 active:translate-y-[4px] transition-all flex items-center justify-center gap-2 shadow-sm"
-              >
-                <Sparkles size={20} className="fill-[#ce82ff]" />
-                Explicar con IA
-              </button>
+              {showAIFeedback && (
+                <button
+                  onClick={onOpenAI}
+                  className="w-full bg-[#1e293b] text-[#ce82ff] font-black text-[15px] uppercase tracking-widest py-3.5 rounded-2xl border-b-[4px] border-[#0f172a] hover:bg-[#334155] active:border-b-0 active:translate-y-[4px] transition-all flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <Sparkles size={20} className="fill-[#ce82ff]" />
+                  Retroalimentación IA
+                </button>
+              )}
 
               <button
                 onClick={onContinue}

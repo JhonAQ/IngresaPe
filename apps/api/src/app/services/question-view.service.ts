@@ -46,6 +46,7 @@ export class QuestionViewService {
             type: QuestionType.TRUE_FALSE_SWIPE,
             category: content.category,
             cardText: content.cardText,
+            correctSide: content.correctSide,
           };
         }
         return {

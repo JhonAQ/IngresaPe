@@ -369,7 +369,9 @@ export class ContentRouter {
     }
 
     if (replaceIndex === -1) {
-      replaceIndex = deliveredIds.length - 1;
+      // No hay slots no protegidos; no reemplazamos otro tipo especial para
+      // evitar quitar una pregunta garantizada previamente.
+      return;
     }
 
     deliveredIds[replaceIndex] = candidate.id;
