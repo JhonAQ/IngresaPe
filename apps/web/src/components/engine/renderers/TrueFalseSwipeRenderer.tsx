@@ -111,10 +111,6 @@ function SwipeArcade({
   const selectedSide =
     answer?.type === 'TRUE_FALSE_SWIPE' ? answer.side : undefined;
 
-  // Después de responder siempre señalamos la categoría correcta, no la elección
-  // del usuario. Durante el arrastre seguimos el preview de la selección.
-  const stampSide = isIdle ? selectedSide : view.correctSide;
-
   const x = useMotionValue(0);
   const controls = useAnimation();
 
@@ -181,21 +177,34 @@ function SwipeArcade({
           style={{ x, rotate: cardRotate, scale: cardScale }}
           className="relative z-10 w-[260px] min-h-[260px] bg-white rounded-[2rem] shadow-[0_12px_0_#e5e5e5] border-2 border-[#e5e5e5] flex flex-col items-center justify-center p-6 cursor-grab active:cursor-grabbing"
         >
-          {/* Stamp superpuesto: siempre la respuesta correcta tras responder */}
-          <SwipeStamp
-            side="left"
-            category={left}
-            progress={leftProgress}
-            active={stampSide === 'left'}
-            isIdle={isIdle}
-          />
-          <SwipeStamp
-            side="right"
-            category={right}
-            progress={rightProgress}
-            active={stampSide === 'right'}
-            isIdle={isIdle}
-          />
+          {/* Stamp superpuesto: en feedback solo renderizamos la categoría
+              correcta para evitar que se superponga con el preview del usuario. */}
+          {isIdle ? (
+            <>
+              <SwipeStamp
+                side="left"
+                category={left}
+                progress={leftProgress}
+                active={false}
+                isIdle={isIdle}
+              />
+              <SwipeStamp
+                side="right"
+                category={right}
+                progress={rightProgress}
+                active={false}
+                isIdle={isIdle}
+              />
+            </>
+          ) : (
+            <SwipeStamp
+              side={view.correctSide}
+              category={view.category[view.correctSide]}
+              progress={view.correctSide === 'left' ? leftProgress : rightProgress}
+              active
+              isIdle={isIdle}
+            />
+          )}
 
           {/* Contenido de la tarjeta */}
           <div className="text-center">

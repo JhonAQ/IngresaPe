@@ -243,22 +243,22 @@ export function FeedbackDrawer({
               </h3>
             </div>
 
+            {showAIFeedback && (
+              <button
+                onClick={onOpenAI}
+                className="w-full mb-2 bg-[#1e293b] text-[#ce82ff] font-black text-[15px] uppercase tracking-widest py-3.5 rounded-2xl border-b-[4px] border-[#0f172a] hover:bg-[#334155] active:border-b-0 active:translate-y-[4px] transition-all flex items-center justify-center gap-2 shadow-sm"
+              >
+                <Sparkles size={20} className="fill-[#ce82ff]" />
+                Truquitos con IA
+              </button>
+            )}
+
             <button
               onClick={onContinue}
               className="w-full mb-2 bg-[#58cc02] text-white font-black text-[16px] uppercase tracking-widest py-3.5 rounded-2xl border-b-[4px] border-[#58a700] active:border-b-0 active:translate-y-[4px] transition-all"
             >
               Continuar
             </button>
-
-            {showAIFeedback && (
-              <button
-                onClick={onOpenAI}
-                className="w-full bg-[#1e293b] text-[#ce82ff] font-black text-[15px] uppercase tracking-widest py-3.5 rounded-2xl border-b-[4px] border-[#0f172a] hover:bg-[#334155] active:border-b-0 active:translate-y-[4px] transition-all flex items-center justify-center gap-2 shadow-sm"
-              >
-                <Sparkles size={20} className="fill-[#ce82ff]" />
-                Retroalimentación IA
-              </button>
-            )}
           </motion.div>
         )}
 

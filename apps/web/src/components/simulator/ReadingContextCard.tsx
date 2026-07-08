@@ -7,7 +7,7 @@ interface ReadingContextCardProps {
 }
 
 export const ReadingContextCard = ({ contexto }: ReadingContextCardProps) => {
-  const [isExpanded, setIsExpanded] = useState(!!contexto);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   if (!contexto) return null;
 

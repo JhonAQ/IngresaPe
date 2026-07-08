@@ -73,7 +73,7 @@ export function OrderingRenderer({
         axis="y"
         values={items}
         onReorder={handleReorder}
-        className="flex flex-col gap-3"
+        className="flex flex-col gap-3 w-full"
       >
         {items.map((item, index) => (
           <SortableItem
@@ -142,7 +142,7 @@ function SortableItem({ item, index, disabled, feedback }: SortableItemProps) {
         {index + 1}
       </div>
 
-      <span className="font-bold text-[16px] text-[#3c3c3c] leading-tight">
+      <span className="flex-1 min-w-0 font-bold text-[16px] text-[#3c3c3c] leading-tight">
         <LatexText text={item.text} />
       </span>
     </Reorder.Item>

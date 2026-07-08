@@ -237,7 +237,7 @@ export class SimulacroRouter {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Usuario no encontrado' });
         }
 
-        const { used, resetAt, remaining } = this.computeFreeAttemptState(user);
+        const { resetAt, remaining } = this.computeFreeAttemptState(user);
 
         if (!user.isPremium && remaining <= 0) {
           throw new TRPCError({
@@ -258,23 +258,29 @@ export class SimulacroRouter {
           });
         }
 
-        // Si se reinició el contador, persistimos la fecha de reset.
-        if (resetAt && (!user.freeSimAttemptsResetAt || resetAt > user.freeSimAttemptsResetAt)) {
-          await this.prisma.user.update({
-            where: { id: user.id },
-            data: { freeSimAttemptsUsed: used, freeSimAttemptsResetAt: resetAt },
-          });
-        }
+        const attempt = await this.prisma.$transaction(async (tx) => {
+          if (!user.isPremium) {
+            await tx.user.update({
+              where: { id: user.id },
+              data: {
+                freeSimAttemptsUsed: { increment: 1 },
+                ...(resetAt && (!user.freeSimAttemptsResetAt || resetAt > user.freeSimAttemptsResetAt)
+                  ? { freeSimAttemptsResetAt: resetAt }
+                  : {}),
+              },
+            });
+          }
 
-        const attempt = await this.prisma.examAttempt.create({
-          data: {
-            userId: user.id,
-            mode: 'GENERATED',
-            questionCount: questionIds.length,
-            timeLimitSeconds: input.timeLimitMinutes * 60,
-            questionIds,
-          },
-          select: { id: true },
+          return tx.examAttempt.create({
+            data: {
+              userId: user.id,
+              mode: 'GENERATED',
+              questionCount: questionIds.length,
+              timeLimitSeconds: input.timeLimitMinutes * 60,
+              questionIds,
+            },
+            select: { id: true },
+          });
         });
 
         return { attemptId: attempt.id };
@@ -451,10 +457,6 @@ export class SimulacroRouter {
             coins: { increment: coinsEarned },
             lastExamScore: score,
           };
-
-          if (attempt.mode === 'GENERATED' && !attempt.examId) {
-            userUpdateData.freeSimAttemptsUsed = { increment: 1 };
-          }
 
           await tx.user.update({
             where: { id: ctx.user.userId },

@@ -68,7 +68,7 @@ export default function SimulacrosDashboardPage() {
 
   if (isLoading) {
     return (
-      <main className="flex-1 overflow-y-auto px-5 pt-6 pb-32 hide-scrollbar relative">
+      <main className="flex-1 overflow-y-auto pt-6 pb-32 hide-scrollbar relative">
         <div className="px-5 mb-6 h-32 bg-slate-100 rounded-[1.8rem] animate-pulse" />
         <div className="px-5 mb-8 h-64 bg-slate-100 rounded-[2rem] animate-pulse" />
       </main>
@@ -76,7 +76,7 @@ export default function SimulacrosDashboardPage() {
   }
 
   return (
-    <main className="flex-1 overflow-y-auto px-5 pt-6 pb-32 hide-scrollbar relative">
+    <main className="flex-1 overflow-y-auto pt-6 pb-32 hide-scrollbar relative">
       {!career ? (
         <div className="px-5 mb-6">
           <div className="bg-amber-50 border-2 border-amber-200 rounded-[1.8rem] p-5 text-center">
