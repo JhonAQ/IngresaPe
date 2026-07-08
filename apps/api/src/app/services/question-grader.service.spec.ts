@@ -172,6 +172,7 @@ describe('QuestionGraderService', () => {
       });
       expect(result.isCorrect).toBe(true);
       expect(result.correctAnswerText).toBe('Primero → Segundo → Tercero');
+      expect(result.correctOrder).toEqual(['1', '2', '3']);
     });
 
     it('rechaza orden incorrecto', () => {

@@ -39,7 +39,7 @@ export class GameService {
 
     // 3. Calificar respuesta (type-aware)
     const gradeResult = this.grader.grade(question, answer);
-    const { isCorrect, correctAnswerText, explanation } = gradeResult;
+    const { isCorrect, correctAnswerText, correctOrder, explanation } = gradeResult;
 
     // 4. Calcular Recompensas
     const rewards = this.grader.computeRewards(question.difficulty, isCorrect);
@@ -80,6 +80,7 @@ export class GameService {
         success: true,
         isCorrect,
         correctAnswerText,
+        correctOrder,
         explanation: explanation ?? question.explanation,
         rewards,
         userStats: {

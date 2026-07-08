@@ -306,6 +306,14 @@ export class ContentRouter {
       [QuestionType.MATCHING, QuestionType.TRUE_FALSE_SWIPE]
     );
 
+    // Garantizar al menos una pregunta ORDERING por nodo cuando haya disponibles.
+    await this.ensureTypePresent(
+      deliveredIds,
+      topicId,
+      QuestionType.ORDERING,
+      [QuestionType.MATCHING, QuestionType.TRUE_FALSE_SWIPE, QuestionType.FILL_IN_BLANK]
+    );
+
     return deliveredIds;
   }
 

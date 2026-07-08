@@ -64,6 +64,7 @@ export class QuestionViewService {
         return {
           type: QuestionType.ORDERING,
           items: content.items,
+          correctOrder: content.correctOrder,
         };
 
       case QuestionType.MATCHING:

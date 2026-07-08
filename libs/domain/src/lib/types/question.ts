@@ -71,11 +71,29 @@ export const flashcardContentSchema = z.object({
   back: z.string(),
 });
 
-export const orderingContentSchema = z.object({
-  type: z.literal(QuestionType.ORDERING),
-  items: z.array(z.object({ id: z.string(), text: z.string() })).min(2),
-  correctOrder: z.array(z.string()),
-});
+export const orderingContentSchema = z
+  .object({
+    type: z.literal(QuestionType.ORDERING),
+    items: z.array(z.object({ id: z.string(), text: z.string() })).min(2),
+    correctOrder: z.array(z.string()),
+  })
+  .refine(
+    (data) => {
+      const itemIds = data.items.map((i) => i.id);
+      const hasAllIds = data.correctOrder.every((id) => itemIds.includes(id));
+      const noDuplicates =
+        new Set(data.correctOrder).size === data.correctOrder.length;
+      return (
+        hasAllIds &&
+        noDuplicates &&
+        data.correctOrder.length === itemIds.length
+      );
+    },
+    {
+      message:
+        'El orden correcto debe contener todos los items sin duplicados',
+    }
+  );
 
 export const matchingContentSchema = z
   .object({
@@ -187,6 +205,7 @@ export const flashcardViewSchema = z.object({
 export const orderingViewSchema = z.object({
   type: z.literal(QuestionType.ORDERING),
   items: z.array(z.object({ id: z.string(), text: z.string() })).min(2),
+  correctOrder: z.array(z.string()),
 });
 
 export const matchingViewSchema = z.object({
@@ -303,6 +322,7 @@ export type AnswerSubmission = z.infer<typeof answerSubmissionSchema>;
 export interface GradeResult {
   isCorrect: boolean;
   correctAnswerText: string;
+  correctOrder?: string[];
   explanation: string | null;
 }
 

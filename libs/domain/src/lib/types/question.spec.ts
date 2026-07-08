@@ -218,3 +218,41 @@ describe('fill_in_blank schemas', () => {
     expect(result.success).toBe(false);
   });
 });
+
+describe('ordering schemas', () => {
+  const validContent = {
+    type: QuestionType.ORDERING,
+    items: [
+      { id: '1', text: 'Primero' },
+      { id: '2', text: 'Segundo' },
+      { id: '3', text: 'Tercero' },
+    ],
+    correctOrder: ['1', '2', '3'],
+  };
+
+  it('acepta contenido válido', () => {
+    const result = questionContentSchema.safeParse(validContent);
+    expect(result.success).toBe(true);
+  });
+
+  it('acepta vista válida con correctOrder', () => {
+    const result = questionViewSchema.safeParse(validContent);
+    expect(result.success).toBe(true);
+  });
+
+  it('rechaza correctOrder incompleto', () => {
+    const result = questionContentSchema.safeParse({
+      ...validContent,
+      correctOrder: ['1', '2'],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rechaza ids duplicados en correctOrder', () => {
+    const result = questionContentSchema.safeParse({
+      ...validContent,
+      correctOrder: ['1', '1', '3'],
+    });
+    expect(result.success).toBe(false);
+  });
+});

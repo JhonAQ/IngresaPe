@@ -266,6 +266,31 @@ async function main() {
     };
   }
 
+  function buildOrderingContent(
+    items: { id: string; text: string }[],
+    correctOrder: string[]
+  ) {
+    return {
+      type: QuestionType.ORDERING,
+      items,
+      correctOrder,
+    };
+  }
+
+  function generarOrderingPlaceholder(temaNombre: string) {
+    return {
+      statement: 'Ordena los siguientes pasos arrastrándolos.',
+      items: [
+        { id: 'o-a', text: `Paso inicial sobre ${temaNombre}` },
+        { id: 'o-b', text: `Desarrollo de ${temaNombre}` },
+        { id: 'o-c', text: `Aplicación de ${temaNombre}` },
+        { id: 'o-d', text: `Conclusión de ${temaNombre}` },
+      ],
+      correctOrder: ['o-a', 'o-b', 'o-c', 'o-d'],
+      explanation: `El orden correcto muestra la secuencia lógica del tema ${temaNombre}.`,
+    };
+  }
+
   // Función helper para crear cursos con temas y preguntas
   const DEFAULT_NODE_SIZE = 7;
 
@@ -364,6 +389,21 @@ async function main() {
             fibPlaceholder.bank,
             fibPlaceholder.correctWordIds
           ),
+        },
+      });
+
+      const orderingPlaceholder = generarOrderingPlaceholder(tema.nombre);
+      await prisma.question.create({
+        data: {
+          topicId: topicCreated.id,
+          difficulty: Difficulty.MEDIUM,
+          statement: orderingPlaceholder.statement,
+          type: QuestionType.ORDERING,
+          content: buildOrderingContent(
+            orderingPlaceholder.items,
+            orderingPlaceholder.correctOrder
+          ),
+          explanation: orderingPlaceholder.explanation,
         },
       });
     }

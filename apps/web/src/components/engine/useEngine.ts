@@ -9,6 +9,7 @@ export type EngineStatus = 'loading' | 'idle' | 'submitting' | 'feedback' | 'com
 export interface FeedbackState {
   isCorrect: boolean;
   correctAnswerText: string;
+  correctOrder?: string[];
   explanation: string | null;
   rewards: { xp: number; coins: number } | null;
 }
@@ -96,6 +97,7 @@ export function useEngine(
       setFeedback({
         isCorrect,
         correctAnswerText: result.correctAnswerText,
+        correctOrder: result.correctOrder,
         explanation: result.explanation,
         rewards: result.rewards ?? null,
       });

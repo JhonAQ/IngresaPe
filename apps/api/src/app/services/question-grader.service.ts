@@ -202,6 +202,7 @@ export class QuestionGraderService {
     return {
       isCorrect,
       correctAnswerText: correctText,
+      correctOrder: content.correctOrder,
       explanation: null,
     };
   }
