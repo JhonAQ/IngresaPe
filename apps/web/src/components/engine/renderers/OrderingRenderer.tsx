@@ -20,7 +20,7 @@ function shuffleItems(
   items: OrderingView['items'],
   correctOrder: string[]
 ): OrderingView['items'] {
-  let shuffled = shuffle(items);
+  const shuffled = shuffle(items);
   const shuffledIds = shuffled.map((i) => i.id);
 
   // Si el azar dejó todo en orden correcto, intercambiamos los dos primeros

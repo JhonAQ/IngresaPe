@@ -1,7 +1,7 @@
 # 🏗️ ARCHITECTURE.md — Arquitectura del Proyecto Ingresa.pe
 
-> **Última actualización:** 2026-05-29  
-> **Stack:** Nx Monorepo + Next.js 16 + NestJS 11 + Prisma 5 + tRPC 11 + PostgreSQL 15 + TailwindCSS 3  
+> **Última actualización:** 2026-07-08  
+> **Stack:** Nx Monorepo + Next.js 16 + NestJS 11 + Prisma 5 + tRPC 11 + PostgreSQL 15 + TailwindCSS 3
 
 ---
 
@@ -47,11 +47,11 @@
 
 | Capa | Tecnología | Versión | Rol |
 |------|------------|---------|-----|
-| **Monorepo** | Nx | 22.3.1 | Gestión de workspaces, builds, dependencias |
-| **Frontend** | Next.js | 16.0.1 | App Router, SSR, páginas |
+| **Monorepo** | Nx | 22.3.x | Gestión de workspaces, builds, dependencias |
+| **Frontend** | Next.js | 16.0.1 | App Router, SSR/CSR, páginas |
 | **UI Framework** | React | 19.0.0 | Componentes de interfaz |
-| **Styling** | TailwindCSS | 3.4.3 | Utility-first CSS |
-| **Animations** | Framer Motion | 12.38.0 | Animaciones fluidas |
+| **Styling** | TailwindCSS | 3.4.x | Utility-first CSS |
+| **Animations** | Framer Motion | 12.38.0 | Animaciones fluidas, drag-and-drop |
 | **Icons** | Lucide React | 1.14.0 | Iconos SVG + custom SVGs |
 | **Backend** | NestJS | 11.0.0 | Framework de API |
 | **API Protocol** | tRPC | 11.8.1 | Type-safe API client/server |
@@ -60,7 +60,7 @@
 | **Database** | PostgreSQL | 15-alpine | Almacenamiento principal |
 | **Cache** | Redis | alpine | Preparado pero no usado |
 | **Auth** | Passport + JWT | - | OAuth2 + Bearer tokens |
-| **Validation** | Zod | 4.2.1 | Schemas compartidos front/back |
+| **Validation** | Zod | 3.24.x | Schemas compartidos front/back |
 | **Serialization** | superjson | 2.2.6 | Serialización de Date/BigInt en tRPC |
 
 ---
@@ -72,37 +72,40 @@ ingresa.pe/
 ├── apps/
 │   ├── web/                          # 🟦 Frontend (Next.js 16)
 │   │   ├── src/
-│   │   │   ├── app/                  # App Router (páginas y layouts)
-│   │   │   │   ├── (app)/            # Route group: Dashboard, autenticado
-│   │   │   │   │   ├── layout.tsx    # Layout con Header + BottomNav
-│   │   │   │   │   ├── dashboard/    # Página principal con mapa de temas
+│   │   │   ├── app/                  # App Router
+│   │   │   │   ├── (app)/            # Route group autenticado (Header + BottomNav)
+│   │   │   │   │   ├── layout.tsx    # Layout con AuthGuard + ImmersiveOverlayProvider
+│   │   │   │   │   ├── dashboard/    # Mapa de temas por curso
 │   │   │   │   │   ├── cursos/       # Selección de cursos
 │   │   │   │   │   ├── entrenar/     # Modo Arcade (minijuegos)
 │   │   │   │   │   ├── perfil/       # Perfil de usuario
-│   │   │   │   │   └── simulacros/   # Dashboard de simulacros
-│   │   │   │   │       └── archivo/  # Archivo histórico de exámenes
-│   │   │   │   ├── (auth)/           # Route group: No autenticado
+│   │   │   │   │   ├── simulacros/   # Dashboard de simulacros
+│   │   │   │   │   │   ├── archivo/  # Archivo histórico de exámenes
+│   │   │   │   │   │   └── historial/# Historial de intentos
+│   │   │   │   │   └── shop/         # Tienda (UI decorativa actualmente)
+│   │   │   │   ├── (auth)/           # Route group no autenticado
 │   │   │   │   │   ├── login/        # Página de login
+│   │   │   │   │   ├── register/     # Página de registro
 │   │   │   │   │   └── auth-callback/# Callback de OAuth
-│   │   │   │   ├── engine/           # Motor de quiz (fuera del layout)
-│   │   │   │   ├── simulator/        # Simulador de examen (fuera del layout)
-│   │   │   │   ├── api/hello/        # API route (test)
-│   │   │   │   ├── layout.tsx        # Root layout
+│   │   │   │   ├── engine/           # Motor de quiz (sin layout app)
+│   │   │   │   ├── simulator/        # Simulador de examen (sin layout app)
+│   │   │   │   ├── layout.tsx        # Root layout + providers
 │   │   │   │   ├── page.tsx          # Redirect a /dashboard
 │   │   │   │   ├── providers.tsx     # tRPC + React Query providers
 │   │   │   │   └── global.css        # Estilos globales + Tailwind
 │   │   │   ├── components/           # Componentes por feature
-│   │   │   │   ├── dashboard/        # 7 componentes (Header, BottomNav, TopicList...)
-│   │   │   │   ├── engine/           # 3 componentes (BasicQuizEngine, SharedEngineUI)
-│   │   │   │   ├── entrenar/         # 4 componentes (HeroDailyChallenge, MinigameCard...)
-│   │   │   │   ├── perfil/           # 4 componentes (ProfileHeader, AcademicDNA...)
-│   │   │   │   ├── simulacros/       # 6 componentes (GoalCard, AIExamCard...)
-│   │   │   │   ├── simulator/        # 9 componentes (TopBar, QuestionCard...)
-│   │   │   │   └── ui/               # 2 componentes base (Button3D, ChunkyButton)
-│   │   │   ├── data/                 # Datos mock LOCALES
-│   │   │   ├── hooks/                # 1 hook (useDashboardData — mock)
+│   │   │   │   ├── auth/             # AuthGuard
+│   │   │   │   ├── dashboard/        # Header, BottomNav, TopicList, CourseSelector...
+│   │   │   │   ├── engine/           # Engine, useEngine, renderers, SharedEngineUI
+│   │   │   │   ├── entrenar/         # HeroDailyChallenge, MinigameCard...
+│   │   │   │   ├── perfil/           # ProfileHeader, AcademicDNA, TrophyRoom...
+│   │   │   │   ├── simulacros/       # GoalCard, AIExamCard, HistoryArchive...
+│   │   │   │   ├── simulator/        # TopBar, QuestionCard, FichaOpticaModal...
+│   │   │   │   └── ui/               # ChunkyButton, LatexText...
+│   │   │   ├── data/                 # Datos mock LOCALES (legacy)
+│   │   │   ├── hooks/                # useDashboardData (parcialmente mock)
 │   │   │   ├── lib/                  # Utilities (cn function)
-│   │   │   ├── types/                # Tipos locales (duplicados del domain)
+│   │   │   ├── types/                # Tipos locales (duplicados parciales del domain)
 │   │   │   └── utils/                # tRPC client setup
 │   │   ├── public/                   # Assets estáticos
 │   │   ├── tailwind.config.js        # Config extendida de Tailwind
@@ -111,23 +114,23 @@ ingresa.pe/
 │   │
 │   └── api/                          # 🟩 Backend (NestJS 11)
 │       ├── prisma/
-│       │   ├── schema.prisma         # 7 modelos, 5 enums
-│       │   ├── seed.ts               # Seed principal (47 carreras, 8 cursos, ~37 preguntas)
+│       │   ├── schema.prisma         # 11 modelos, 6 enums
+│       │   ├── seed.ts               # Seed principal
 │       │   ├── seed-competitors.ts   # 50 usuarios fake
-│       │   └── migrations/           # 5 migraciones
+│       │   └── migrations/           # Múltiples migraciones
 │       ├── src/
 │       │   ├── main.ts               # Bootstrap NestJS + tRPC adapter
 │       │   ├── index.ts              # Export de AppRouterType
 │       │   └── app/
-│       │       ├── app.module.ts     # Módulo raíz (todo en 1 módulo)
-│       │       ├── app.router.ts     # Root tRPC router
+│       │       ├── app.module.ts     # Módulo raíz (single module)
+│       │       ├── app.router.ts     # Root tRPC router (11 routers)
 │       │       ├── prisma.service.ts # Prisma lifecycle wrapper
 │       │       ├── trpc.service.ts   # tRPC init (procedures públicas/protegidas)
 │       │       ├── trpc.context.ts   # JWT context extraction
-│       │       ├── controllers/      # 1 controller (auth REST)
-│       │       ├── routers/          # 10 tRPC routers
-│       │       ├── services/         # 2 services (auth, game)
-│       │       └── strategies/       # 1 Passport strategy (Google)
+│       │       ├── controllers/      # AuthController (REST OAuth)
+│       │       ├── routers/          # 11 tRPC routers
+│       │       ├── services/         # Auth, Game, QuestionGrader, QuestionView, WeakTopicAnalyzer
+│       │       └── strategies/       # GoogleStrategy
 │       └── package.json              # Dependencias del backend
 │
 ├── libs/
@@ -135,24 +138,24 @@ ingresa.pe/
 │   │   └── src/lib/
 │   │       ├── auth.contract.ts      # Zod schemas (login, register)
 │   │       ├── domain.ts             # Hello schema (test)
-│   │       ├── types/                # Interfaces TS (User, Course, Temario, Entrenar)
+│   │       ├── types/                # Interfaces TS (User, Course, Temario, Entrenar, Question)
 │   │       └── mock/                 # Mock data (dashboard, courses, entrenar)
 │   │
 │   └── ui/                           # 🟪 Librería de Componentes UI
 │       └── src/lib/
-│           ├── button-3d.tsx         # Botón 3D estilo Duolingo
-│           ├── card-3d.tsx           # Card 3D con variantes
-│           ├── map-node.tsx          # Nodo del mapa de lecciones
+│           ├── button-3d.tsx         # Botón chunky con efecto 3D
+│           ├── card-3d.tsx           # Card con sombra 3D y variantes
+│           ├── map-node.tsx          # Nodo circular para mapa de lecciones
 │           ├── progress-bar.tsx      # Barra de progreso animada
-│           ├── stat-badge.tsx        # Badge de estadísticas (racha, XP, gemas)
-│           └── icons/                # 9 iconos SVG custom
+│           ├── stat-badge.tsx        # Badge de estadísticas
+│           └── icons/                # Iconos SVG custom
 │
 ├── packages/                         # Vacío (placeholder)
 ├── docker-compose.yml                # PostgreSQL 15 + Redis
 ├── nx.json                           # Configuración Nx
 ├── package.json                      # Dependencias raíz del monorepo
 ├── tsconfig.base.json                # Path aliases (@ingresa-pe/*)
-└── .env                              # Variables de entorno (⚠️ con secretos)
+└── .env.example                      # Variables de entorno necesarias
 ```
 
 ---
@@ -166,17 +169,20 @@ ingresa.pe/
 
 (auth)/                         → Route group SIN layout de app
   ├── login/page.tsx            → Página de login
+  ├── register/page.tsx         → Página de registro
   └── auth-callback/page.tsx    → Callback de OAuth
 
-(app)/                          → Route group CON layout (Header + BottomNav)
-  ├── layout.tsx                → 'use client' layout con mock data
+(app)/                          → Route group CON layout (Header + BottomNav + AuthGuard)
+  ├── layout.tsx                → 'use client' layout
   ├── dashboard/page.tsx        → Mapa de temas
   ├── cursos/page.tsx           → Selección de cursos
   ├── entrenar/page.tsx         → Modo Arcade
-  ├── perfil/page.tsx           → Perfil del usuario
-  └── simulacros/
-      ├── page.tsx              → Dashboard de simulacros
-      └── archivo/page.tsx      → Archivo histórico
+  ├── perfil/page.tsx           → Perfil de usuario
+  ├── simulacros/               → Dashboard de simulacros
+  │   ├── page.tsx
+  │   ├── archivo/page.tsx
+  │   └── historial/page.tsx
+  └── shop/page.tsx             → Tienda (UI decorativa)
 
 engine/page.tsx                 → Motor de quiz (sin layout de app)
 simulator/page.tsx              → Simulador de examen (sin layout de app)
@@ -186,42 +192,37 @@ simulator/page.tsx              → Simulador de examen (sin layout de app)
 
 ```
 components/
-├── dashboard/     → Feature-specific (Header, BottomNav, TopicList...)
-├── engine/        → Feature-specific (BasicQuizEngine, SharedEngineUI)
-├── entrenar/      → Feature-specific (HeroDailyChallenge, MinigameCard...)
-├── perfil/        → Feature-specific (ProfileHeader, AcademicDNA...)
-├── simulacros/    → Feature-specific (GoalCard, AIExamCard...)
-├── simulator/     → Feature-specific (TopBar, QuestionCard...)
-└── ui/            → Base/shared (Button3D, ChunkyButton)
+├── auth/          # AuthGuard
+├── dashboard/     # Header, BottomNav, TopicList, CourseSelector...
+├── engine/        # Engine, useEngine, renderers, SharedEngineUI, registry
+├── entrenar/      # HeroDailyChallenge, MinigameCard...
+├── perfil/        # ProfileHeader, AcademicDNA, TrophyRoom...
+├── simulacros/    # GoalCard, AIExamCard, HistoryArchive...
+├── simulator/     # TopBar, QuestionCard, FichaOpticaModal...
+└── ui/            # ChunkyButton, LatexText...
 ```
 
 **✅ Lo que está bien:**
-- Organización por feature (no por tipo)
-- Separación clara entre UI base y componentes de feature
-- Route groups de Next.js para layouts diferenciados
+- Organización por feature.
+- Separación clara entre UI base y componentes de feature.
+- Route groups de Next.js para layouts diferenciados.
+- Motor de preguntas extensible mediante registry.
 
 **❌ Problemas:**
-- Todos los layouts son `'use client'` (pierde SSR benefits)
-- No hay middleware de autenticación
-- Datos mock dispersos entre `data/`, `hooks/`, y directamente en los componentes
-- Tipos duplicados entre `types/dashboard.ts` y `libs/domain`
+- Layouts `(app)` son `'use client'` (pierde SSR benefits).
+- No hay `middleware.ts` de autenticación server-side; protección solo cliente (`AuthGuard`).
+- Datos mock dispersos (`useDashboardData`, `/shop`).
+- Tipos duplicados entre `types/dashboard.ts` y `libs/domain`.
 
 ### 3.3 Estado y Data Fetching
 
 ```
-ACTUAL (Problemático):
-
 Page Component
-    └── useState con datos hardcodeados
-        └── Renderiza UI con mock data
-
-IDEAL (Después de integración):
-
-Page Component
-    └── trpc.content.getCourses.useQuery()
-        └── TanStack Query gestiona cache/loading/error
-            └── tRPC llama al backend
-                └── Prisma consulta PostgreSQL
+    └── trpc.xxx.yyy.useQuery() / useMutation()
+        └── TanStack Query (cache, loading, error)
+            └── httpBatchLink + Authorization header
+                └── fetch('localhost:3000/trpc')
+                    └── tRPC router → Prisma → PostgreSQL
 ```
 
 ---
@@ -233,7 +234,7 @@ Page Component
 **Estado actual: Arquitectura Monolítica (Single Module)**
 
 ```
-AppModule (todo aquí)
+AppModule
 ├── Imports: JwtModule
 ├── Controllers: AuthController (OAuth REST)
 ├── Providers:
@@ -241,7 +242,11 @@ AppModule (todo aquí)
 │   │   ├── PrismaService
 │   │   ├── TrpcService
 │   │   └── AppRouter
-│   ├── tRPC Routers (10)
+│   ├── Question Engine Services
+│   │   ├── QuestionGraderService
+│   │   ├── QuestionViewService
+│   │   └── WeakTopicAnalyzerService
+│   ├── tRPC Routers (11)
 │   │   ├── AuthRouter
 │   │   ├── ContentRouter
 │   │   ├── GameRouter
@@ -251,32 +256,32 @@ AppModule (todo aquí)
 │   │   ├── ProfileRouter
 │   │   ├── ShopRouter
 │   │   ├── LearningRouter
-│   │   └── SubscriptionRouter
-│   ├── Services (2)
+│   │   ├── SubscriptionRouter
+│   │   └── SimulacroRouter
+│   ├── Business Services
 │   │   ├── AuthService
 │   │   └── GameService
-│   └── Strategies (1)
+│   └── Strategies
 │       └── GoogleStrategy
 └── Dead Code: AppController, AppService (no registrados)
 ```
 
-**✅ Lo que funciona bien para un Solo Dev:**
-- Simplicidad de un solo módulo
-- tRPC proporciona type-safety sin overhead de REST
-- PrismaService como wrapper lifecycle es correcto
+**✅ Lo que funciona bien:**
+- Simplicidad de un solo módulo para un solo dev.
+- tRPC proporciona type-safety sin overhead de REST.
+- `QuestionGraderService` / `QuestionViewService` centralizan calificación y vistas.
 
 **⚠️ Problemas:**
-- Toda la lógica está en los routers en vez de en services
-- Solo 2 de 10 routers delegan a un service (Game, Auth)
-- No hay separación de responsabilidades
-- Dead code (AppController, AppService)
+- Lógica de negocio aún vive en muchos routers (especialmente `simulacro`, `profile`, `learning`).
+- Dead code: `AppController`, `AppService` y sus tests.
+- `hello` router de prueba sigue en producción.
 
 ### 4.2 Flujo de una Request tRPC
 
 ```
                                     ┌─────────────────┐
 Client Request (Bearer token)  ────▶│  Express Server  │
-                                    │  main.ts:43      │
+                                    │  main.ts         │
                                     └────────┬────────┘
                                              │
                                     ┌────────▼────────┐
@@ -321,8 +326,8 @@ Client Request (Bearer token)  ────▶│  Express Server  │
      ▼
 ┌──────────────────────────────────┐
 │  Token guardado en localStorage  │
-│  ⚠️ NO enviado en tRPC headers  │
-│  ⚠️ NO incluye role             │
+│  ✅ Enviado en headers tRPC      │
+│  ✅ Incluye role                 │
 └──────────────────────────────────┘
 ```
 
@@ -341,22 +346,24 @@ domain/src/lib/
 ├── types/
 │   ├── user.ts         → UserStats interface
 │   ├── course.ts       → Course, CourseData, CourseStatus
-│   ├── temario.ts      → TemaData, Actividad, ResumenData, Card3DVariant, MapNodeColor
-│   └── entrenar.ts     → MinigameData, MinigameId
+│   ├── temario.ts      → TemaData, Actividad, ResumenData
+│   ├── entrenar.ts     → MinigameData, MinigameId
+│   └── question.ts     → QuestionType, QuestionContent, QuestionView, AnswerSubmission
 └── mock/
-    ├── dashboard.mock.ts  → userStats, temarioMock (10 temas de Biología)
+    ├── dashboard.mock.ts  → userStats, temarioMock
     ├── courses.mock.ts    → mockCourses
-    └── entrenar.mock.ts   → MINIGAMES (3 minijuegos)
+    └── entrenar.mock.ts   → MINIGAMES
 ```
 
 **✅ Bien:**
-- Schemas Zod compartidos eliminan duplicación de validación
-- Tipos centralizados evitan drift
+- Schemas Zod compartidos eliminan duplicación de validación.
+- Tipos centralizados evitan drift.
+- `QuestionType` y uniones bien diseñadas para extensibilidad.
 
 **❌ Problemas:**
-- Mock data en la librería de dominio (debería estar en `apps/web` solo)
-- `LucideIcon` como dependencia en tipos del dominio (acopla el dominio al framework de UI)
-- Tipos duplicados en `apps/web/src/types/dashboard.ts`
+- Mock data en la librería de dominio (debería estar en `apps/web` solo).
+- `LucideIcon` como dependencia en tipos del dominio.
+- `UserStats` del domain usa nombres antiguos (`vidas`, `gemas`) que difieren del backend.
 
 ### 5.2 `@ingresa-pe/ui` (libs/ui)
 
@@ -365,62 +372,36 @@ domain/src/lib/
 ```
 ui/src/lib/
 ├── button-3d.tsx      → Botón chunky con efecto 3D
-├── card-3d.tsx        → Card con sombra 3D y variantes de color
+├── card-3d.tsx        → Card con sombra 3D
 ├── map-node.tsx       → Nodo circular para mapa de lecciones
-├── progress-bar.tsx   → Barra de progreso con brillo
-├── stat-badge.tsx     → Badge de estadísticas (streak, XP, gem)
-└── icons/             → 9 iconos SVG custom (Home, Profile, Flame, Gem, XP...)
+├── progress-bar.tsx   → Barra de progreso animada
+├── stat-badge.tsx     → Badge de estadísticas
+└── icons/             → Iconos SVG custom
 ```
 
 **✅ Bien:**
-- Design system cohesivo estilo Duolingo
-- Componentes realmente reutilizables
-- SVGs custom de calidad
+- Design system cohesivo.
+- Componentes reutilizables.
 
 **❌ Problemas:**
-- No tiene Storybook ni documentación visual
-- Algunos componentes usan Tailwind directamente (acoplamiento)
-- `Button3D` aquí vs `ChunkyButton` en `apps/web/components/ui` — duplicación
+- No tiene Storybook ni documentación visual.
+- Duplicación con `ChunkyButton` en `apps/web/components/ui`.
 
 ---
 
 ## 6. Flujo de Datos
 
-### 6.1 Flujo Actual (Roto)
+### 6.1 Flujo Actual (Funcional)
 
 ```
 ┌─────────────────────────────────────────────────────┐
 │                    FRONTEND                          │
 │                                                     │
-│  page.tsx ──▶ useState(MOCK_DATA) ──▶ Render UI    │
+│  page.tsx ──▶ trpc.xxx.yyy.useQuery() ──▶ UI       │
 │                                                     │
-│  ⚠️ tRPC client existe pero nadie lo usa            │
-│  ⚠️ Token existe en localStorage pero no se envía   │
+│  ✅ tRPC client envía Authorization header          │
+│  ✅ AuthGuard protege rutas (cliente)               │
 └─────────────────────────────────────────────────────┘
-
-              ╳ SIN CONEXIÓN ╳
-
-┌─────────────────────────────────────────────────────┐
-│                    BACKEND                           │
-│                                                     │
-│  tRPC Router ──▶ PrismaService ──▶ PostgreSQL      │
-│                                                     │
-│  ✅ 22 endpoints funcionales esperando ser llamados  │
-└─────────────────────────────────────────────────────┘
-```
-
-### 6.2 Flujo Objetivo (Correcto)
-
-```
-┌─────────────────────────────────────────────────────┐
-│                    FRONTEND                          │
-│                                                     │
-│  page.tsx                                           │
-│    └── trpc.content.getCourses.useQuery()           │
-│          └── TanStack Query (cache, retry, stale)   │
-│                └── httpBatchLink + Auth header       │
-│                      └── fetch('localhost:3000/trpc')│
-└───────────────────────────┬─────────────────────────┘
                             │ HTTP + Bearer Token
 ┌───────────────────────────▼─────────────────────────┐
 │                    BACKEND                           │
@@ -430,7 +411,27 @@ ui/src/lib/
 │          └── Router handler                         │
 │                └── PrismaService                    │
 │                      └── PostgreSQL                 │
+│                                                     │
+│  ✅ ~28 endpoints funcionales                       │
 └─────────────────────────────────────────────────────┘
+```
+
+### 6.2 Motor de Preguntas
+
+```
+Question (Prisma JSONB content)
+        │
+        ▼
+QuestionViewService.toView(q)  →  Vista segura (sin respuestas correctas)
+        │
+        ▼
+Frontend renderer según type  →  AnswerSubmission
+        │
+        ▼
+QuestionGraderService.grade() →  Resultado + rewards
+        │
+        ▼
+GameService.submitAnswer()    →  Actualiza user, AnswerLog, devuelve feedback
 ```
 
 ---
@@ -450,52 +451,53 @@ services:
 ```
 # Necesarias:
 DATABASE_URL    → PostgreSQL connection string
-JWT_SECRET      → Para firmar tokens JWT
+JWT_SECRET      → Para firmar tokens JWT (⚠️ rotar, actualmente débil)
 
 # OAuth:
 GOOGLE_CLIENT_ID
 GOOGLE_CLIENT_SECRET
 GOOGLE_CALLBACK_URL
+FRONTEND_URL    → Para redirect de OAuth (default http://localhost:4200)
 
-# Faltantes:
-FRONTEND_URL    → Para redirect de OAuth (debería existir)
+# Opcionales:
 REDIS_URL       → Si se implementa caché
-NODE_ENV        → Para condicionar comportamiento
+NODE_ENV        → production / development
 ```
 
 ---
 
 ## 8. Análisis de Deuda Técnica
 
-### 8.1 Deuda Crítica (Bloquea integración)
+### 8.1 Deuda Crítica (Seguridad)
 
 | # | Problema | Impacto | Esfuerzo |
 |---|----------|---------|----------|
-| 1 | Token JWT no se envía en headers de tRPC | Ningún endpoint protegido funciona | 🟢 Bajo (5 min) |
-| 2 | JWT no incluye `role` en payload | Role-based access roto | 🟢 Bajo (15 min) |
-| 3 | No hay middleware de protección de rutas | Usuarios no autenticados ven todo | 🟢 Bajo (30 min) |
-| 4 | Frontend usa 100% mock data | Nada se guarda ni se lee del backend | 🟡 Medio (días) |
+| 1 | `.env` real con secretos en working tree | Exposición inmediata de credenciales | 🟢 Bajo |
+| 2 | JWT secret débil + fallback `'secret'` | Tokens forjables | 🟢 Bajo |
+| 3 | CORS abierto | Cualquier origen puede llamar | 🟢 Bajo |
+| 4 | Token OAuth en URL parameter | Historial del navegador expone token | 🟡 Medio |
+| 5 | Sin rate limiting | Vulnerable a brute force | 🟡 Medio |
+| 6 | Middleware spy loggea requests en producción | Data leak | 🟢 Bajo |
 
-### 8.2 Deuda Estructural
-
-| # | Problema | Impacto | Esfuerzo |
-|---|----------|---------|----------|
-| 5 | Lógica de negocio en routers (no en services) | Difícil de testear y mantener | 🟡 Medio |
-| 6 | Tipos duplicados (domain vs local en web) | Drift, confusión | 🟢 Bajo |
-| 7 | Mock data en `libs/domain` | Contamina la librería compartida | 🟢 Bajo |
-| 8 | LucideIcon en tipos del dominio | Acopla dominio a UI framework | 🟡 Medio |
-| 9 | submitAnswer duplicado (Game vs Learning) | Inconsistencia, mantenimiento doble | 🟡 Medio |
-| 10 | Single Module para todo el backend | Escala mal | 🔴 Alto (refactor grande) |
-
-### 8.3 Deuda de Seguridad
+### 8.2 Deuda Funcional
 
 | # | Problema | Impacto | Esfuerzo |
 |---|----------|---------|----------|
-| 11 | `.env` con secretos en el repositorio | Exposición de credenciales | 🟢 Bajo |
-| 12 | JWT secret débil | Tokens pueden ser forjados | 🟢 Bajo |
-| 13 | CORS abierto | Cualquier origen puede hacer requests | 🟢 Bajo |
-| 14 | Sin rate limiting | Vulnerable a brute force | 🟡 Medio |
-| 15 | Console.log de requests | Data leak en producción | 🟢 Bajo |
+| 7 | `/shop` no conecta a `shop.*` y vende gemas sin backend | Riesgo comercial | 🟡 Medio |
+| 8 | `stats.getDashboard` no se consume en frontend | Endpoint muerto | 🟢 Bajo |
+| 9 | Progreso hardcoded en `/cursos` y `CourseProgressList` | UX inconsistente | 🟢 Bajo |
+| 10 | Modos arcade sin lógica real | Feature vacía | 🟡 Medio |
+| 11 | `subExpiresAt` no se valida en runtime | Premium no expira | 🟢 Bajo |
+
+### 8.3 Deuda Estructural
+
+| # | Problema | Impacto | Esfuerzo |
+|---|----------|---------|----------|
+| 12 | Lógica en routers (no services) | Difícil de testear | 🟡 Medio |
+| 13 | Tipos duplicados (domain vs local) | Drift | 🟢 Bajo |
+| 14 | Mock data en `libs/domain` | Contamina librería | 🟢 Bajo |
+| 15 | Dead code (`AppController`, `AppService`, `BasicQuizEngine`) | Ruido | 🟢 Bajo |
+| 16 | Single Module para todo el backend | Escala mal | 🔴 Alto |
 
 ---
 
@@ -503,104 +505,28 @@ NODE_ENV        → Para condicionar comportamiento
 
 ### 9.1 Inmediatas (Esta semana)
 
-#### A. Arreglar la integración tRPC (PRIORIDAD #1)
-
-```typescript
-// apps/web/src/app/providers.tsx — CAMBIO NECESARIO
-httpBatchLink({
-  url: 'http://localhost:3000/trpc',
-  transformer: SuperJSON,
-  // 👇 AGREGAR ESTO
-  headers() {
-    const token = typeof window !== 'undefined'
-      ? localStorage.getItem('auth_token')
-      : null;
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  },
-}),
-```
-
-#### B. Incluir `role` en JWT
-
-```typescript
-// apps/api/src/app/routers/auth.router.ts — CAMBIO NECESARIO
-const token = this.jwtService.sign({
-  userId: user.id,
-  email: user.email,
-  role: user.role,  // 👈 AGREGAR
-});
-```
-
-#### C. Middleware de auth en Next.js
-
-```typescript
-// apps/web/src/middleware.ts — NUEVO ARCHIVO
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-
-export function middleware(request: NextRequest) {
-  const token = request.cookies.get('auth_token');
-  const isAuthPage = request.nextUrl.pathname.startsWith('/login');
-  
-  if (!token && !isAuthPage) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-  return NextResponse.next();
-}
-
-export const config = {
-  matcher: ['/(app)/:path*', '/dashboard', '/perfil', '/entrenar', '/simulacros', '/cursos'],
-};
-```
+1. **Rotar secretos** y eliminar `.env` real del working tree.
+2. **Quitar fallback `|| 'secret'`** del JWT en `app.module.ts`, `auth.service.ts`, `trpc.context.ts`.
+3. **Configurar CORS** con whitelist de orígenes.
+4. **Corregir lint** y warnings restantes.
+5. **Condicionar/quitar** middleware spy de `main.ts`.
 
 ### 9.2 A Corto Plazo (Próximas 2 semanas)
 
-1. **Mover mock data** de `libs/domain` a `apps/web/src/__mocks__/`
-2. **Eliminar tipos duplicados** de `apps/web/src/types/` (usar `@ingresa-pe/domain`)
-3. **Separar `LucideIcon`** del dominio: usar `string` para icon names y resolver en el frontend
-4. **Consolidar `submitAnswer`** en un solo service con parámetros configurables
-5. **Implementar energy refill**: Lógica en el backend que recargue energía cada X horas
-6. **Actualizar `examDate`** en stats router (o hacerlo configurable)
-7. **Eliminar dead code**: `AppController`, `AppService` y sus tests
+1. Reconectar `/shop` a `shop.getCatalog` + `shop.buyItem`.
+2. Crear página `/ranking` con `ranking.getTopStudents`.
+3. Conectar `stats.getDashboard` y corregir fecha de examen.
+4. Eliminar progreso hardcoded en cursos/perfil.
+5. Unificar vidas locales del engine con energía real.
 
 ### 9.3 A Mediano Plazo (Próximo mes)
 
-1. **Modularizar el backend**: Separar en `AuthModule`, `ContentModule`, `GameModule`, etc.
-2. **Implementar Redis** para caché de rankings y preguntas frecuentes
-3. **Agregar tests**: Al menos tests de integración para los routers principales
-4. **Implementar paginación** en endpoints que devuelven listas
-5. **Agregar rate limiting** con `@nestjs/throttler`
-6. **Configurar CORS** correctamente (whitelist de orígenes)
-7. **Implementar refresh tokens** (el token actual dura 7 días sin refresh)
-
-### 9.4 Patrones Arquitectónicos Recomendados
-
-#### Patrón recomendado para nuevos features:
-
-```
-Feature (Vertical Slice)
-├── Backend
-│   ├── router.ts      → Define tRPC procedures
-│   ├── service.ts     → Lógica de negocio
-│   └── dto.ts         → Input/Output Zod schemas
-├── Shared
-│   └── types.ts       → Interfaces compartidas en @ingresa-pe/domain
-└── Frontend
-    ├── page.tsx        → Página que usa hooks
-    ├── hooks/          → Custom hooks con trpc.*.useQuery()
-    └── components/     → UI components
-```
-
-#### Ejemplo: Implementar "Leaderboard"
-
-```
-1. Backend: ranking.router.ts (✅ ya existe)
-2. Shared: Agregar RankingEntry type a @ingresa-pe/domain
-3. Frontend:
-   - hooks/useRanking.ts → trpc.ranking.getTopStudents.useQuery()
-   - components/ranking/Leaderboard.tsx
-   - (app)/ranking/page.tsx → usa el hook y el componente
-```
+1. Modularizar backend en feature modules.
+2. Implementar Redis para rankings/caché.
+3. Agregar tests de integración para routers principales.
+4. Panel de admin básico.
+5. Modos arcade reales.
+6. Recuperación de contraseña.
 
 ---
 
@@ -608,15 +534,15 @@ Feature (Vertical Slice)
 
 | Aspecto | Nota | Comentario |
 |---------|------|-----------|
-| **Elección de stack** | ⭐⭐⭐⭐⭐ | Excelente. Nx + Next + NestJS + tRPC + Prisma es una combinación moderna y productiva |
-| **Estructura de carpetas** | ⭐⭐⭐⭐ | Bien organizada por features. Solo falta limpieza de duplicados |
-| **Type safety** | ⭐⭐⭐⭐ | tRPC + Zod + TypeScript. Excelente en teoría, falta conectar |
-| **Calidad de UI** | ⭐⭐⭐⭐⭐ | Diseño Duolingo premium con animaciones. Muy pulido |
-| **Calidad del backend** | ⭐⭐⭐ | Funcional pero con lógica en routers, falta services layer |
-| **Testing** | ⭐ | Prácticamente inexistente |
-| **Seguridad** | ⭐⭐ | Múltiples vulnerabilidades críticas |
-| **Integración Front↔Back** | ⭐ | 4% conectado. Es el mayor problema |
-| **DevOps/CI** | ⭐⭐ | Docker para DB, pero sin CI/CD, sin entornos |
-| **Documentación** | ⭐ | Inexistente hasta hoy |
+| **Elección de stack** | ⭐⭐⭐⭐⭐ | Moderno y productivo |
+| **Estructura de carpetas** | ⭐⭐⭐⭐ | Bien organizada, algunos duplicados |
+| **Type safety** | ⭐⭐⭐⭐⭐ | tRPC + Zod + TypeScript |
+| **Calidad de UI** | ⭐⭐⭐⭐⭐ | Duolingo-tier |
+| **Calidad del backend** | ⭐⭐⭐ | Funcional, falta services layer |
+| **Testing** | ⭐⭐ | Tests pasan, pero cobertura baja |
+| **Seguridad** | ⭐⭐ | Múltiples vulnerabilidades críticas por resolver |
+| **Integración Front↔Back** | ⭐⭐⭐⭐ | ~80% conectado |
+| **DevOps/CI** | ⭐⭐⭐ | Docker + CI básico |
+| **Documentación** | ⭐⭐⭐ | Actualizada hoy, pero requiere mantenimiento continuo |
 
-**Nota global: 3/5 ⭐⭐⭐ — Base sólida, necesita integración y cleanup**
+**Nota global: 3.5/5 ⭐⭐⭐½ — Base sólida, conectada, pero necesita seguridad y limpieza.**

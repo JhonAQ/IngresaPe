@@ -1,125 +1,37 @@
-# 🧭 METHODOLOGY & ROADMAP — Guía de Recuperación del Proyecto
+# 🧭 METHODOLOGY & ROADMAP — Guía de Recuperación del Proyecto Ingresa.pe
 
 > **Para:** JhonAQ (Solo Dev)  
 > **De:** Tu Tech Lead / Mentor AI  
-> **Fecha:** 2026-05-29  
-> **Objetivo:** Retomar el proyecto con una estrategia clara, sin abrumarte  
+> **Fecha:** 2026-07-08  
+> **Objetivo:** Retomar el proyecto con una estrategia clara, sin abrumarte
 
 ---
 
-## PARTE 1: POR QUÉ ESTÁS TRABADO (Y CÓMO SOLUCIONARLO)
+## PARTE 1: CÓMO LLEGAMOS AQUÍ
 
 ---
 
-### 🔴 El Problema: Desarrollo Horizontal
+### 🟢 El buen trabajo hecho
 
-Lo que hiciste se llama **"Desarrollo Horizontal"** o "Layer-First Development":
-
-```
-TU ESTRATEGIA ANTERIOR:
-
-Fase 1: "Construyo TODO el Frontend"
-──────────────────────────────────────────────────────
-  ✅ Login UI          ✅ Dashboard UI      ✅ Cursos UI
-  ✅ Engine UI         ✅ Simulator UI      ✅ Perfil UI
-  ✅ Entrenar UI       ✅ Simulacros UI     ✅ Bottom Nav
-  ... (semanas de trabajo visual)
-
-Fase 2: "Ahora hago TODO el Backend"
-──────────────────────────────────────────────────────
-  ✅ Auth API          ✅ Content API       ✅ Game API
-  ✅ Stats API         ✅ Ranking API       ✅ Profile API
-  ✅ Shop API          ✅ Admin API         ✅ Subscription API
-  ... (semanas más de trabajo en APIs)
-
-Fase 3: "Ahora los conecto"
-──────────────────────────────────────────────────────
-  ❓ ¿Por dónde empiezo?
-  ❓ Los datos del frontend no coinciden con lo que devuelve la API
-  ❓ Los tipos del mock no son iguales a los tipos reales
-  ❓ Hay 22 endpoints y 10 páginas... ¿qué conecto primero?
-  ❓ Perdí el contexto de qué hice hace semanas
-  😵 DESORIENTACIÓN TOTAL
-```
-
-### ¿Por qué esto falla?
-
-| # | Problema | Lo que te pasó |
-|---|----------|---------------|
-| 1 | **Feedback tardío** | Construiste UIs sin saber si los datos reales encajan. Ahora descubres que `UserStats` del mock tiene `{racha, vidas, gemas, xp}` pero la API devuelve `{energy, totalXp, streak, coins}` — campos distintos, nombres distintos |
-| 2 | **Contexto perdido** | Cuando construiste el backend, ya olvidaste qué esperaba cada componente del frontend. Y ahora que quieres conectar, olvidaste cómo funciona el backend |
-| 3 | **Integración masiva** | En vez de conectar 1 cosa, tienes que conectar 22 endpoints × 10 páginas = un muro de trabajo que paraliza |
-| 4 | **No ves progreso real** | Tienes una app "bonita" que no funciona. Psicológicamente, sientes que hiciste mucho trabajo pero no tienes nada que puedas mostrar a un usuario real |
-| 5 | **Bugs ocultos** | La API de auth genera tokens sin `role`, pero no lo descubriste porque nunca conectaste el frontend con el backend. Bugs así se multiplican con el tiempo |
-
-### El costo real en tu proyecto:
+El proyecto ya **funciona end-to-end en su flujo crítico**:
 
 ```
-TRABAJO HECHO:        ████████████████░░░░  ~80%
-VALOR ENTREGABLE:     █░░░░░░░░░░░░░░░░░░░  ~5%
-                      ↑
-                      Solo Google OAuth funciona end-to-end
+Login / Register  →  Cursos  →  Tema/Nodo  →  Preguntas reales (6 tipos)
+                                                          ↓
+                                     Feedback + XP/coins/racha  →  Desbloquear siguiente nodo
+                                                          ↓
+                                         Simulacros / Simulador con BD real
 ```
 
-**Hiciste el 80% del trabajo pero solo el 5% produce valor.** Esto es la trampa del desarrollo horizontal.
+Esto es posible gracias a que seguiste **vertical slicing** parcialmente: conectaste auth, cursos, engine y simulacro feature por feature.
+
+### 🔴 El riesgo actual
+
+Ahora el peligro es el **"desarrollo horizontal de nuevo"**: saltar entre muchas mejoras sin terminar ninguna. El proyecto tiene deuda técnica real (seguridad, funcionalidades decorativas, limpieza) que puede hacer que vuelvas a sentirte abrumado si no priorizas.
 
 ---
 
-### 🟢 La Solución: Vertical Slicing (Rebanadas Verticales)
-
-**Vertical Slicing** significa construir el proyecto **feature por feature, de arriba a abajo**, en vez de capa por capa.
-
-```
-VERTICAL SLICING:
-
-Feature 1: "Un usuario puede iniciar sesión y ver SU dashboard"
-─────────────────────────────────────────────────────────────
-  Frontend: Login page → conectar a tRPC → guardar token
-  Backend:  auth.login → devuelve token con role
-  Frontend: Dashboard → trpc.stats.getDashboard → datos reales
-  Resultado: ✅ Un usuario REAL puede loguearse y ver SUS datos
-
-Feature 2: "Un usuario puede ver sus cursos REALES"
-─────────────────────────────────────────────────────────────
-  Frontend: cursos/page → trpc.content.getCourses
-  Frontend: dashboard → trpc.content.getTopics
-  Resultado: ✅ Los cursos vienen de la base de datos
-
-Feature 3: "Un usuario puede resolver preguntas REALES"
-─────────────────────────────────────────────────────────────
-  Frontend: engine → trpc.content.getQuestions + trpc.game.submitAnswer
-  Resultado: ✅ Las preguntas se guardan, el XP se acumula
-```
-
-### ¿Por qué funciona?
-
-| # | Beneficio | Cómo te ayuda |
-|---|-----------|---------------|
-| 1 | **Feedback inmediato** | Después de cada feature, tienes algo que FUNCIONA. Puedes verlo, probarlo, mostrarlo |
-| 2 | **Bugs tempranos** | Descubres el bug de `role` en el JWT en el Feature 1, no después de construir 22 endpoints |
-| 3 | **Contexto fresco** | Trabajas en front + back del MISMO feature al mismo tiempo. Todo está fresco en tu mente |
-| 4 | **Motivación** | Cada 1-2 días terminas algo real. Ves progreso tangible |
-| 5 | **Priorización natural** | Si no llegas a implementar el Feature 8 (Tienda), no importa — los Features 1-7 ya funcionan |
-
-### Visualización de la diferencia:
-
-```
-HORIZONTAL (lo que hiciste):          VERTICAL (lo que harás):
-
-    UI    API   DB                        F1    F2    F3    F4
-   ┌──┐  ┌──┐  ┌──┐                    ┌──┐  ┌──┐  ┌──┐  ┌──┐
-   │██│  │██│  │██│                    │██│  │██│  │██│  │░░│
-   │██│  │██│  │██│                    │██│  │██│  │██│  │░░│
-   │██│  │██│  │██│                    │██│  │██│  │░░│  │░░│
-   │██│  │██│  │██│                    │██│  │░░│  │░░│  │░░│
-   └──┘  └──┘  └──┘                    └──┘  └──┘  └──┘  └──┘
-   Todo hecho,    ╳                     F1-F2 funcionan end-to-end
-   nada conectado                       F3-F4 en progreso
-```
-
----
-
-## PARTE 2: TU NUEVA FORMA DE TRABAJAR
+## PARTE 2: TU NUEVA FORMA DE TRABAJAR (Vertical Slicing 2.0)
 
 ---
 
@@ -130,661 +42,339 @@ Nunca trabajes en más de 1 feature a la vez. Termínala antes de empezar la sig
 
 #### Regla 2: "Backend primero, Frontend después (por feature)"
 Dentro de cada vertical slice:
-1. Verifica/arregla el endpoint del backend
-2. Crea el hook del frontend que lo consume
-3. Conecta el componente existente al hook
+1. Verifica/arregla el endpoint del backend.
+2. Crea el hook del frontend que lo consume.
+3. Conecta el componente existente al hook.
 
-#### Regla 3: "Funcional > Bonito"
+#### Regla 3: "Seguridad antes de features nuevas"
+No agregues más funcionalidad visible hasta que los secretos, CORS y JWT estén saneados. Es aburrido pero evita catástrofes.
+
+#### Regla 4: "Funcional > Bonito"
 Tu UI ya es bonita. Ahora el trabajo es hacerla FUNCIONAL. No toques CSS/animaciones hasta que los datos sean reales.
 
-#### Regla 4: "Máximo 2 horas sin ver un resultado"
+#### Regla 5: "Máximo 2 horas sin ver un resultado"
 Si llevas 2 horas y no ves algo nuevo funcionando, estás haciendo algo mal. Divide la tarea más.
 
-#### Regla 5: "Commit por micro-feature"
-Cada paso debería ser un commit:
-```
-✅ "fix: include role in JWT payload"
-✅ "feat: add auth token to tRPC headers"
-✅ "feat: connect login page to auth.login tRPC"
-✅ "feat: add Next.js auth middleware"
-```
-
-### Tu Ciclo de Trabajo Diario
-
-```
-┌─────────────────────────────────────────────────────┐
-│  1. Abre el ROADMAP → ¿Cuál es el próximo paso?    │
-│  2. Lee la mini-spec del paso                       │
-│  3. Backend: verifica/arregla endpoint (15-30 min)  │
-│  4. Frontend: crea hook + conecta componente (1-2h) │
-│  5. Prueba manualmente end-to-end                   │
-│  6. Commit + marca el paso como ✅                   │
-│  7. Repite                                          │
-└─────────────────────────────────────────────────────┘
-```
+#### Regla 6: "Commit por micro-feature"
+Cada paso debería ser un commit descriptivo.
 
 ---
 
-## PARTE 3: ROADMAP PASO A PASO
+## PARTE 3: ROADMAP ACTUALIZADO
 
 ---
 
-> **Cómo leer esto:** Cada paso tiene un estimado de tiempo, los archivos que debes tocar, y exactamente qué hacer. Sigue el orden. No te saltes pasos.
+> **Estado actual (2026-07-08):** Auth, cursos, engine (6 motores), perfil, simulacros y simulador ya están conectados. Lo que más duele ahora es **seguridad** y **funcionalidades decorativas**.
 
 ---
 
-### 🏁 FASE 0: ARREGLOS CRÍTICOS (Día 1)
+### 🔐 FASE 0: SEGURIDAD CRÍTICA (Día 1)
 *"Arreglar lo roto antes de construir encima"*
 
----
-
-#### Paso 0.1 — Arreglar el JWT para incluir `role` ⏱️ 15 min
-
-**Problema:** `auth.login` y `auth.register` generan tokens con `{userId, email}` pero sin `role`. Esto rompe toda la autorización basada en roles.
+#### Paso 0.1 — Rotar secretos y eliminar `.env` del working tree ⏱️ 30 min
 
 **Archivos a tocar:**
-- `apps/api/src/app/routers/auth.router.ts`
+- `.env` (raíz del monorepo) — NO commitear
+- `.env.example` — actualizar con placeholders
+- Tus credenciales de Google Cloud Console
+
+**Qué hacer:**
+1. Generar nuevo `JWT_SECRET`: `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"`
+2. Rotar `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` en Google Cloud.
+3. Actualizar `.env` local con los nuevos valores.
+4. Asegurar que `.env` esté en `.gitignore`.
+5. Hacer `git rm --cached .env` si por alguna razón está trackeado.
+
+**⚠️ No subas secretos reales al repo nunca más.**
+
+---
+
+#### Paso 0.2 — Eliminar fallback `'secret'` del JWT ⏱️ 15 min
+
+**Archivos a tocar:**
+- `apps/api/src/app/app.module.ts`
+- `apps/api/src/app/services/auth.service.ts`
+- `apps/api/src/app/trpc.context.ts`
 
 **Qué hacer:**
 ```typescript
-// EN auth.router.ts — método login y register
-// CAMBIAR esto:
-const token = this.jwtService.sign({ userId: user.id, email: user.email });
+// CAMBIAR:
+secret: process.env.JWT_SECRET || 'secret',
 
-// POR esto:
-const token = this.jwtService.sign({ 
-  userId: user.id, 
-  email: user.email, 
-  role: user.role  // ← AGREGAR
+// POR:
+secret: process.env.JWT_SECRET!,
+```
+
+Si `JWT_SECRET` no está definido, el servidor debe fallar al arrancar (fail fast).
+
+---
+
+#### Paso 0.3 — Configurar CORS con whitelist ⏱️ 15 min
+
+**Archivo:** `apps/api/src/main.ts`
+
+**Qué hacer:**
+```typescript
+const allowedOrigins = process.env.CORS_ORIGINS?.split(',') ?? [
+  'http://localhost:4200',
+];
+
+app.enableCors({
+  origin: allowedOrigins,
+  credentials: true,
 });
 ```
 
-**Verificación:** Usa Postman/Insomnia, haz login, copia el token, y decodifícalo en jwt.io. Debe mostrar `role: "USER"`.
-
 ---
 
-#### Paso 0.2 — Enviar token en headers de tRPC ⏱️ 10 min
+#### Paso 0.4 — Quitar middleware spy de requests ⏱️ 10 min
 
-**Problema:** `providers.tsx` crea el cliente tRPC pero NO envía el token JWT en los headers. Ningún endpoint protegido puede funcionar.
-
-**Archivos a tocar:**
-- `apps/web/src/app/providers.tsx`
+**Archivo:** `apps/api/src/main.ts`
 
 **Qué hacer:**
-```typescript
-// EN providers.tsx — dentro de httpBatchLink
-httpBatchLink({
-  url: 'http://localhost:3000/trpc',
-  transformer: SuperJSON,
-  // 👇 AGREGAR este bloque completo
-  headers() {
-    const token = typeof window !== 'undefined' 
-      ? localStorage.getItem('auth_token') 
-      : null;
-    return token ? { authorization: `Bearer ${token}` } : {};
-  },
-}),
-```
-
-**Verificación:** Después de loguearte, abre DevTools → Network → busca requests a `/trpc`. Deben tener header `Authorization: Bearer eyJ...`.
+Eliminar o condicionar el `console.log` del body de requests `/trpc` que corre en producción.
 
 ---
 
-#### Paso 0.3 — Eliminar código muerto del backend ⏱️ 5 min
-
-**Archivos a ELIMINAR:**
-- `apps/api/src/app/app.controller.ts`
-- `apps/api/src/app/app.controller.spec.ts`
-- `apps/api/src/app/app.service.ts`
-- `apps/api/src/app/app.service.spec.ts`
-
-**También quitar** `hello` router del `app.router.ts` (es un test que quedó).
+### 🛠️ FASE 1: FUNCIONALIDADES DECORATIVAS (Días 2-6)
+*"Conectar lo que ya existe en el backend"*
 
 ---
 
-#### Paso 0.4 — Arreglar secretos de seguridad ⏱️ 10 min
+#### Paso 1.1 — Reconectar la tienda (`/shop`) ⏱️ 2 horas
+
+**Backend:** ya existe `shop.getCatalog` y `shop.buyItem`.
+
+**Frontend:** `apps/web/src/app/shop/page.tsx`
 
 **Qué hacer:**
-1. Generar un JWT_SECRET fuerte: `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"`
-2. Actualizar `apps/api/.env` con el nuevo secret
-3. Verificar que `.env` de la raíz esté en `.gitignore`
-4. Remover los fallback `|| 'secret'` en `trpc.context.ts`, `auth.router.ts`, `auth.service.ts`
+1. Llamar `trpc.shop.getCatalog.useQuery()` para listar items.
+2. Mostrar precio en **monedas** (no "gemas" ni dinero real).
+3. Llamar `trpc.shop.buyItem.useMutation()` al comprar.
+4. Actualizar `useAuth().user` o invalidar `profile.getMe` después de compra.
+5. Deshabilitar items ya comprados (`inventory`).
+
+**Resultado:** Un usuario puede gastar sus monedas reales en avatares/energía.
 
 ---
 
-### 🔐 FASE 1: AUTENTICACIÓN END-TO-END (Días 2-3)
-*"Un usuario puede registrarse, loguearse y ser redirigido"*
+#### Paso 1.2 — Crear página de ranking (`/ranking`) ⏱️ 2 horas
 
----
-
-#### Paso 1.1 — Conectar Login con email a tRPC ⏱️ 45 min
-
-**Archivos a tocar:**
-- `apps/web/src/app/(auth)/login/page.tsx`
-
-**Qué hacer:**
-1. Importar `trpc` del utils
-2. Reemplazar el `throw new Error(...)` fake por una llamada real:
-
-```typescript
-// REEMPLAZAR handleEmailLogin:
-const loginMutation = trpc.auth.login.useMutation();
-
-const handleEmailLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  const formData = new FormData(e.currentTarget);
-  const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
-
-  try {
-    setIsLoadingEmail(true);
-    setAuthError(null);
-    const result = await loginMutation.mutateAsync({ email, password });
-    localStorage.setItem('auth_token', result.token);
-    router.push('/dashboard');
-  } catch (err: any) {
-    setAuthError(err.message || 'Error al iniciar sesión.');
-  } finally {
-    setIsLoadingEmail(false);
-  }
-};
-```
-
-**Verificación:** Login con las credenciales de un usuario seed → debe redirigir a `/dashboard`.
-
----
-
-#### Paso 1.2 — Crear página de Registro ⏱️ 1 hora
-
-**Archivos a crear:**
-- `apps/web/src/app/(auth)/register/page.tsx`
-
-**Qué hacer:**
-1. Copiar la estructura visual de `login/page.tsx`
-2. Agregar campo "Nombre"
-3. Conectar a `trpc.auth.register.useMutation()`
-4. Después del registro exitoso, guardar token y redirigir a `/dashboard`
-5. Agregar link "¿Ya tienes cuenta? Inicia sesión" → `/login`
-6. En login, agregar link "¿No tienes cuenta? Regístrate" → `/register`
-
----
-
-#### Paso 1.3 — Protección de rutas con middleware ⏱️ 30 min
-
-**Archivos a crear:**
-- `apps/web/src/middleware.ts`
-
-**Qué hacer:**
-Crear un middleware de Next.js que:
-- Si el usuario NO tiene token y trata de acceder a rutas protegidas → redirigir a `/login`
-- Si el usuario TIENE token y trata de acceder a `/login` → redirigir a `/dashboard`
-
-> **Nota:** El token está en localStorage (no accesible desde middleware server-side). Necesitarás cambiar a cookies httpOnly o usar un approach client-side con un componente `AuthGuard`.
-
-**Alternativa más simple (AuthGuard client-side):**
-```typescript
-// components/AuthGuard.tsx
-'use client';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-
-export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const [isAuthed, setIsAuthed] = useState(false);
-
-  useEffect(() => {
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
-      router.replace('/login');
-    } else {
-      setIsAuthed(true);
-    }
-  }, [router]);
-
-  if (!isAuthed) return null; // O un spinner
-  return <>{children}</>;
-}
-```
-
-Usar en `(app)/layout.tsx`:
-```typescript
-<AuthGuard>
-  {/* ... header, children, bottomnav */}
-</AuthGuard>
-```
-
----
-
-#### Paso 1.4 — Implementar Logout ⏱️ 15 min
-
-**Qué hacer:**
-1. En `perfil/page.tsx` o en el `Header`, agregar un botón "Cerrar Sesión"
-2. Al hacer click:
-   ```typescript
-   localStorage.removeItem('auth_token');
-   router.push('/login');
-   ```
-
----
-
-#### Paso 1.5 — Arreglar redirect de Google OAuth ⏱️ 15 min
-
-**Problema:** El backend redirige a `http://localhost:4200/login?token=...` pero el frontend puede estar en otro puerto.
-
-**Archivos a tocar:**
-- `apps/api/src/app/controllers/auth.controller.ts`
-
-**Qué hacer:**
-- Cambiar el redirect URL para que use una variable de entorno `FRONTEND_URL`
-- Cambiar el redirect de `/login?token=` a `/auth-callback?token=` (la página que ya existe)
-
----
-
-### 📊 FASE 2: DASHBOARD CON DATOS REALES (Días 4-5)
-*"El usuario ve SUS estadísticas reales después de loguearse"*
-
----
-
-#### Paso 2.1 — Reemplazar useDashboardData con tRPC ⏱️ 1 hora
-
-**Archivos a tocar:**
-- `apps/web/src/hooks/useDashboardData.ts`
-
-**Qué hacer:**
-Reescribir el hook para usar datos reales:
-```typescript
-import { trpc } from '../utils/trpc';
-
-export function useDashboardData() {
-  const dashboardQuery = trpc.stats.getDashboard.useQuery();
-  const meQuery = trpc.auth.me.useQuery();
-
-  return {
-    data: {
-      stats: meQuery.data ? {
-        racha: meQuery.data.streak,
-        vidas: meQuery.data.energy,
-        gemas: meQuery.data.coins,
-        xp: meQuery.data.totalXp,
-      } : null,
-      dashboard: dashboardQuery.data ?? null,
-    },
-    isLoading: dashboardQuery.isLoading || meQuery.isLoading,
-    error: dashboardQuery.error || meQuery.error,
-  };
-}
-```
-
-**Nota:** Los nombres de campo del mock (`racha`, `vidas`, `gemas`) no coinciden con los de la API (`streak`, `energy`, `coins`). Necesitarás mapearlos o actualizar los componentes.
-
----
-
-#### Paso 2.2 — Conectar Header con datos reales ⏱️ 30 min
-
-**Archivos a tocar:**
-- `apps/web/src/components/dashboard/Header.tsx`
-- `apps/web/src/app/(app)/layout.tsx`
-
-**Qué hacer:**
-El `layout.tsx` ya pasa `stats` al `Header`. Después del Paso 2.1, los datos serán reales. Solo verifica que los campos coincidan.
-
----
-
-#### Paso 2.3 — Actualizar fecha de examen en stats ⏱️ 5 min
-
-**Archivos a tocar:**
-- `apps/api/src/app/routers/stats.routers.ts`
-
-**Qué hacer:**
-Cambiar `new Date('2025-08-15')` por una fecha futura o hacerla configurable.
-
----
-
-### 📚 FASE 3: CURSOS Y TEMAS REALES (Días 6-7)
-*"El usuario navega cursos y temas que vienen de la base de datos"*
-
----
-
-#### Paso 3.1 — Conectar página de Cursos a content.getCourses ⏱️ 1 hora
-
-**Archivos a tocar:**
-- `apps/web/src/app/(app)/cursos/page.tsx`
-
-**Qué hacer:**
-1. Reemplazar el array `coursesData` hardcodeado por `trpc.content.getCourses.useQuery()`
-2. Mapear los datos del backend al formato que espera la UI
-3. El botón "Continuar" debe navegar al dashboard del curso seleccionado
-
----
-
-#### Paso 3.2 — Conectar TopicList a content.getTopics ⏱️ 1.5 horas
-
-**Archivos a tocar:**
-- `apps/web/src/app/(app)/dashboard/page.tsx`
-- `apps/web/src/components/dashboard/TopicList.tsx`
-
-**Qué hacer:**
-1. La página de dashboard debe recibir un `courseId` (del curso seleccionado)
-2. Llamar a `trpc.content.getTopics.useQuery({ courseId })`
-3. Mapear los temas reales al formato `TemaData` que espera `TopicList`
-4. Mostrar el progreso real del usuario (correctCount/goal)
-
----
-
-#### Paso 3.3 — Eliminar datos mock del domain lib ⏱️ 30 min
-
-**Archivos a modificar:**
-- `libs/domain/src/lib/mock/` → mover a `apps/web/src/__mocks__/` (solo para tests)
-- `libs/domain/src/index.ts` → quitar export de mocks
-- `apps/web/src/data/dashboard-mock.ts` → eliminar o mover a `__mocks__`
-
----
-
-### 🎮 FASE 4: MOTOR DE PREGUNTAS REAL (Días 8-10)
-*"El usuario resuelve preguntas REALES y gana XP/coins"*
-
----
-
-#### Paso 4.1 — Conectar Engine a content.getQuestions ⏱️ 1.5 horas
-
-**Archivos a tocar:**
-- `apps/web/src/components/engine/BasicQuizEngine.tsx`
-
-**Qué hacer:**
-1. Recibir `topicId` como prop (pasado desde la navegación)
-2. Llamar a `trpc.content.getQuestions.useQuery({ topicId, limit: 10 })`
-3. Reemplazar `quizData` mock por las preguntas reales
-4. Mapear `question.options` (JSON) al formato que espera la UI
-
----
-
-#### Paso 4.2 — Conectar submitAnswer al backend ⏱️ 1 hora
-
-**Archivos a tocar:**
-- `apps/web/src/components/engine/BasicQuizEngine.tsx`
-
-**Qué hacer:**
-1. Usar `trpc.game.submitAnswer.useMutation()`
-2. En `handleCheck`, llamar al mutation con `{questionId, selectedOptionIndex}`
-3. Usar el resultado real para mostrar feedback (isCorrect, explanation)
-4. Actualizar las stats del header con los datos devueltos
-
----
-
-#### Paso 4.3 — Implementar recarga de energía ⏱️ 45 min
-
-**Archivos a tocar:**
-- `apps/api/src/app/services/game.service.ts`
-
-**Qué hacer:**
-Agregar lógica que al consultar energía, si han pasado X horas desde `lastRefill`, recargue automáticamente:
-```typescript
-// Al inicio de submitAnswer o en un middleware:
-const hoursSinceRefill = (Date.now() - user.lastRefill.getTime()) / (1000 * 60 * 60);
-if (hoursSinceRefill >= 4) { // Recarga cada 4 horas
-  const refillAmount = Math.floor(hoursSinceRefill / 4) * 5;
-  user.energy = Math.min(25, user.energy + refillAmount);
-  user.lastRefill = new Date();
-  // Guardar en DB
-}
-```
-
----
-
-#### Paso 4.4 — Consolidar submitAnswer (Game vs Learning) ⏱️ 1 hora
-
-**Problema:** Hay dos implementaciones diferentes de `submitAnswer`.
-
-**Qué hacer:**
-1. Crear un `AnswerService` unificado
-2. Parametrizar las diferencias (usa energía? calcula coins? trackea racha?)
-3. Ambos routers delegan al mismo service
-
----
-
-### 👤 FASE 5: PERFIL REAL (Días 11-12)
-*"El usuario ve su perfil real y puede editarlo"*
-
----
-
-#### Paso 5.1 — Conectar Perfil a profile.getMe ⏱️ 1 hora
-
-**Archivos a tocar:**
-- `apps/web/src/app/(app)/perfil/page.tsx`
-
-**Qué hacer:**
-1. Llamar a `trpc.profile.getMe.useQuery()`
-2. Reemplazar datos hardcodeados por datos reales
-3. Calcular `AcademicDNA` a partir de los `AnswerLog` del usuario (o crear un nuevo endpoint)
-
----
-
-#### Paso 5.2 — Implementar edición de perfil ⏱️ 1 hora
-
-**Qué hacer:**
-1. Agregar botón "Editar" en ProfileHeader
-2. Modal o página con formulario de nombre + avatar
-3. Conectar a `trpc.profile.update.useMutation()`
-
----
-
-#### Paso 5.3 — Implementar selección de carrera ⏱️ 1 hora
-
-**Qué hacer:**
-1. Crear endpoint `profile.setCareer` en el backend
-2. En el primer login o en perfil, mostrar selector de carrera
-3. Las carreras ya están en la BD (47 carreras seed)
-
----
-
-### 🏆 FASE 6: RANKING Y TIENDA (Días 13-15)
-*"El usuario compite y gasta sus coins"*
-
----
-
-#### Paso 6.1 — Crear página de Ranking ⏱️ 2 horas
+**Backend:** `ranking.getTopStudents` y `ranking.getMyPosition` ya existen.
 
 **Archivos a crear:**
 - `apps/web/src/app/(app)/ranking/page.tsx`
 - `apps/web/src/components/ranking/Leaderboard.tsx`
 
 **Qué hacer:**
-1. Conectar a `trpc.ranking.getTopStudents.useQuery()`
-2. Mostrar top 10 con posición, avatar, nombre, XP
-3. Resaltar al usuario actual
-4. Mostrar "Tu posición" con `trpc.ranking.getMyPosition.useQuery()`
-5. Agregar tab en BottomNav o link desde el Header
+1. Mostrar top 10 con posición, avatar, nombre, XP.
+2. Resaltar al usuario actual.
+3. Agregar link en BottomNav o Header.
 
 ---
 
-#### Paso 6.2 — Crear página de Tienda ⏱️ 2 horas
+#### Paso 1.3 — Conectar `stats.getDashboard` y corregir fecha de examen ⏱️ 1 hora
+
+**Backend:** `apps/api/src/app/routers/stats.routers.ts`
+
+**Qué hacer:**
+1. Cambiar `new Date('2025-08-15')` por una fecha futura configurable (env var o constante centralizada).
+2. En `useDashboardData.ts`, reemplazar el mock `temarioMock` por `stats.getDashboard` o eliminar el fallback mock.
+
+---
+
+#### Paso 1.4 — Progreso real en `/cursos` y `CourseProgressList` ⏱️ 1.5 horas
+
+**Archivos:**
+- `apps/web/src/app/(app)/cursos/page.tsx`
+- `apps/web/src/components/perfil/CourseProgressList.tsx`
+
+**Qué hacer:**
+1. Calcular progreso por curso desde `content.getTopics` o `profile.getAcademicDNA`.
+2. Eliminar `progress: 0` hardcoded.
+
+---
+
+### 🎮 FASE 2: CONSISTENCIA DEL ENGINE Y GAMIFICACIÓN (Días 7-10)
+*"El engine debe usar la misma energía real que el resto de la app"*
+
+---
+
+#### Paso 2.1 — Unificar energía en el engine ⏱️ 2 horas
+
+**Problema:** `TopicList` gasta -5 energía al iniciar nodo, pero dentro del engine `useEngine` usa "vidas locales". El usuario ve dos sistemas.
+
+**Opciones:**
+- **Opción A (recomendada):** eliminar vidas locales del engine; cada respuesta no cuesta energía adicional (ya pagó al entrar).
+- **Opción B:** hacer que `game.submitAnswer` reste 1 energía por respuesta y quitar `spendNodeEnergy`.
+
+**Decide una y documenta.**
+
+---
+
+#### Paso 2.2 — Mostrar energía real en Header del dashboard ⏱️ 30 min
+
+**Archivo:** `apps/web/src/components/dashboard/Header.tsx`
+
+**Qué hacer:**
+Usar directamente `energy` de `profile.getMe` en lugar del mapeo confuso `vidas`.
+
+---
+
+#### Paso 2.3 — Pantalla de resultados post-simulacro ⏱️ 2 horas
+
+**Backend:** `simulacro.submit` ya devuelve todo.
+
+**Archivo:** `apps/web/src/app/simulator/page.tsx` o nueva ruta `/simulator/results`
+
+**Qué hacer:**
+Mostrar score, aciertos/errores/blancos, tiempo usado, XP y monedas ganadas.
+
+---
+
+### 🏆 FASE 3: FEATURES SECUNDARIAS (Días 11-18)
+*"Una vez que el core está sano"*
+
+---
+
+#### Paso 3.1 — Panel básico de admin ⏱️ 3 horas
+
+**Backend:** `admin.createQuestion`, `subscription.getPendingRequests`, `subscription.processRequest`.
 
 **Archivos a crear:**
-- `apps/web/src/app/(app)/tienda/page.tsx`
-- `apps/web/src/components/tienda/ShopItemCard.tsx`
+- `apps/web/src/app/(app)/admin/page.tsx` (protegido por role)
 
 **Qué hacer:**
-1. Conectar a `trpc.shop.getCatalog.useQuery()`
-2. Mostrar items con precio, descripción, botón de compra
-3. Conectar botón a `trpc.shop.buyItem.useMutation()`
-4. Mostrar balance de coins del usuario
-5. Deshabilitar items ya comprados (del `inventory`)
+1. Formulario para crear preguntas por tipo.
+2. Tabla de suscripciones pendientes con botones Aprobar/Rechazar.
 
 ---
 
-### 📝 FASE 7: SIMULADOR CON DATOS REALES (Días 16-18)
-*"El usuario hace simulacros con preguntas de la BD"*
-
----
-
-#### Paso 7.1 — Conectar Simulator a content.getQuestions ⏱️ 2 horas
-
-**Archivos a tocar:**
-- `apps/web/src/app/simulator/page.tsx`
+#### Paso 3.2 — Modos arcade (`/entrenar`) ⏱️ 4 horas
 
 **Qué hacer:**
-1. Recibir configuración (# preguntas, tiempo, temas) via query params o estado
-2. Llamar a `trpc.content.getQuestions.useQuery({ limit: numQuestions })`
-3. Reemplazar `getPreguntaData` mock por preguntas reales
-4. Al finalizar, enviar todas las respuestas al backend
+Conectar cada minijuego al engine existente:
+- **Supervivencia:** 1 error = fin.
+- **Contrarreloj:** 60 segundos, máximo preguntas.
+- **Racha Perfecta:** 10 correctas seguidas.
+
+Usa `content.getQuestions` o `learning.getRandomQuestion`.
 
 ---
 
-#### Paso 7.2 — Crear pantalla de Resultados ⏱️ 2 horas
-
-**Archivos a crear:**
-- `apps/web/src/app/simulator/results/page.tsx`
+#### Paso 3.3 — Recuperación de contraseña ⏱️ 3 horas
 
 **Qué hacer:**
-1. Mostrar puntuación, aciertos/errores, tiempo usado
-2. Desglose por área/tema
-3. Botón de "Revisar respuestas" para ver explicaciones
-4. Guardar el resultado en la BD (nuevo endpoint si necesario)
+1. Endpoint `auth.requestPasswordReset` que genere token y "simule" envío (log por ahora).
+2. Página `/forgot-password` y `/reset-password`.
+3. Endpoint `auth.resetPassword`.
 
 ---
 
-### 🎯 FASE 8: POLISH Y FEATURES SECUNDARIOS (Días 19-25)
-*"Pulir la experiencia y agregar features extra"*
+### 🧹 FASE 4: LIMPIEZA TÉCNICA (Día 19+)
+*"Borrar lo que no sirve y consolidar duplicados"*
 
 ---
 
-#### Paso 8.1 — Conectar Entrenar/Arcade ⏱️ 3 horas
-- Implementar lógica de cada minijuego usando el engine existente
-- Supervivencia: sin vidas extra, 1 error = fin
-- Contrarreloj: timer de 60s, máximo preguntas posibles
-- Racha Perfecta: 10 correctas seguidas
+#### Paso 4.1 — Eliminar código muerto ⏱️ 1 hora
 
-#### Paso 8.2 — Conectar Simulacros Dashboard ⏱️ 2 horas
-- GoalCard: calcular score real del usuario vs meta de carrera
-- RecentAttempts: crear endpoint para historial de simulacros
+**Eliminar:**
+- `apps/api/src/app/app.controller.ts` y `app.controller.spec.ts`
+- `apps/api/src/app/app.service.ts` y `app.service.spec.ts`
+- `apps/web/src/components/engine/BasicQuizEngine.tsx` (o su export)
+- `hello` router de `app.router.ts`
 
-#### Paso 8.3 — Panel básico de Admin ⏱️ 3 horas
-- Crear página `/admin` (protegida por role)
-- Formulario para crear preguntas (`admin.createQuestion`)
-- Lista de suscripciones pendientes (`subscription.getPendingRequests`)
+#### Paso 4.2 — Consolidar duplicados ⏱️ 2 horas
 
-#### Paso 8.4 — Testing básico ⏱️ 2 horas
-- Tests de integración para auth flow
-- Tests de integración para submitAnswer
-- Test e2e: login → resolver pregunta → ver XP actualizado
+- `Button3D` vs `ChunkyButton`.
+- Paleta de cursos duplicada en `cursos/page.tsx` y `CourseSelector.tsx`.
+- Tipos `UserStats` duplicados entre domain y web.
+
+#### Paso 4.3 — Reducir `any` y `console.log` ⏱️ continuo
 
 ---
 
 ## PARTE 4: CALENDARIO SUGERIDO
 
----
-
 ```
-SEMANA 1 (Días 1-5): CIMIENTOS
+SEMANA 1 (Días 1-5): SEGURIDAD + FUNCIONALIDADES DECORATIVAS
 ─────────────────────────────────────────
-Día 1:  Fase 0 completa (arreglos críticos)
-Día 2:  Pasos 1.1 - 1.3 (Login funcional)
-Día 3:  Pasos 1.4 - 1.5 + inicio Fase 2
-Día 4:  Fase 2 completa (Dashboard real)
-Día 5:  Inicio Fase 3 (Cursos reales)
+Día 1:  Fase 0 completa (seguridad crítica)
+Día 2:  Paso 1.1 — Tienda real
+Día 3:  Paso 1.2 — Página de ranking
+Día 4:  Paso 1.3 — stats.getDashboard + fecha de examen
+Día 5:  Paso 1.4 — Progreso real en cursos/perfil
 
-SEMANA 2 (Días 6-12): CORE FUNCIONAL
+SEMANA 2 (Días 6-10): CORE SANO
 ─────────────────────────────────────────
-Día 6:  Fase 3 completa (Cursos y temas)
-Día 7:  Inicio Fase 4 (Engine)
-Día 8:  Pasos 4.1 - 4.2 (Engine conectado)
-Día 9:  Pasos 4.3 - 4.4 (Energy + consolidar)
-Día 10: Fase 5 inicio (Perfil real)
-Día 11: Fase 5 completa
-Día 12: Buffer / bugs / polish
+Día 6:  Paso 2.1 — Unificar energía en engine
+Día 7:  Paso 2.2 — Header con energía real
+Día 8:  Paso 2.3 — Resultados post-simulacro
+Día 9:  Buffer / bugs / polish
+Día 10: Buffer / bugs / polish
 
-SEMANA 3 (Días 13-18): FEATURES SOCIALES + SIMULADOR
+SEMANA 3 (Días 11-18): FEATURES SECUNDARIAS
 ─────────────────────────────────────────
-Día 13: Ranking (Paso 6.1)
-Día 14: Tienda (Paso 6.2)
-Día 15: Simulador datos reales (Paso 7.1)
-Día 16: Resultados simulador (Paso 7.2)
-Día 17: Buffer / bugs
-Día 18: Buffer / bugs
+Día 11-12: Panel de admin
+Día 13-15: Modos arcade
+Día 16-18: Recuperación de contraseña + buffer
 
-SEMANA 4 (Días 19-25): POLISH
+SEMANA 4 (Días 19-25): POLISH Y LIMPIEZA
 ─────────────────────────────────────────
-Día 19-20: Arcade modes (Paso 8.1)
-Día 21-22: Admin panel (Paso 8.3)
-Día 23-24: Testing (Paso 8.4)
-Día 25: Review general, cleanup, deploy prep
+Día 19-20: Eliminar código muerto y duplicados
+Día 21-22: Tests de integración
+Día 23-24: Performance, índices DB, refactor menor
+Día 25: Review general y deploy prep
 ```
 
 ---
 
 ## PARTE 5: CHECKLIST RÁPIDO
 
-Imprime esto y tacha cada paso conforme lo completes:
-
 ```
-FASE 0 — ARREGLOS CRÍTICOS
-  [ ] 0.1 Incluir role en JWT
-  [ ] 0.2 Enviar token en headers tRPC
-  [ ] 0.3 Eliminar código muerto
-  [ ] 0.4 Arreglar secretos
+FASE 0 — SEGURIDAD CRÍTICA
+  [ ] 0.1 Rotar JWT_SECRET y secretos de OAuth
+  [ ] 0.2 Eliminar `.env` real del working tree
+  [ ] 0.3 Quitar fallback 'secret' del JWT
+  [ ] 0.4 Configurar CORS con whitelist
+  [ ] 0.5 Quitar/condicionar middleware spy
 
-FASE 1 — AUTENTICACIÓN
-  [ ] 1.1 Conectar login a tRPC
-  [ ] 1.2 Crear página de registro
-  [ ] 1.3 Protección de rutas (AuthGuard)
-  [ ] 1.4 Implementar logout
-  [ ] 1.5 Arreglar redirect OAuth
+FASE 1 — FUNCIONALIDADES DECORATIVAS
+  [ ] 1.1 Conectar tienda a shop.*
+  [ ] 1.2 Crear página /ranking
+  [ ] 1.3 Conectar stats.getDashboard
+  [ ] 1.4 Progreso real en cursos/perfil
 
-FASE 2 — DASHBOARD REAL
-  [ ] 2.1 Reemplazar useDashboardData con tRPC
-  [ ] 2.2 Conectar Header con datos reales
-  [ ] 2.3 Actualizar fecha de examen
+FASE 2 — CORE SANO
+  [ ] 2.1 Unificar energía en engine
+  [ ] 2.2 Header con energía real
+  [ ] 2.3 Pantalla de resultados post-simulacro
 
-FASE 3 — CURSOS REALES
-  [ ] 3.1 Conectar cursos a getCourses
-  [ ] 3.2 Conectar TopicList a getTopics
-  [ ] 3.3 Eliminar mock data del domain
+FASE 3 — FEATURES SECUNDARIAS
+  [ ] 3.1 Panel de admin
+  [ ] 3.2 Modos arcade
+  [ ] 3.3 Recuperación de contraseña
 
-FASE 4 — MOTOR DE PREGUNTAS
-  [ ] 4.1 Conectar Engine a getQuestions
-  [ ] 4.2 Conectar submitAnswer
-  [ ] 4.3 Implementar recarga de energía
-  [ ] 4.4 Consolidar submitAnswer
-
-FASE 5 — PERFIL
-  [ ] 5.1 Conectar perfil a getMe
-  [ ] 5.2 Edición de perfil
-  [ ] 5.3 Selección de carrera
-
-FASE 6 — RANKING Y TIENDA
-  [ ] 6.1 Crear página de ranking
-  [ ] 6.2 Crear página de tienda
-
-FASE 7 — SIMULADOR
-  [ ] 7.1 Conectar simulator a getQuestions
-  [ ] 7.2 Crear pantalla de resultados
-
-FASE 8 — POLISH
-  [ ] 8.1 Modos Arcade
-  [ ] 8.2 Simulacros dashboard
-  [ ] 8.3 Panel de admin
-  [ ] 8.4 Testing básico
+FASE 4 — LIMPIEZA
+  [ ] 4.1 Eliminar código muerto
+  [ ] 4.2 Consolidar duplicados
+  [ ] 4.3 Reducir any/console.log
 ```
 
 ---
 
-## 💬 Mensaje Final de tu Tech Lead
+## 💬 Mensaje Final
 
-Escucha, tu proyecto está **mucho mejor de lo que crees**. 
+JhonAQ, el proyecto ya **no es un puente roto**. Tienes una plataforma real donde un usuario puede loguearse, estudiar con 6 tipos de preguntas, ganar XP, hacer simulacros y ver su perfil.
 
-Tienes:
-- Una UI de nivel profesional con animaciones Duolingo-tier
-- Un backend funcional con 22 endpoints y una base de datos bien diseñada
-- Un monorepo moderno con type-safety end-to-end via tRPC
-- Seed data real con 47 carreras y preguntas académicas reales
+**Pero hay una trampa:** es fácil caer en "voy a pulir esto, luego aquello" y nada termina. El roadmap de arriba está ordenado por impacto real:
 
-Lo que NO tienes es **el puente** entre ambas partes. Y ese puente, ahora que tienes las dos orillas construidas, es sorprendentemente rápido de construir.
+1. **Seguridad** primero (no negociable).
+2. **Funcionalidades decorativas** (tienda, ranking, progreso) porque el backend ya existe.
+3. **Consistencia del engine** para que la experiencia no sea confusa.
+4. **Features nuevas** solo después.
 
-**El Paso 0.2** (agregar headers al tRPC client) son literalmente 5 líneas de código. Después de eso, cada `trpc.*.useQuery()` que agregues reemplaza un mock y **hace funcionar algo real**.
-
-No reconstruyas nada. No refactorices de cero. **Conecta lo que ya tienes**, paso por paso, feature por feature.
-
-En 1 semana tendrás una app donde un usuario real puede loguearse, ver sus cursos, y resolver preguntas que se guardan en una base de datos. En 3 semanas tendrás una plataforma funcional. 
+No reconstruyas. No refactorices de cero. **Conecta lo que ya tienes, sana lo crítico, y avanza en vertical slices.**
 
 **Empieza por el Paso 0.1. Ahora.**
 

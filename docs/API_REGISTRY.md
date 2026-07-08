@@ -1,10 +1,10 @@
 # 📡 API_REGISTRY.md — Registro Completo de Endpoints
 
-> **Última actualización:** 2026-05-29  
+> **Última actualización:** 2026-07-08  
 > **Backend:** NestJS 11 + tRPC 11 + Prisma 5  
 > **Base URL API:** `http://localhost:3000`  
 > **Base URL tRPC:** `http://localhost:3000/trpc`  
-> **Transformer:** superjson  
+> **Transformer:** superjson
 
 ---
 
@@ -13,16 +13,17 @@
 1. [Visión General](#visión-general)
 2. [Endpoints tRPC](#endpoints-trpc)
    - [Health Check](#health-check)
-   - [Auth (Autenticación)](#auth-autenticación)
-   - [Content (Contenido Académico)](#content-contenido-académico)
-   - [Game (Motor de Juego)](#game-motor-de-juego)
-   - [Learning (Aprendizaje)](#learning-aprendizaje)
-   - [Stats (Estadísticas)](#stats-estadísticas)
-   - [Ranking (Clasificación)](#ranking-clasificación)
-   - [Profile (Perfil de Usuario)](#profile-perfil-de-usuario)
-   - [Shop (Tienda Virtual)](#shop-tienda-virtual)
-   - [Admin (Administración)](#admin-administración)
-   - [Subscription (Suscripciones)](#subscription-suscripciones)
+   - [Auth](#auth)
+   - [Content](#content)
+   - [Game](#game)
+   - [Learning](#learning)
+   - [Stats](#stats)
+   - [Ranking](#ranking)
+   - [Profile](#profile)
+   - [Shop](#shop)
+   - [Simulacro](#simulacro)
+   - [Admin](#admin)
+   - [Subscription](#subscription)
 3. [Endpoints REST](#endpoints-rest)
 4. [Estado de Conexión con Frontend](#estado-de-conexión-con-frontend)
 5. [Esquemas de Validación Compartidos](#esquemas-de-validación-compartidos)
@@ -32,10 +33,10 @@
 ## Visión General
 
 ```
-Total de endpoints: 24 (22 tRPC + 2 REST)
+Total de endpoints: ~30 (~28 tRPC + 2 REST)
 ├── Públicos (sin auth):  5
-├── Protegidos (JWT):    17
-├── Admin-only:           2
+├── Protegidos (JWT):    21
+├── Admin/Data-entry:     2
 └── REST (OAuth):         2
 ```
 
@@ -53,7 +54,8 @@ appRouter
 ├── content
 │   ├── getCourses ............. query (protegido)
 │   ├── getTopics .............. query (protegido)
-│   └── getQuestions ........... query (protegido)
+│   ├── getQuestions ........... query (protegido)
+│   └── completeNode ........... mutation (protegido)
 ├── game
 │   └── submitAnswer ........... mutation (protegido)
 ├── learning
@@ -66,10 +68,22 @@ appRouter
 │   └── getMyPosition .......... query (protegido)
 ├── profile
 │   ├── getMe .................. query (protegido)
-│   └── update ................. mutation (protegido)
+│   ├── selectCareer ........... mutation (protegido)
+│   ├── update ................. mutation (protegido)
+│   ├── getAcademicDNA ......... query (protegido)
+│   └── spendNodeEnergy ........ mutation (protegido)
 ├── shop
 │   ├── getCatalog ............. query (protegido)
 │   └── buyItem ................ mutation (protegido)
+├── simulacro
+│   ├── getStats ............... query (protegido)
+│   ├── getRecentAttempts ...... query (protegido)
+│   ├── getCareers ............. query (público)
+│   ├── getArchiveExams ........ query (protegido)
+│   ├── startArchiveAttempt .... mutation (protegido, premium)
+│   ├── startGeneratedAttempt .. mutation (protegido)
+│   ├── getById ................ query (protegido)
+│   └── submit ................. mutation (protegido)
 ├── admin
 │   └── createQuestion ......... mutation (admin/data-entry)
 └── subscription
@@ -94,15 +108,11 @@ appRouter
 | **Output** | `string` → `"OK"` |
 | **Frontend** | ❌ No conectado |
 
-```typescript
-// Llamada desde el frontend
-const health = trpc.healthCheck.useQuery();
-// → "OK"
-```
-
 ---
 
 ### Auth (Autenticación)
+
+Ubicación: `apps/api/src/app/routers/auth.router.ts`
 
 #### `auth.register` — Registro de Usuario
 
@@ -112,7 +122,7 @@ const health = trpc.healthCheck.useQuery();
 | **Auth** | 🔓 Público |
 | **Input** | `registerSchema` de `@ingresa-pe/domain` |
 | **Output** | `{ message, token, user }` |
-| **Frontend** | ❌ No conectado (no existe UI de registro) |
+| **Frontend** | ✅ Conectado en `/register` |
 
 **Input Schema (Zod):**
 ```typescript
@@ -126,18 +136,11 @@ const health = trpc.healthCheck.useQuery();
 **Output:**
 ```typescript
 {
-  message: "Usuario creado correctamente",
-  token: "eyJhbGciOiJIUzI1NiIs...",  // JWT (7 días), payload: {userId, email}
-  user: {
-    id: "uuid",
-    name: "Juan Pérez",
-    email: "juan@correo.com",
-    role: "USER"
-  }
+  message: "¡Bienvenido a Ingresa.pe!",
+  token: "eyJhbGciOiJIUzI1NiIs...",  // JWT (7 días), payload: {userId, email, role}
+  user: { id: "uuid", name: string | null, email: string }
 }
 ```
-
-**⚠️ Bug:** El JWT generado NO incluye `role` en el payload. Solo `{userId, email}`.
 
 ---
 
@@ -149,7 +152,7 @@ const health = trpc.healthCheck.useQuery();
 | **Auth** | 🔓 Público |
 | **Input** | `loginSchema` de `@ingresa-pe/domain` |
 | **Output** | `{ message, token, user }` |
-| **Frontend** | ❌ No conectado (login page tiene `throw new Error()` hardcodeado) |
+| **Frontend** | ✅ Conectado en `/login` |
 
 **Input Schema (Zod):**
 ```typescript
@@ -159,19 +162,9 @@ const health = trpc.healthCheck.useQuery();
 }
 ```
 
-**Output (éxito):**
-```typescript
-{
-  message: "Login exitoso",
-  token: "eyJhbGciOiJIUzI1NiIs...",  // JWT (7 días)
-  user: { id, name, email, role }
-}
-```
-
 **Errores:**
-- `NOT_FOUND` → "El usuario no existe"
-- `UNAUTHORIZED` → "Contraseña incorrecta"
-- `BAD_REQUEST` → "Esta cuenta usa Google/Facebook, intenta con OAuth"
+- `UNAUTHORIZED` → "Credenciales inválidas"
+- `CONFLICT` → "Este correo ya está registrado" (solo en register)
 
 ---
 
@@ -181,9 +174,9 @@ const health = trpc.healthCheck.useQuery();
 |-----------|-------|
 | **Tipo** | `query` |
 | **Auth** | 🔒 Protegido (JWT) |
-| **Input** | Ninguno (usa `ctx.user.userId`) |
-| **Output** | Objeto de usuario |
-| **Frontend** | ❌ No conectado |
+| **Input** | Ninguno |
+| **Output** | Objeto de usuario reducido |
+| **Frontend** | ✅ Conectado vía `useAuth` |
 
 **Output:**
 ```typescript
@@ -195,15 +188,14 @@ const health = trpc.healthCheck.useQuery();
   image: string | null,
   energy: number,     // 0-25
   totalXp: number,
-  coins: number,
-  streak: number,
-  isPremium: boolean
 }
 ```
 
 ---
 
 ### Content (Contenido Académico)
+
+Ubicación: `apps/api/src/app/routers/content.router.ts`
 
 #### `content.getCourses` — Obtener Todos los Cursos
 
@@ -213,7 +205,7 @@ const health = trpc.healthCheck.useQuery();
 | **Auth** | 🔒 Protegido |
 | **Input** | Ninguno |
 | **Output** | `Course[]` con conteo de temas |
-| **Frontend** | ✅ Conectado en `cursos/page.tsx` vía `trpc.content.getCourses.useQuery()` |
+| **Frontend** | ✅ Conectado en `/cursos` y `/dashboard` |
 
 **Output:**
 ```typescript
@@ -224,8 +216,7 @@ const health = trpc.healthCheck.useQuery();
     slug: "razonamiento-matematico",
     iconUrl: string | null,
     _count: { topics: 3 }
-  },
-  // ... más cursos
+  }
 ]
 ```
 
@@ -239,25 +230,31 @@ const health = trpc.healthCheck.useQuery();
 | **Auth** | 🔒 Protegido |
 | **Input** | `{ courseId: string }` |
 | **Output** | Temas con progreso del usuario |
-| **Frontend** | ✅ Conectado en `dashboard/page.tsx` vía `trpc.content.getTopics.useQuery({ courseId })` |
+| **Frontend** | ✅ Conectado en `/dashboard` |
 
 **Output:**
 ```typescript
 {
-  courseName: "Álgebra",
   topics: [
     {
       id: "uuid",
       name: "Ecuaciones de primer grado",
       slug: "ecuaciones-primer-grado",
       order: 1,
-      correctCount: 5,      // respuestas correctas del usuario
-      goal: 10,              // meta (hardcoded 10)
-      percentage: 50,        // correctCount/goal * 100
-      isGold: false,         // percentage >= 100
-      isCompleted: false     // percentage >= 100
-    },
-    // ... más temas
+      summary: ParsedSummaryBlocks,
+      totalQuestions: number,
+      userProgress: {
+        attemptedCount: number,
+        correctCount: number,
+        nodeSize: number,
+        nodeCount: number,
+        completedNodes: number,
+        goal: 15,
+        percentage: number,
+        isGold: boolean,
+        isCompleted: boolean
+      }
+    }
   ]
 }
 ```
@@ -271,16 +268,17 @@ const health = trpc.healthCheck.useQuery();
 | **Tipo** | `query` |
 | **Auth** | 🔒 Protegido |
 | **Input** | Filtros opcionales |
-| **Output** | `QuestionDto[]` (random, sin respuestas correctas) |
-| **Frontend** | ✅ Conectado en `useEngine` vía `trpc.content.getQuestions.useQuery()` |
+| **Output** | `QuestionDto[]` |
+| **Frontend** | ✅ Conectado en `/engine` (`useEngine`) |
 
 **Input Schema:**
 ```typescript
 {
-  topicId?: string,           // Filtrar por tema (opcional)
-  difficulty?: "EASY" | "MEDIUM" | "HARD",  // Filtrar por dificultad
-  limit?: number,             // 1-20, default 5
-  excludeAnswered?: boolean   // default true, excluye preguntas ya respondidas
+  topicId?: string,
+  nodeIndex?: number,       // requerido junto con topicId para modo nodo
+  difficulty?: "EASY" | "MEDIUM" | "HARD",
+  limit?: number,           // 1-20, default 7
+  excludeAnswered?: boolean // default true
 }
 ```
 
@@ -289,32 +287,35 @@ const health = trpc.healthCheck.useQuery();
 [
   {
     id: "uuid",
-    statement: "Calcula el valor de X en: 2x + 5 = 17",
+    statement: "Calcula el valor de X...",
     imageUrl: string | null,
     difficulty: "MEDIUM",
-    type: "MULTIPLE_CHOICE",
-    explanation: "Paso 1: Resta 5 de ambos lados...",
-    content: {
-      type: "MULTIPLE_CHOICE",
-      options: [
-        { id: "a", text: "x = 4" },
-        { id: "b", text: "x = 6" },
-        // ...
-      ]
-    }
-  },
-  // ... más preguntas (orden aleatorio)
+    type: "MULTIPLE_CHOICE" | "TRUE_FALSE_SWIPE" | "FLASHCARD" | "ORDERING" | "MATCHING" | "FILL_IN_BLANK",
+    explanation: "Paso 1...",
+    content: QuestionView  // discriminated union según type
+  }
 ]
 ```
 
-**Tipos soportados:** `MULTIPLE_CHOICE`, `TRUE_FALSE_SWIPE`, `FLASHCARD`, `ORDERING`.
-El `content` es una discriminated union según `type` y **nunca incluye respuestas correctas**.
+**Nota técnica:** En modo libre usa `$queryRaw` con `ORDER BY RANDOM()`. En modo nodo la selección es determinista y garantiza al menos una pregunta de cada tipo especial disponible.
 
-**Nota técnica:** Usa `$queryRaw` con `ORDER BY RANDOM()` para aleatoriedad real en PostgreSQL.
+---
+
+#### `content.completeNode` — Completar Nodo
+
+| Propiedad | Valor |
+|-----------|-------|
+| **Tipo** | `mutation` |
+| **Auth** | 🔒 Protegido |
+| **Input** | `{ topicId: string, nodeIndex: number }` |
+| **Output** | `{ success: true, completedNodeIndex: number }` |
+| **Frontend** | ✅ Conectado en `useEngine` |
 
 ---
 
 ### Game (Motor de Juego)
+
+Ubicación: `apps/api/src/app/routers/game.router.ts` → delega a `GameService`
 
 #### `game.submitAnswer` — Enviar Respuesta (Modo Clásico)
 
@@ -324,15 +325,17 @@ El `content` es una discriminated union según `type` y **nunca incluye respuest
 | **Auth** | 🔒 Protegido |
 | **Input** | `{ questionId: string, answer: AnswerSubmission }` |
 | **Output** | Resultado detallado |
-| **Frontend** | ✅ Conectado en `useEngine` vía `trpc.game.submitAnswer.useMutation()` |
-| **Archivo** | `game.router.ts` → delega a `GameService` |
+| **Frontend** | ✅ Conectado en `useEngine` |
 
-**Input `AnswerSubmission` (discriminated union por `type`):**
+**Input `AnswerSubmission` (discriminated union):**
 ```typescript
-{ type: "MULTIPLE_CHOICE", selectedOptionId: string }
-| { type: "TRUE_FALSE_SWIPE", isTrue: boolean }
+| { type: "MULTIPLE_CHOICE", selectedOptionId: string }
+| { type: "TRUE_FALSE_SWIPE", isTrue: boolean }           // legacy
+| { type: "TRUE_FALSE_SWIPE", side: "left" | "right" }    // arcade
 | { type: "FLASHCARD", remembered: boolean }
 | { type: "ORDERING", itemIds: string[] }
+| { type: "MATCHING", pairs: Array<{ id: string; left: string; right: string }> }
+| { type: "FILL_IN_BLANK", wordIds: string[] }
 ```
 
 **Output:**
@@ -343,26 +346,16 @@ El `content` es una discriminated union según `type` y **nunca incluye respuest
   correctAnswerText: string,
   explanation: string | null,
   rewards: { xp: number, coins: number },
-  userStats: {
-    energy: number,
-    totalXp: number,
-    streak: number
-  }
+  userStats: { energy: number, totalXp: number, streak: number },
+  correctOrder?: string[]  // solo para ORDERING
 }
 ```
-
-**Lógica de GameService:**
-- ✅ Correcto: +10/20/30 XP según dificultad
-- ❌ Incorrecto: +5 XP (consolación)
-- 💰 Correcto: +5/10/15 coins según dificultad
-- ⚡ Costo: -1 energía por respuesta (Premium no consume)
-- 🔥 Racha: Se recalcula según `lastInteraction`
-- 💾 Guarda `AnswerLog` con `isCorrect` y `answer` genérico
-- ⚡ Recarga de energía: +1 energía por cada 30 minutos transcurridos desde `lastRefill` (tope 25)
 
 ---
 
 ### Learning (Aprendizaje)
+
+Ubicación: `apps/api/src/app/routers/learning.router.ts`
 
 #### `learning.getRandomQuestion` — Pregunta Aleatoria
 
@@ -386,29 +379,13 @@ El `content` es una discriminated union según `type` y **nunca incluye respuest
 | **Output** | Resultado con rewards |
 | **Frontend** | ❌ No conectado |
 
-**Output:**
-```typescript
-{
-  correct: boolean,
-  correctOptionIndex: number,
-  explanation: string | null,
-  rewards: { xp: number, coins: number },
-  newTotalCoins: number
-}
-```
-
-**Lógica diferente a GameService:**
-- EASY: +10 XP, +5 coins
-- MEDIUM: +20 XP, +10 coins
-- HARD: +30 XP, +15 coins
-- ❌ Sin costo de energía
-- ❌ Sin tracking de racha
-
-**⚠️ DUPLICACIÓN:** Esta es lógica duplicada con `game.submitAnswer`. Debería consolidarse.
+**⚠️ DUPLICACIÓN:** Lógica similar a `game.submitAnswer`. Considerar consolidar.
 
 ---
 
 ### Stats (Estadísticas)
+
+Ubicación: `apps/api/src/app/routers/stats.routers.ts`
 
 #### `stats.getDashboard` — Dashboard del Usuario
 
@@ -418,28 +395,23 @@ El `content` es una discriminated union según `type` y **nunca incluye respuest
 | **Auth** | 🔒 Protegido |
 | **Input** | Ninguno |
 | **Output** | Estadísticas del usuario |
-| **Frontend** | ❌ No conectado (usa mock en `useDashboardData`) |
+| **Frontend** | ❌ No conectado directamente (`useDashboardData` usa `profile.getMe`) |
 
 **Output:**
 ```typescript
 {
-  user: {
-    name: string,
-    level: number,        // Math.floor(totalXp / 100) + 1
-    xp: number,           // totalXp
-    energy: number,
-    streak: number
-  },
-  stats: {
-    daysUntilExam: number,      // ⚠️ Hardcoded: 2025-08-15 (YA PASÓ)
-    questionsToday: number       // AnswerLogs de hoy
-  }
+  user: { name: string | null, level: number, xp: number, energy: number, streak: number },
+  stats: { daysUntilExam: number, questionsToday: number }
 }
 ```
+
+**⚠️ Deuda:** `examDate` está hardcoded a `2025-08-15`.
 
 ---
 
 ### Ranking (Clasificación)
+
+Ubicación: `apps/api/src/app/routers/ranking.router.ts`
 
 #### `ranking.getTopStudents` — Top 10
 
@@ -454,14 +426,7 @@ El `content` es una discriminated union según `type` y **nunca incluye respuest
 **Output:**
 ```typescript
 [
-  {
-    id: string,
-    name: string,
-    image: string | null,
-    totalXp: number,
-    isMe: boolean           // true si es el usuario autenticado
-  },
-  // ... hasta 10
+  { id: string, name: string | null, totalXp: number, rank: number, isMe: boolean }
 ]
 ```
 
@@ -474,12 +439,14 @@ El `content` es una discriminated union según `type` y **nunca incluye respuest
 | **Tipo** | `query` |
 | **Auth** | 🔒 Protegido |
 | **Input** | Ninguno |
-| **Output** | `{ rank: number, xp: number, name: string }` |
-| **Frontend** | ❌ No conectado |
+| **Output** | `{ rank: number, xp: number, name: string | null }` |
+| **Frontend** | ✅ Conectado en `/perfil` |
 
 ---
 
 ### Profile (Perfil de Usuario)
+
+Ubicación: `apps/api/src/app/routers/profile.routers.ts`
 
 #### `profile.getMe` — Obtener Mi Perfil Completo
 
@@ -488,31 +455,47 @@ El `content` es una discriminated union según `type` y **nunca incluye respuest
 | **Tipo** | `query` |
 | **Auth** | 🔒 Protegido |
 | **Input** | Ninguno |
-| **Output** | Perfil completo con carrera |
-| **Frontend** | ❌ No conectado (perfil/page.tsx usa datos hardcoded) |
+| **Output** | Perfil completo con energía calculada |
+| **Frontend** | ✅ Conectado en `useAuth`, `/perfil`, `/simulacros`, header |
 
 **Output:**
 ```typescript
 {
   id: string,
-  name: string | null,
   email: string,
+  name: string | null,
   image: string | null,
-  role: "USER" | "ADMIN" | "DATA_ENTRY",
-  energy: number,
+  role: Role,
+  provider: string,
+  createdAt: Date,
+  careerId: string | null,
+  career: { id: string, name: string, area: Area, minimumScore: number } | null,
+  energy: number,              // calculada con recarga automática
   coins: number,
+  inventory: string[],
+  lastRefill: Date | null,
   totalXp: number,
   streak: number,
-  inventory: string[],      // IDs de items comprados
+  lastInteraction: Date | null,
   isPremium: boolean,
   subExpiresAt: Date | null,
-  career: {
-    id: string,
-    name: string,
-    area: "INGENIERIAS" | "SOCIALES" | "BIOMEDICAS"
-  } | null
+  lastExamScore: number | null,
+  freeSimAttemptsUsed: number,
+  freeSimAttemptsResetAt: Date | null,
 }
 ```
+
+---
+
+#### `profile.selectCareer` — Seleccionar Carrera
+
+| Propiedad | Valor |
+|-----------|-------|
+| **Tipo** | `mutation` |
+| **Auth** | 🔒 Protegido |
+| **Input** | `{ careerId: string }` |
+| **Output** | `{ message: string, career: Career }` |
+| **Frontend** | ✅ Conectado en modal de `/simulacros` |
 
 ---
 
@@ -526,11 +509,39 @@ El `content` es una discriminated union según `type` y **nunca incluye respuest
 | **Output** | `{ message: string, user: User }` |
 | **Frontend** | ❌ No conectado (no existe UI de edición) |
 
-**Lógica especial:** Valida que `image` esté en el `inventory` del usuario (avatares comprados).
+**Lógica especial:** Valida que `image` de tienda esté en el `inventory` del usuario.
+
+---
+
+#### `profile.getAcademicDNA` — DNA Académico
+
+| Propiedad | Valor |
+|-----------|-------|
+| **Tipo** | `query` |
+| **Auth** | 🔒 Protegido |
+| **Input** | Ninguno |
+| **Output** | Radar chart data con 8 ejes |
+| **Frontend** | ✅ Conectado en `/perfil` (`AcademicDNA`) |
+
+---
+
+#### `profile.spendNodeEnergy` — Gastar Energía al Iniciar Nodo
+
+| Propiedad | Valor |
+|-----------|-------|
+| **Tipo** | `mutation` |
+| **Auth** | 🔒 Protegido |
+| **Input** | Ninguno |
+| **Output** | `{ success: true, energy: number }` |
+| **Frontend** | ✅ Conectado en `TopicList` |
+
+**Lógica:** -5 energía por nodo. Premium no paga. Recarga automática cada 15 min.
 
 ---
 
 ### Shop (Tienda Virtual)
+
+Ubicación: `apps/api/src/app/routers/shop.router.ts`
 
 #### `shop.getCatalog` — Catálogo de la Tienda
 
@@ -540,18 +551,18 @@ El `content` es una discriminated union según `type` y **nunca incluye respuest
 | **Auth** | 🔒 Protegido |
 | **Input** | Ninguno |
 | **Output** | `ShopItem[]` (7 items estáticos) |
-| **Frontend** | ❌ No conectado (no existe UI de tienda) |
+| **Frontend** | ❌ No conectado (`/shop` no lo consume) |
 
-**Catálogo hardcodeado:**
+**Catálogo:**
 ```typescript
 [
-  { id: "energy-refill",  name: "Recarga de Energía", type: "consumable", price: 50,  effect: "+5 energía" },
-  { id: "avatar-astro",   name: "Avatar Astronauta",  type: "cosmetic",   price: 200, effect: "Cambia tu avatar" },
-  { id: "avatar-ninja",   name: "Avatar Ninja",       type: "cosmetic",   price: 200, effect: "Cambia tu avatar" },
-  { id: "avatar-robot",   name: "Avatar Robot",       type: "cosmetic",   price: 150, effect: "Cambia tu avatar" },
-  { id: "avatar-cat",     name: "Avatar Gatito",      type: "cosmetic",   price: 100, effect: "Cambia tu avatar" },
-  { id: "streak-freeze",  name: "Protector de Racha", type: "consumable", price: 300, effect: "Protege tu racha 1 día" },
-  { id: "double-xp",      name: "Doble XP (1h)",      type: "consumable", price: 500, effect: "2x XP por 1 hora" },
+  { id: "avatar_male_1",   name: "Estudiante Cool",        price: 200,  type: "AVATAR",     category: "MALE" },
+  { id: "avatar_male_2",   name: "Hacker",                 price: 500,  type: "AVATAR",     category: "MALE" },
+  { id: "avatar_male_3",   name: "Cachimbo Legendario",    price: 1000, type: "AVATAR",     category: "MALE" },
+  { id: "avatar_female_1", name: "Estudiante Aplicada",    price: 200,  type: "AVATAR",     category: "FEMALE" },
+  { id: "avatar_female_2", name: "Ingeniera",              price: 500,  type: "AVATAR",     category: "FEMALE" },
+  { id: "avatar_female_3", name: "Genio",                  price: 1000, type: "AVATAR",     category: "FEMALE" },
+  { id: "energy_pack_5",   name: "Pack de Energía (+5)",   price: 100,  type: "CONSUMABLE", category: "ENERGY" }
 ]
 ```
 
@@ -564,62 +575,168 @@ El `content` es una discriminated union según `type` y **nunca incluye respuest
 | **Tipo** | `mutation` |
 | **Auth** | 🔒 Protegido |
 | **Input** | `{ itemId: string }` |
-| **Output** | `{ success: boolean, message: string, user: User }` |
+| **Output** | `{ success: boolean, message: string, user: { coins, inventory, energy } }` |
 | **Frontend** | ❌ No conectado |
 
-**Lógica:**
-- Verifica que el item existe en el catálogo
-- Verifica que el usuario tiene suficientes coins
-- Para cosméticos: verifica que no lo tenga ya en su inventory
-- Para "energy-refill": incrementa energía en 5 (max 25)
-- Decrementa coins atómicamente
+---
+
+### Simulacro
+
+Ubicación: `apps/api/src/app/routers/simulacro.router.ts`
+
+#### `simulacro.getStats` — Estadísticas del Simulacro
+
+| Propiedad | Valor |
+|-----------|-------|
+| **Tipo** | `query` |
+| **Auth** | 🔒 Protegido |
+| **Input** | Ninguno |
+| **Output** | Stats para el dashboard |
+| **Frontend** | ✅ Conectado en `/simulacros` |
+
+**Output:**
+```typescript
+{
+  lastExamScore: number | null,
+  recentAverageScore: number | null,
+  bestScore: number | null,
+  averageScore: number | null,
+  totalAttempts: number,
+  freeAttemptsUsed: number,
+  freeAttemptsLimit: number,
+  freeAttemptsRemaining: number,
+  freeAttemptsResetAt: Date | null,
+  isPremium: boolean,
+}
+```
+
+---
+
+#### `simulacro.getRecentAttempts` — Historial de Intentos
+
+| Propiedad | Valor |
+|-----------|-------|
+| **Tipo** | `query` |
+| **Auth** | 🔒 Protegido |
+| **Input** | Ninguno |
+| **Output** | `ExamAttempt[]` |
+| **Frontend** | ✅ Conectado en `/simulacros` |
+
+---
+
+#### `simulacro.getCareers` — Listar Carreras
+
+| Propiedad | Valor |
+|-----------|-------|
+| **Tipo** | `query` |
+| **Auth** | 🔓 Público |
+| **Input** | Ninguno |
+| **Output** | Carreras mínimas `{ id, name, area, minimumScore }` |
+| **Frontend** | ✅ Conectado en selector de carrera |
+
+---
+
+#### `simulacro.getArchiveExams` — Archivo Histórico
+
+| Propiedad | Valor |
+|-----------|-------|
+| **Tipo** | `query` |
+| **Auth** | 🔒 Protegido |
+| **Input** | Ninguno |
+| **Output** | Exámenes históricos `{ id, title, year, phase, type, questionCount, timeLimitMinutes }` |
+| **Frontend** | ✅ Conectado en `/simulacros` |
+
+---
+
+#### `simulacro.startArchiveAttempt` — Iniciar Examen Histórico
+
+| Propiedad | Valor |
+|-----------|-------|
+| **Tipo** | `mutation` |
+| **Auth** | 🔒 Protegido + Premium |
+| **Input** | `{ examId: string }` |
+| **Output** | `{ attemptId: string }` |
+| **Frontend** | ✅ Conectado en `/simulacros` |
+
+---
+
+#### `simulacro.startGeneratedAttempt` — Generar Simulacro Personalizado
+
+| Propiedad | Valor |
+|-----------|-------|
+| **Tipo** | `mutation` |
+| **Auth** | 🔒 Protegido |
+| **Input** | `{ questionCount: number, timeLimitMinutes: number, strategy: "AI" | "RANDOM" }` |
+| **Output** | `{ attemptId: string }` |
+| **Frontend** | ✅ Conectado en `/simulacros` |
+
+**Nota:** Incrementa `freeSimAttemptsUsed` en la misma transacción de creación del intento.
+
+---
+
+#### `simulacro.getById` — Obtener Intento con Preguntas
+
+| Propiedad | Valor |
+|-----------|-------|
+| **Tipo** | `query` |
+| **Auth** | 🔒 Protegido |
+| **Input** | `{ attemptId: string }` |
+| **Output** | Intento + preguntas ordenadas |
+| **Frontend** | ✅ Conectado en `/simulator` |
+
+---
+
+#### `simulacro.submit` — Entregar Simulacro
+
+| Propiedad | Valor |
+|-----------|-------|
+| **Tipo** | `mutation` |
+| **Auth** | 🔒 Protegido |
+| **Input** | `{ attemptId: string, answers: Record<qid, { selectedOptionId, timeTaken? }> }` |
+| **Output** | `{ attemptId, score, correctCount, incorrectCount, blankCount, totalAnswered, timeUsedSeconds, xpEarned, coinsEarned }` |
+| **Frontend** | ✅ Conectado en `/simulator` |
 
 ---
 
 ### Admin (Administración)
+
+Ubicación: `apps/api/src/app/routers/admin.router.ts`
 
 #### `admin.createQuestion` — Crear Pregunta
 
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `mutation` |
-| **Auth** | 🔒 Protegido + Role check (ADMIN o DATA_ENTRY) |
-| **Input** | Datos de la pregunta |
+| **Auth** | 🔒 Protegido + Role check (`ADMIN` o `DATA_ENTRY`) |
+| **Input** | Datos de pregunta |
 | **Output** | Pregunta creada con relaciones |
 | **Frontend** | ❌ No existe UI |
-| **⚠️ Estado** | ✅ Funcional — El role check ya funciona porque el JWT incluye `role` |
 
 **Input:**
 ```typescript
 {
-  statement: string,           // Enunciado (soporta LaTeX)
-  imageUrl?: string,           // Imagen opcional
+  statement: string,
+  imageUrl?: string,
   difficulty: "EASY" | "MEDIUM" | "HARD",
-  topicId: string,             // UUID del tema
-  type: "MULTIPLE_CHOICE" | "TRUE_FALSE_SWIPE" | "FLASHCARD" | "ORDERING",
-  content: QuestionContent,    // Payload específico por tipo (incluye respuestas correctas)
-  explanation?: string         // Explicación post-respuesta
-}
-```
-
-**Ejemplo `content` para opción múltiple:**
-```typescript
-{
-  type: "MULTIPLE_CHOICE",
-  options: [
-    { id: "a", text: "x = 4", isCorrect: false },
-    { id: "b", text: "x = 6", isCorrect: true }
-  ]
+  topicId: string,
+  type: QuestionType,
+  content: QuestionContent,  // incluye respuestas correctas
+  explanation?: string
 }
 ```
 
 **Validaciones por tipo:**
 - `MULTIPLE_CHOICE`: exactamente una opción correcta.
-- `ORDERING`: `correctOrder` debe contener todos los `item.id` sin duplicados.
+- `ORDERING`: `correctOrder` contiene todos los `item.id` sin duplicados.
+- `MATCHING`: 2-6 pares, ids únicos, textos no vacíos.
+- `TRUE_FALSE_SWIPE`: `isTrue` legacy o `category` + `correctSide` arcade.
+- `FILL_IN_BLANK`: al menos un `[slot]`, `correctWordIds` únicos y existentes en `bank`.
 
 ---
 
 ### Subscription (Suscripciones)
+
+Ubicación: `apps/api/src/app/routers/subscription.router.ts`
 
 #### `subscription.requestSubscription` — Solicitar Suscripción
 
@@ -627,11 +744,9 @@ El `content` es una discriminated union según `type` y **nunca incluye respuest
 |-----------|-------|
 | **Tipo** | `mutation` |
 | **Auth** | 🔒 Protegido |
-| **Input** | `{ plan: "MONTHLY" | "ANNUAL", proofUrl: string (URL), amount: number }` |
+| **Input** | `{ plan: "MONTHLY" | "ANNUAL", proofUrl: string, amount: number }` |
 | **Output** | Subscription creada |
 | **Frontend** | ❌ No existe UI |
-
-**Modelo de monetización:** Pago manual por Yape/Plin → sube foto del voucher → admin verifica manualmente.
 
 ---
 
@@ -643,7 +758,6 @@ El `content` es una discriminated union según `type` y **nunca incluye respuest
 | **Auth** | 🔒 Admin-only |
 | **Output** | `Subscription[]` con datos del usuario |
 | **Frontend** | ❌ No existe UI |
-| **⚠️ Estado** | 🔴 Role check falla para login por email |
 
 ---
 
@@ -657,10 +771,7 @@ El `content` es una discriminated union según `type` y **nunca incluye respuest
 | **Output** | Subscription actualizada |
 | **Frontend** | ❌ No existe UI |
 
-**Lógica de aprobación:**
-- Marca la subscription como `APPROVED`
-- Actualiza `user.isPremium = true`
-- Calcula `user.subExpiresAt` (+30 días MONTHLY, +365 días ANNUAL)
+**Lógica de aprobación:** actualiza `isPremium: true` y `subExpiresAt` (+30/365 días).
 
 ---
 
@@ -675,7 +786,7 @@ El `content` es una discriminated union según `type` y **nunca incluye respuest
 | **Auth** | Passport Guard (google) |
 | **Acción** | Redirige al consent screen de Google |
 | **Scopes** | `email`, `profile` |
-| **Frontend** | ⚠️ Parcial — Login page redirige aquí con `window.location.href` |
+| **Frontend** | ✅ Conectado desde `/login` |
 
 ---
 
@@ -685,43 +796,48 @@ El `content` es una discriminated union según `type` y **nunca incluye respuest
 |-----------|-------|
 | **Auth** | Passport Guard (google) |
 | **Acción** | Recibe código de Google → crea/actualiza usuario → genera JWT → redirige |
-| **Redirect** | `${FRONTEND_URL}/auth-callback?token={jwt}` (default `http://localhost:4200/auth-callback?token={jwt}`) |
-| **Frontend** | ✅ Terminado — `/auth-callback` extrae el token y lo guarda vía `useAuth().login(token)` |
+| **Redirect** | `${FRONTEND_URL}/auth-callback?token={jwt}` |
+| **Frontend** | ✅ Conectado en `/auth-callback` |
 
 ---
 
 ## Estado de Conexión con Frontend
 
-| Endpoint | ¿Frontend lo llama? | ¿Qué usa el frontend en su lugar? |
-|----------|---------------------|-----------------------------------|
-| `auth.register` | ✅ Sí | Página `/register` |
-| `auth.login` | ✅ Sí | Página `/login` |
-| `auth.me` | ✅ Sí | `useAuth()` consulta `profile.getMe` |
-| `content.getCourses` | ✅ Sí | `cursos/page.tsx` |
-| `content.getTopics` | ✅ Sí | `dashboard/page.tsx` con `courseId` |
-| `content.getQuestions` | ✅ Sí | `useEngine` en `/engine` |
-| `game.submitAnswer` | ✅ Sí | `useEngine` en `/engine` |
-| `learning.*` | ❌ No | No existe UI que lo use |
-| `stats.getDashboard` | ❌ No | `useDashboardData` con fallback mock |
-| `ranking.*` | ⚠️ Parcial | `ranking.getMyPosition` usado en `/perfil` |
-| `profile.getMe` | ✅ Sí | `useAuth` y `/perfil` |
-| `profile.update` | ❌ No | No existe UI de edición |
-| `shop.*` | ❌ No | No existe UI |
-| `admin.*` | ❌ No | No existe UI |
-| `subscription.*` | ❌ No | No existe UI |
-| `GET /api/auth/google` | ✅ Sí | `window.location.href` redirect |
-| `GET /api/auth/google/callback` | ✅ Sí | Redirige a `/auth-callback?token=...` usando `FRONTEND_URL` |
-
-**Conclusión: Los flujos críticos de autenticación, cursos, temas y engine ya están conectados.**
+| Endpoint | ¿Frontend lo llama? | ¿Qué usa el frontend? |
+|----------|---------------------|------------------------|
+| `auth.register` | ✅ Sí | `/register` |
+| `auth.login` | ✅ Sí | `/login` |
+| `auth.me` | ✅ Sí | `useAuth` |
+| `content.getCourses` | ✅ Sí | `/cursos`, `/dashboard` |
+| `content.getTopics` | ✅ Sí | `/dashboard` |
+| `content.getQuestions` | ✅ Sí | `/engine` |
+| `content.completeNode` | ✅ Sí | `/engine` |
+| `game.submitAnswer` | ✅ Sí | `/engine` |
+| `learning.*` | ❌ No | Sin UI |
+| `stats.getDashboard` | ❌ No | `useDashboardData` usa `profile.getMe` |
+| `ranking.getTopStudents` | ❌ No | Sin UI |
+| `ranking.getMyPosition` | ✅ Sí | `/perfil` |
+| `profile.getMe` | ✅ Sí | `useAuth`, `/perfil`, `/simulacros`, header |
+| `profile.selectCareer` | ✅ Sí | Selector de carrera |
+| `profile.update` | ❌ No | Sin UI de edición |
+| `profile.getAcademicDNA` | ✅ Sí | `/perfil` |
+| `profile.spendNodeEnergy` | ✅ Sí | `TopicList` |
+| `shop.getCatalog` | ❌ No | `/shop` no lo consume |
+| `shop.buyItem` | ❌ No | `/shop` no lo consume |
+| `simulacro.*` | ✅ Sí | `/simulacros`, `/simulator` |
+| `admin.*` | ❌ No | Sin UI |
+| `subscription.*` | ❌ No | Sin UI |
+| `GET /api/auth/google` | ✅ Sí | Redirect desde `/login` |
+| `GET /api/auth/google/callback` | ✅ Sí | Redirige a `/auth-callback?token=...` |
 
 ---
 
 ## Esquemas de Validación Compartidos
 
-Ubicación: `libs/domain/src/lib/auth.contract.ts`
+Ubicación: `libs/domain/src/lib/auth.contract.ts` y `libs/domain/src/lib/types/question.ts`
 
 ```typescript
-// Compartidos entre Frontend y Backend via @ingresa-pe/domain
+// Auth
 export const registerSchema = z.object({
   name: z.string().min(2).max(100).trim(),
   email: z.string().email().toLowerCase().trim(),
@@ -734,4 +850,14 @@ export const loginSchema = z.object({
 });
 ```
 
-**Estos schemas se usan en el backend** (`auth.router.ts`) pero **no se usan en el frontend** para validación de formularios.
+**Estos schemas se usan en el backend** (`auth.router.ts`) y deberían usarse en el frontend para validación de formularios.
+
+---
+
+## ⚠️ Deuda y Advertencias del API
+
+1. **`learning.submitAnswer`** usa índice numérico y lógica duplicada; no se consume.
+2. **`stats.getDashboard`** devuelve `daysUntilExam` con fecha hardcoded pasada.
+3. **`subExpiresAt`** no se valida en runtime; `isPremium` nunca expira.
+4. **`.env`** con secretos reales en working tree: riesgo inmediato.
+5. **Tienda `/shop`** no consume `shop.*`; su UI actual vende gemas sin backend.

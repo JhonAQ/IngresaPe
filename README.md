@@ -13,11 +13,12 @@ Plataforma educativa gamificada para preparar el examen de admisión de universi
 ## 🚀 Características principales
 
 - **Autenticación flexible:** email/password y Google OAuth.
-- **Dashboard gamificado:** mapa de temas por curso, progreso visual y resúmenes oficiales con bloques enriquecidos (texto, fórmulas LaTeX, imágenes, tips, etc.).
-- **Motor de preguntas extensible:** soporta opción múltiple, verdadero/falso, flashcards y ordenamiento. Agregar un nuevo tipo de pregunta es tan fácil como registrar un renderer.
+- **Dashboard gamificado:** mapa de temas por curso, progreso por nodos y resúmenes enriquecidos con LaTeX, imágenes y tips.
+- **Motor de preguntas extensible:** soporta opción múltiple, verdadero/falso (swipe arcade), flashcards, ordenamiento drag-and-drop, matching y completar palabras.
 - **Gamificación real:** energía, monedas, XP, racha diaria y sistema de niveles.
-- **Tienda y ranking:** APIs listas para avataes, consumibles y tabla de posiciones.
-- **Simulador de examen:** UI completa con ficha óptica, timer y navegación (conexión backend en progreso).
+- **Simulacros de examen:** generador de intentos personalizados, archivo histórico premium, timer, ficha óptica y calificación conectada a la base de datos.
+- **Perfil conectado:** AcademicDNA real, ranking personal, selección de carrera.
+- **Tienda y ranking:** APIs listas; tienda en proceso de reconexión (ver `docs/CURRENT_STATE.md`).
 
 ---
 
@@ -75,7 +76,7 @@ Copia el archivo de ejemplo en la raíz del monorepo y completa tus secretos:
 cp .env.example .env
 ```
 
-> ⚠️ **Importante:** el `.env` real debe estar en la **raíz del monorepo**, porque Nx ejecuta el servidor de la API desde allí.
+> ⚠️ **Importante:** el `.env` real debe estar en la **raíz del monorepo**, porque Nx ejecuta el servidor de la API desde allí. **Nunca commitees el `.env` real.**
 
 ### 3. Levantar la base de datos
 
@@ -143,23 +144,26 @@ npx nx sync
 
 ## 🧪 Tests
 
-El proyecto cuenta con tests de autenticación tanto en API como en web:
+El proyecto cuenta con tests de autenticación y servicios:
 
 ```bash
 npx nx test api
 npx nx test web
+npx nx test ui
 ```
 
 ---
 
-## 🗺️ Roadmap y estado
+## 📋 Estado actual y roadmap
 
 Consulta [`docs/CURRENT_STATE.md`](./docs/CURRENT_STATE.md) para un análisis detallado de:
 
 - Qué features están terminadas.
 - Qué está parcial o desconectado.
 - Qué falta implementar.
-- Prioridades actuales y deuda técnica.
+- Prioridades actuales, deuda técnica y riesgos de seguridad.
+
+Consulta [`docs/METHODOLOGY_AND_ROADMAP.md`](./docs/METHODOLOGY_AND_ROADMAP.md) para el roadmap paso a paso y la metodología de trabajo recomendada.
 
 ---
 
