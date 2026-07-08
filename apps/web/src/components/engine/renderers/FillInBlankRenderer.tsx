@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import type { RendererProps } from '../registry';
 import type { FillInBlankView, FillInBlankAnswer } from '@ingresa-pe/domain';
@@ -27,9 +27,13 @@ export function FillInBlankRenderer({
     [view.sentence]
   );
 
+  // Estabilizar el banco para que no se re-baraje en cada render si view.bank
+  // cambia de referencia (lo cual proviene de un objeto nuevo por pregunta).
+  const bankKey = useMemo(() => view.bank.map((w) => w.id).join(','), [view.bank]);
+  const shuffledBank = useMemo(() => shuffle(view.bank), [bankKey]);
   const bankById = useMemo(
     () => new Map(view.bank.map((w) => [w.id, w])),
-    [view.bank]
+    [bankKey]
   );
 
   const [slots, setSlots] = useState<((typeof view.bank)[number] | null)[]>(
@@ -41,18 +45,10 @@ export function FillInBlankRenderer({
     }
   );
 
-  useEffect(() => {
-    if (answer?.type === 'FILL_IN_BLANK') {
-      const next = answer.selectedWordIds.map((id) => bankById.get(id) ?? null);
-      setSlots(next);
-    } else {
-      setSlots(Array(slotCount).fill(null));
-    }
-  }, [answer, bankById, slotCount]);
-
-  const shuffledBank = useMemo(() => shuffle(view.bank), [view.bank]);
-
-  const usedIds = new Set(slots.filter(Boolean).map((s) => s!.id));
+  const usedIds = useMemo(
+    () => new Set(slots.filter(Boolean).map((s) => s!.id)),
+    [slots]
+  );
 
   const updateSlots = (
     next: ((typeof view.bank)[number] | null)[]
@@ -113,11 +109,7 @@ export function FillInBlankRenderer({
                     >
                       {slots[i]!.text}
                     </motion.button>
-                  ) : (
-                    <span className="absolute inset-0 flex items-center justify-center font-black text-[16px] text-[#afafaf] pointer-events-none">
-                      ...
-                    </span>
-                  )}
+                  ) : null}
                 </span>
               )}
             </span>
