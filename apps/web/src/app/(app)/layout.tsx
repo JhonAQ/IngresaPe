@@ -8,6 +8,7 @@ import { AuthGuard } from '../../components/auth/AuthGuard';
 import { DashboardSkeleton } from '../../components/ui/skeleton';
 import { ImmersiveOverlayProvider, useImmersiveOverlay } from '../../components/dashboard/ImmersiveOverlayContext';
 import { DashboardCourseProvider, useDashboardCourse } from '../../components/dashboard/DashboardCourseContext';
+import { AttemptsHistoryOverlay } from '../../components/simulacros/AttemptsHistoryOverlay';
 
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const { data, isLoading } = useDashboardData();
@@ -36,6 +37,8 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
           <div className="flex-1 overflow-hidden relative z-10 flex flex-col">
             {children}
           </div>
+
+          <AttemptsHistoryOverlay />
 
           {!isOpen && <BottomNav />}
         </div>

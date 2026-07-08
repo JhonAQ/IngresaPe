@@ -1,6 +1,5 @@
 'use client';
 import React from 'react';
-import Link from 'next/link';
 import {
   BarChart3,
   CheckCircle,
@@ -10,6 +9,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { Button3D } from '../ui/Button3D';
+import { useImmersiveOverlay } from '../dashboard/ImmersiveOverlayContext';
 import type { ExamAttemptSummaryDto } from '@ingresa-pe/domain';
 
 interface RecentAttemptsProps {
@@ -55,6 +55,7 @@ export const RecentAttempts: React.FC<RecentAttemptsProps> = ({
   showViewAll,
   title = 'Mis Intentos Recientes',
 }) => {
+  const { open } = useImmersiveOverlay();
   const displayed = limit ? attempts.slice(0, limit) : attempts;
 
   return (
@@ -64,12 +65,12 @@ export const RecentAttempts: React.FC<RecentAttemptsProps> = ({
           <BarChart3 size={14} /> {title}
         </h3>
         {showViewAll && attempts.length > (limit ?? 0) && (
-          <Link
-            href="/simulacros/historial"
+          <button
+            onClick={() => open('attemptsHistory')}
             className="text-blue-500 font-black text-[11px] uppercase flex items-center gap-0.5"
           >
             Ver todos <ChevronRight size={14} />
-          </Link>
+          </button>
         )}
       </div>
       <div className="space-y-4">
