@@ -52,7 +52,7 @@ function computeWeeklyStats(
   );
 
   return {
-    ptje: Number((total / valid.length).toFixed(1)),
+    ptje: total / valid.length,
     bestScore,
     attemptsCount: valid.length,
     lastSubmittedAt,
@@ -262,6 +262,64 @@ export class RankingRouter {
         );
         return this.buildLeaderboardResult(players, currentUserId);
       }),
+
+    // Ranking de todas las carreras del área del usuario (grupos acordeón)
+    getAllCareersLeaderboard: this.trpc.protectedProcedure.query(
+      async ({ ctx }) => {
+        const currentUserId = ctx.user.userId;
+        const allPlayers = await this.loadPlayers();
+
+        const currentPlayer = allPlayers.find((p) => p.id === currentUserId);
+        const userArea = currentPlayer?.career?.area ?? 'INGENIERIAS';
+
+        const careerMap = new Map<string, Player[]>();
+        allPlayers
+          .filter((p) => p.career?.area === userArea)
+          .forEach((p) => {
+            const careerId = p.career!.id;
+            if (!careerMap.has(careerId)) {
+              careerMap.set(careerId, []);
+            }
+            careerMap.get(careerId)!.push(p);
+          });
+
+        const groups = Array.from(careerMap.entries())
+          .sort((a, b) => a[1][0].career!.name.localeCompare(b[1][0].career!.name))
+          .map(([careerId, players]) => {
+            const result = this.buildLeaderboardResult(players, currentUserId);
+            return {
+              careerId,
+              careerName: players[0].career!.name,
+              area: userArea,
+              ...result,
+            };
+          });
+
+        return { groups };
+      }
+    ),
+
+    // Ranking de todas las áreas (grupos acordeón)
+    getAllAreasLeaderboard: this.trpc.protectedProcedure.query(
+      async ({ ctx }) => {
+        const currentUserId = ctx.user.userId;
+        const allPlayers = await this.loadPlayers();
+
+        const areaOrder: Array<'INGENIERIAS' | 'SOCIALES' | 'BIOMEDICAS'> = [
+          'INGENIERIAS',
+          'SOCIALES',
+          'BIOMEDICAS',
+        ];
+
+        const groups = areaOrder.map((area) => {
+          const players = allPlayers.filter((p) => p.career?.area === area);
+          const result = this.buildLeaderboardResult(players, currentUserId);
+          return { area, ...result };
+        });
+
+        return { groups };
+      }
+    ),
 
     // Listado de carreras para el filtro
     getCareerOptions: this.trpc.protectedProcedure.query(async () => {
