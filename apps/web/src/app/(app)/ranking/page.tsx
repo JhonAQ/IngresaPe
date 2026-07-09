@@ -307,7 +307,11 @@ export default function RankingPage() {
         )}
       </div>
 
-      <ReturnToUserFab scrollContainerRef={scrollRef} targetRef={userGroupRef} />
+      <ReturnToUserFab
+        key={`${activeTab}-${userGroup?.key ?? 'none'}`}
+        scrollContainerRef={scrollRef}
+        targetRef={userGroupRef}
+      />
     </main>
   );
 }
