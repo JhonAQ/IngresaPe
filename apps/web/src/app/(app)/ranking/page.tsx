@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { Trophy, TrendingUp, ChevronUp, ChevronDown, Clock } from 'lucide-react';
+import { Trophy, TrendingUp, Clock } from 'lucide-react';
 import { trpc } from '../../../utils/trpc';
 import {
   RankingTabs,
@@ -97,93 +97,91 @@ export default function RankingPage() {
     podium.length >= 3 ? [podium[1], podium[0], podium[2]] : podium;
   const rest = topPlayers.slice(3);
 
+  const myCard = (
+    <div className="bg-slate-900 text-white rounded-[1.2rem] p-3 shadow-2xl border-b-[4px] border-b-slate-950 flex items-center gap-3">
+      <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center font-black text-[16px]">
+        #{myStatus?.rank ?? '-'}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="font-black text-[14px] truncate">{profile?.name ?? 'Tú'}</p>
+        <p className="text-[10px] font-bold text-white/60 truncate">
+          Liga {leagueInfo.label} · Cierra en {daysLeft} {daysLeft === 1 ? 'día' : 'días'}
+        </p>
+      </div>
+      <div className="text-right shrink-0">
+        <p className="font-black text-[16px]">{userPtje.toFixed(1)}</p>
+        <p className="text-[9px] font-bold text-white/50 uppercase">Ptje</p>
+      </div>
+    </div>
+  );
+
   return (
-    <main className="flex-1 overflow-y-auto hide-scrollbar bg-slate-50 pb-24">
-      {/* Hero header */}
-      <div className="relative bg-gradient-to-br from-primary-500 to-primary-700 px-5 pt-8 pb-8 rounded-b-[2.5rem] overflow-hidden">
+    <main className="flex-1 overflow-y-auto hide-scrollbar bg-slate-50">
+      {/* Compact hero */}
+      <div className="relative bg-gradient-to-br from-primary-500 to-primary-700 px-5 pt-6 pb-6 rounded-b-[2rem] overflow-hidden">
         <div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none" />
         <div className="relative z-10">
-          <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white shadow-lg">
-                <Trophy size={26} strokeWidth={2.5} />
+              <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white shadow-lg">
+                <Trophy size={22} strokeWidth={2.5} />
               </div>
               <div>
-                <h1 className="font-black text-white text-[22px] leading-tight">
+                <h1 className="font-black text-white text-[20px] leading-tight">
                   ¡Hola, {userName}! 👋
                 </h1>
-                <p className="text-white/70 font-bold text-[12px]">
-                  Tu liga semanal
+                <p className="text-white/70 font-bold text-[11px]">
+                  Ranking semanal
                 </p>
               </div>
+            </div>
+            <div className="text-right">
+              <p className="font-black text-white text-[22px]">{userPtje.toFixed(1)}</p>
+              <p className="text-white/60 font-bold text-[9px] uppercase">Tu Ptje</p>
             </div>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-md rounded-[1.5rem] p-4 border border-white/20">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <LeagueBadge league={userLeague} size="lg" />
-                <div>
-                  <p className="text-white/70 font-bold text-[11px] uppercase tracking-wider">
-                    Liga {leagueInfo.label}
-                  </p>
-                  <p className="font-black text-white text-[18px] leading-tight">
-                    {myStatus?.rank ? `Puesto #${myStatus.rank}` : 'Sin posición'}
-                  </p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-white/70 font-bold text-[11px] uppercase tracking-wider">
-                  Tu Ptje
+          <div className="bg-white/10 backdrop-blur-md rounded-[1.2rem] p-3 border border-white/20 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <LeagueBadge league={userLeague} size="md" />
+              <div>
+                <p className="text-white/70 font-bold text-[10px] uppercase tracking-wider">
+                  Liga
                 </p>
-                <p className="font-black text-white text-[22px]">
-                  {userPtje.toFixed(1)}
+                <p className="font-black text-white text-[15px] leading-tight">
+                  {leagueInfo.label}
                 </p>
               </div>
             </div>
-
-            {/* Zone legend */}
-            <div className="mt-4 pt-3 border-t border-white/10 grid grid-cols-2 gap-2">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-success-500/20 border border-success-500/30 flex items-center justify-center">
-                  <ChevronUp size={14} className="text-success-300" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-black text-white/90 uppercase">Ascenso</p>
-                  <p className="text-[10px] font-bold text-white/60">Top 3</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-error-500/20 border border-error-500/30 flex items-center justify-center">
-                  <ChevronDown size={14} className="text-error-300" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-black text-white/90 uppercase">Descenso</p>
-                  <p className="text-[10px] font-bold text-white/60">Últimos 5</p>
-                </div>
-              </div>
+            <div className="text-right">
+              <p className="text-white/70 font-bold text-[10px] uppercase tracking-wider">
+                Puesto
+              </p>
+              <p className="font-black text-white text-[18px]">
+                {myStatus?.rank ? `#${myStatus.rank}` : '—'}
+              </p>
             </div>
+          </div>
 
-            <div className="mt-3 flex items-center gap-1.5 text-white/60 text-[10px] font-bold">
-              <Clock size={12} />
-              <span>Cierra en {daysLeft} {daysLeft === 1 ? 'día' : 'días'}</span>
-            </div>
+          <div className="mt-2 flex items-center gap-1.5 text-white/60 text-[10px] font-bold">
+            <Clock size={12} />
+            <span>La liga cierra en {daysLeft} {daysLeft === 1 ? 'día' : 'días'}</span>
           </div>
         </div>
       </div>
 
       {/* League carousel */}
-      <div className="mt-5">
+      <div className="px-5 mt-4">
         <LeagueCarousel currentLeague={userLeague} />
       </div>
 
       {/* Tabs */}
-      <div className="px-5 mt-5">
+      <div className="px-5 mt-4">
         <RankingTabs active={activeTab} onChange={setActiveTab} />
       </div>
 
       {/* Filters */}
-      <div className="px-5 mt-4">
+      <div className="px-5 mt-3">
         {activeTab === 'area' && (
           <AreaFilter active={selectedArea} onChange={setSelectedArea} />
         )}
@@ -197,7 +195,7 @@ export default function RankingPage() {
       </div>
 
       {/* Content */}
-      <div className="px-5 mt-4 pb-6">
+      <div className="px-5 mt-3 pb-28">
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -259,17 +257,18 @@ export default function RankingPage() {
                   <RankRow
                     user={me}
                     index={rest.length}
-                    zone={
-                      activeTab === 'weekly'
-                        ? getZone(me.rank, totalInLeague)
-                        : 'safe'
-                    }
+                    zone="safe"
                   />
                 </>
               )}
             </div>
           </div>
         )}
+      </div>
+
+      {/* Sticky user position card */}
+      <div className="sticky bottom-0 left-0 right-0 px-5 py-3 bg-gradient-to-t from-slate-50 via-slate-50 to-transparent z-20 mt-auto">
+        {myCard}
       </div>
     </main>
   );

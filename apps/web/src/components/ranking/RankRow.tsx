@@ -12,6 +12,8 @@ interface RankRowProps {
 }
 
 export const RankRow: React.FC<RankRowProps> = ({ user, index, zone = 'safe' }) => {
+  const effectiveZone = user.isMe ? 'safe' : zone;
+
   const zoneClasses = {
     promotion: 'border-l-4 border-l-success-500',
     relegation: 'border-l-4 border-l-error-500',
@@ -34,7 +36,7 @@ export const RankRow: React.FC<RankRowProps> = ({ user, index, zone = 'safe' }) 
           user.isMe
             ? 'bg-primary-50 border-primary-500'
             : 'bg-white border-slate-100'
-        } ${zoneClasses[zone]}`}
+        } ${zoneClasses[effectiveZone]}`}
     >
       <div
         className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-[14px] shrink-0
@@ -85,7 +87,7 @@ export const RankRow: React.FC<RankRowProps> = ({ user, index, zone = 'safe' }) 
 
       <div className="flex items-center gap-2 text-right shrink-0">
         <div
-          className={`w-2 h-2 rounded-full ${zoneDot[zone]}`}
+          className={`w-2 h-2 rounded-full ${zoneDot[effectiveZone]}`}
           title={
             zone === 'promotion'
               ? 'Zona de ascenso'
