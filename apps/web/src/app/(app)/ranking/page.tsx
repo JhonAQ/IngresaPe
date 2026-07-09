@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Trophy, Clock, TrendingUp } from 'lucide-react';
+import { Trophy, TrendingUp } from 'lucide-react';
 import { trpc } from '../../../utils/trpc';
 import {
   RankingTabs,
@@ -11,6 +10,7 @@ import {
   RankRow,
   AreaFilter,
   CareerFilter,
+  LeagueLadder,
 } from '../../../components/ranking';
 import {
   type Area,
@@ -30,14 +30,16 @@ function getLeagueByXp(xp: number): League {
 }
 
 export default function RankingPage() {
-  const [activeTab, setActiveTab] = useState<Tab>('weekly');
-  const [selectedArea, setSelectedArea] = useState<Area>('INGENIERIAS');
-  const [selectedCareerId, setSelectedCareerId] = useState<string | null>(null);
-
   const { data: profile } = trpc.profile.getMe.useQuery();
-  const { data: myPosition } = trpc.ranking.getMyPosition.useQuery(undefined, {
-    retry: false,
-  });
+
+  const [activeTab, setActiveTab] = useState<Tab>('weekly');
+  const [selectedArea, setSelectedArea] = useState<Area>(
+    profile?.career?.area ?? 'INGENIERIAS'
+  );
+  const [selectedCareerId, setSelectedCareerId] = useState<string | null>(
+    profile?.careerId ?? null
+  );
+
   const { data: globalTop, isLoading: isGlobalLoading } =
     trpc.ranking.getTopStudents.useQuery();
   const { data: areaTop, isLoading: isAreaLoading } =
@@ -59,6 +61,15 @@ export default function RankingPage() {
   const nextLeague = leagueOrder[leagueIndex + 1];
 
   React.useEffect(() => {
+    if (profile?.career?.area) {
+      setSelectedArea(profile.career.area);
+    }
+    if (profile?.careerId) {
+      setSelectedCareerId(profile.careerId);
+    }
+  }, [profile?.career?.area, profile?.careerId]);
+
+  React.useEffect(() => {
     if (careerOptions && careerOptions.length > 0 && !selectedCareerId) {
       setSelectedCareerId(careerOptions[0].id);
     }
@@ -78,13 +89,11 @@ export default function RankingPage() {
   const podium = currentList.slice(0, 3);
   // Reorder podium to show 2nd, 1st, 3rd
   const orderedPodium =
-    podium.length >= 3
-      ? [podium[1], podium[0], podium[2]]
-      : podium;
+    podium.length >= 3 ? [podium[1], podium[0], podium[2]] : podium;
   const rest = currentList.slice(3);
 
   return (
-    <main className="flex-1 overflow-y-auto hide-scrollbar bg-slate-50 pb-28">
+    <main className="flex-1 overflow-y-auto hide-scrollbar bg-slate-50 pb-24">
       {/* Hero header */}
       <div className="relative bg-gradient-to-br from-primary-500 to-primary-700 px-5 pt-8 pb-10 rounded-b-[2.5rem] overflow-hidden">
         <div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none" />
@@ -137,7 +146,9 @@ export default function RankingPage() {
                 <div className="h-2 bg-black/20 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-white rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min(100, Math.round((userXp / 5000) * 100))}%` }}
+                    style={{
+                      width: `${Math.min(100, Math.round((userXp / 5000) * 100))}%`,
+                    }}
                   />
                 </div>
               </div>
@@ -149,6 +160,11 @@ export default function RankingPage() {
       {/* Tabs */}
       <div className="px-5 -mt-5 relative z-20">
         <RankingTabs active={activeTab} onChange={setActiveTab} />
+      </div>
+
+      {/* League ladder */}
+      <div className="px-5 mt-5">
+        <LeagueLadder currentLeague={userLeague} />
       </div>
 
       {/* Filters */}
@@ -214,38 +230,6 @@ export default function RankingPage() {
           </div>
         )}
       </div>
-
-      {/* My position sticky card */}
-      {myPosition && (
-        <motion.div
-          initial={{ y: 100 }}
-          animate={{ y: 0 }}
-          className="fixed bottom-20 left-0 right-0 px-5 z-30"
-        >
-          <div className="max-w-md mx-auto">
-            <div className="bg-slate-900 text-white rounded-[1.5rem] p-4 shadow-2xl border-b-[5px] border-b-slate-950 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center font-black text-[20px]">
-                #{myPosition.rank}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-black text-[15px] truncate">{myPosition.name ?? 'Tú'}</p>
-                <div className="flex items-center gap-3 text-[11px] font-bold text-white/60">
-                  <span className="flex items-center gap-1">
-                    <Clock size={12} /> Semanal
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Trophy size={12} /> {leagueInfo.label}
-                  </span>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="font-black text-[16px]">{myPosition.xp.toLocaleString()}</p>
-                <p className="text-[9px] font-bold text-white/50 uppercase">XP</p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
     </main>
   );
 }

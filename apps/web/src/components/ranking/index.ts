@@ -4,3 +4,4 @@ export * from './RankRow';
 export * from './RankingTabs';
 export * from './AreaFilter';
 export * from './CareerFilter';
+export * from './LeagueLadder';
