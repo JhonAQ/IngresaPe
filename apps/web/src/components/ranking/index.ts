@@ -1,6 +1,5 @@
 export * from './AreaFilter';
 export * from './CareerFilter';
-export * from './DocumentRankingHeader';
 export * from './LeagueBadge';
 export * from './LeagueCarousel';
 export * from './PodiumCard';

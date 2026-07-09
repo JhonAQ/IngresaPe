@@ -5,7 +5,6 @@ import { TrendingUp } from 'lucide-react';
 import { trpc } from '../../../utils/trpc';
 import {
   RankingTabs,
-  DocumentRankingHeader,
   RankingAccordion,
   RankingTableHeader,
   RankingTableRow,
@@ -94,11 +93,8 @@ export default function RankingPage() {
 
   return (
     <main className="flex-1 overflow-hidden flex flex-col bg-white">
-      {/* Cabecera fija */}
-      <DocumentRankingHeader />
-
       {/* Tabs + cabecera de columnas fija */}
-      <div className="shrink-0 px-3 sm:px-4 bg-white z-20">
+      <div className="shrink-0 px-3 sm:px-4 pt-3 bg-white z-20">
         <RankingTabs active={activeTab} onChange={setActiveTab} />
         <RankingTableHeader />
       </div>
