@@ -12,7 +12,7 @@ import {
   ReturnToUserFab,
 } from '../../../components/ranking';
 import type { RankingUserDto } from '@ingresa-pe/domain';
-import { areaLabels } from '@ingresa-pe/domain';
+import { areaLabels, leagueConfig } from '@ingresa-pe/domain';
 
 type Tab = 'career' | 'area' | 'league';
 type Zone = 'promotion' | 'neutral' | 'relegation';
@@ -47,17 +47,22 @@ type RankingGroup = {
   title: string;
   students: RankingUserDto[];
   me: RankingUserDto | null;
+  totalInLeague: number;
 };
 
 function findUserInGroup(group: RankingGroup): RankingUserDto | null {
   return group.students.find((s) => s.isMe) ?? group.me;
 }
 
+function isUserInGroup(group: RankingGroup): boolean {
+  return findUserInGroup(group) !== null;
+}
+
 export default function RankingPage() {
   const [activeTab, setActiveTab] = useState<Tab>('career');
-  const [activeGroupKey, setActiveGroupKey] = useState<string | null>(null);
+  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
   const scrollRef = useRef<HTMLDivElement>(null);
-  const userRowRef = useRef<HTMLDivElement>(null);
+  const userGroupRef = useRef<HTMLDivElement>(null);
   const lastScrolledKeyRef = useRef<string | null>(null);
 
   const { data: careersData, isLoading: isCareersLoading } =
@@ -85,6 +90,7 @@ export default function RankingPage() {
         title: `CARRERA >> ${g.careerName}`,
         students: g.top,
         me: g.me,
+        totalInLeague: g.totalInLeague,
       }));
     }
     if (activeTab === 'area' && areasData) {
@@ -93,75 +99,72 @@ export default function RankingPage() {
         title: `ÁREA >> ${areaLabels[g.area].toUpperCase()}`,
         students: g.top,
         me: g.me,
+        totalInLeague: g.totalInLeague,
       }));
     }
     if (activeTab === 'league' && leagueData) {
+      const leagueLabel = leagueConfig[leagueData.currentLeague].label;
       return [
         {
           key: 'league',
-          title: 'LIGA SEMANAL',
+          title: `LIGA SEMANAL >> Liga ${leagueLabel}`,
           students: leagueData.top,
           me: leagueData.me,
+          totalInLeague: leagueData.totalInLeague,
         },
       ];
     }
     return [];
   }, [activeTab, careersData, areasData, leagueData]);
 
-  const activeGroup = useMemo(() => {
+  // Todas las listas desplegadas desde el inicio.
+  useEffect(() => {
+    if (!groups.length) return;
+    setOpenGroups(new Set(groups.map((g) => g.key)));
+  }, [groups]);
+
+  const userGroup = useMemo(() => {
     if (!groups.length) return null;
-    if (activeGroupKey) {
-      return groups.find((g) => g.key === activeGroupKey) ?? groups[0];
-    }
-    const withUser = groups.find((g) => findUserInGroup(g));
-    return withUser ?? groups[0];
-  }, [groups, activeGroupKey]);
+    return groups.find((g) => isUserInGroup(g)) ?? groups[0];
+  }, [groups]);
 
-  const userStudent = activeGroup ? findUserInGroup(activeGroup) : null;
-
-  const scrollToUser = useCallback(() => {
+  const scrollToUserGroup = useCallback(() => {
     const container = scrollRef.current;
-    const target = userRowRef.current;
+    const target = userGroupRef.current;
     if (!container || !target) return;
 
     const containerRect = container.getBoundingClientRect();
     const targetRect = target.getBoundingClientRect();
     const targetTop = targetRect.top - containerRect.top + container.scrollTop;
-    const visibleCenter = container.clientHeight / 2;
 
-    let scrollTop = targetTop - visibleCenter + targetRect.height / 2;
-    const maxScroll = container.scrollHeight - container.clientHeight;
-    if (scrollTop < 0) scrollTop = 0;
-    if (maxScroll > 0 && scrollTop > maxScroll) scrollTop = maxScroll;
-
-    container.scrollTo({ top: scrollTop, behavior: 'smooth' });
+    container.scrollTo({ top: targetTop, behavior: 'smooth' });
   }, []);
 
-  // Al cambiar de tab o llegar datos, abrir grupo del usuario y scrollear a su fila.
+  // Al cambiar de tab o llegar datos, scrollear a la lista del usuario.
   useEffect(() => {
-    if (!groups.length) return;
+    if (!groups.length || !userGroup) return;
 
-    const withUser = groups.find((g) => findUserInGroup(g));
-    const nextKey = withUser?.key ?? groups[0].key;
-    const scrollKey = `${activeTab}-${nextKey}`;
-
-    setActiveGroupKey(nextKey);
-
+    const scrollKey = `${activeTab}-${userGroup.key}`;
     if (lastScrolledKeyRef.current === scrollKey) return;
 
     const raf = requestAnimationFrame(() => {
-      scrollToUser();
+      scrollToUserGroup();
     });
     lastScrolledKeyRef.current = scrollKey;
 
     return () => cancelAnimationFrame(raf);
-  }, [activeTab, groups, scrollToUser]);
+  }, [activeTab, groups, userGroup, scrollToUserGroup]);
 
   const toggleGroup = (key: string) => {
-    setActiveGroupKey((current) => (current === key ? null : key));
+    setOpenGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
   };
 
-  const renderStudents = (students: RankingUserDto[], groupKey: string) => {
+  const renderStudents = (students: RankingUserDto[]) => {
     if (students.length === 0) {
       return (
         <div className="py-4 text-center text-slate-400 font-bold text-[12px]">
@@ -169,18 +172,59 @@ export default function RankingPage() {
         </div>
       );
     }
-    return students.map((student, idx) => {
-      const isTarget =
-        activeGroup?.key === groupKey && userStudent?.id === student.id;
+    return students.map((student, idx) => (
+      <RankingTableRow key={student.id} user={student} index={idx} />
+    ));
+  };
+
+  const renderHiddenCount = (shown: number, total: number) => {
+    const hidden = total - shown;
+    if (hidden <= 0) return null;
+    return (
+      <div className="flex justify-center py-0.5">
+        <span className="text-[10px] sm:text-[11px] font-bold text-slate-400">
+          ··· {hidden} {hidden === 1 ? 'usuario más' : 'usuarios más'} ···
+        </span>
+      </div>
+    );
+  };
+
+  const renderGroupContent = (group: RankingGroup) => {
+    if (activeTab === 'league') {
       return (
-        <RankingTableRow
-          key={student.id}
-          user={student}
-          index={idx}
-          targetRef={isTarget ? userRowRef : undefined}
-        />
+        <>
+          {groupByZone(group.students, group.students.length).map(
+            ({ zone, students }) => (
+              <div key={zone} className="mb-1">
+                <RankingZoneHeader zone={zone} />
+                {renderStudents(students)}
+              </div>
+            )
+          )}
+          {group.me && !group.students.some((s) => s.isMe) && (
+            <>
+              {renderHiddenCount(group.students.length, group.totalInLeague)}
+              <RankingTableRow
+                user={group.me}
+                index={group.students.length}
+              />
+            </>
+          )}
+        </>
       );
-    });
+    }
+
+    return (
+      <>
+        {renderStudents(group.students)}
+        {group.me && !group.students.some((s) => s.isMe) && (
+          <>
+            {renderHiddenCount(group.students.length, group.totalInLeague)}
+            <RankingTableRow user={group.me} index={group.students.length} />
+          </>
+        )}
+      </>
+    );
   };
 
   const renderEmpty = () => (
@@ -211,63 +255,34 @@ export default function RankingPage() {
               <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />
             ))}
           </div>
-        ) : activeTab === 'league' ? (
-          groups.length ? (
-            groups.map((group) => (
-              <RankingAccordion
-                key={group.key}
-                title={group.title}
-                isOpen={activeGroup?.key === group.key}
-                onToggle={() => toggleGroup(group.key)}
-              >
-                {groupByZone(group.students, group.students.length).map(
-                  ({ zone, students }) => (
-                    <div key={zone} className="mb-2">
-                      <RankingZoneHeader zone={zone} />
-                      {renderStudents(students, group.key)}
-                    </div>
-                  )
-                )}
-                {group.me && !group.students.some((s) => s.isMe) && (
-                  <RankingTableRow
-                    user={group.me}
-                    index={group.students.length}
-                    targetRef={
-                      userStudent?.id === group.me.id ? userRowRef : undefined
-                    }
-                  />
-                )}
-              </RankingAccordion>
-            ))
-          ) : (
-            renderEmpty()
-          )
         ) : groups.length ? (
-          groups.map((group) => (
-            <RankingAccordion
-              key={group.key}
-              title={group.title}
-              isOpen={activeGroup?.key === group.key}
-              onToggle={() => toggleGroup(group.key)}
-            >
-              {renderStudents(group.students, group.key)}
-              {group.me && !group.students.some((s) => s.isMe) && (
-                <RankingTableRow
-                  user={group.me}
-                  index={group.students.length}
-                  targetRef={
-                    userStudent?.id === group.me.id ? userRowRef : undefined
-                  }
-                />
-              )}
-            </RankingAccordion>
-          ))
+          groups.map((group) => {
+            const isUserGroup = userGroup?.key === group.key;
+            return (
+              <div
+                key={group.key}
+                ref={isUserGroup ? userGroupRef : undefined}
+                className="scroll-mt-2"
+              >
+                <RankingAccordion
+                  title={group.title}
+                  isOpen={openGroups.has(group.key)}
+                  onToggle={() => toggleGroup(group.key)}
+                >
+                  {renderGroupContent(group)}
+                </RankingAccordion>
+              </div>
+            );
+          })
         ) : (
           renderEmpty()
         )}
       </div>
 
-      <ReturnToUserFab scrollContainerRef={scrollRef} targetRef={userRowRef} />
+      <ReturnToUserFab
+        scrollContainerRef={scrollRef}
+        targetRef={userGroupRef}
+      />
     </main>
   );
 }

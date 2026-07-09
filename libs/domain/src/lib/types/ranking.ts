@@ -60,6 +60,14 @@ export const allAreasLeaderboardSchema = z.object({
 });
 export type AllAreasLeaderboardDto = z.infer<typeof allAreasLeaderboardSchema>;
 
+export const weeklyLeagueSchema = z.object({
+  top: z.array(rankingUserSchema),
+  me: rankingUserSchema.nullable(),
+  totalInLeague: z.number(),
+  currentLeague: leagueSchema,
+});
+export type WeeklyLeagueDto = z.infer<typeof weeklyLeagueSchema>;
+
 export const rankingPositionSchema = z.object({
   rank: z.number(),
   weeklyPtje: z.number(),

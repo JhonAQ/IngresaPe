@@ -184,20 +184,26 @@ export class RankingRouter {
   }
 
   public router = this.trpc.router({
-    // Liga semanal: grupo de hasta 10 usuarios de la misma liga
+    // Liga semanal: todos los usuarios de la liga actual del usuario
     getWeeklyLeague: this.trpc.protectedProcedure.query(async ({ ctx }) => {
       const currentUserId = ctx.user.userId;
       const allPlayers = await this.loadPlayers();
-      const { group } = this.getUserLeagueGroup(allPlayers, currentUserId);
+      const currentPlayer = allPlayers.find((p) => p.id === currentUserId);
+      const currentLeague = currentPlayer?.league ?? 'HUEVITO';
 
-      const ranked = group
-        .sort(comparePlayers)
-        .map((p, index) => this.toRankingUserDto(p, index + 1, currentUserId));
+      const leaguePlayers = allPlayers
+        .filter((p) => p.league === currentLeague)
+        .sort(comparePlayers);
+
+      const ranked = leaguePlayers.map((p, index) =>
+        this.toRankingUserDto(p, index + 1, currentUserId)
+      );
 
       return {
         top: ranked,
         me: ranked.find((p) => p.isMe) ?? null,
         totalInLeague: ranked.length,
+        currentLeague,
       };
     }),
 
