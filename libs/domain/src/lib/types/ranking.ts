@@ -10,26 +10,6 @@ export const careerSummarySchema = z.object({
 });
 export type CareerSummaryDto = z.infer<typeof careerSummarySchema>;
 
-export const rankingUserSchema = z.object({
-  id: z.string(),
-  name: z.string().nullable(),
-  image: z.string().nullable(),
-  totalXp: z.number(),
-  rank: z.number(),
-  isMe: z.boolean(),
-  career: careerSummarySchema.nullable(),
-});
-export type RankingUserDto = z.infer<typeof rankingUserSchema>;
-
-export const rankingPositionSchema = z.object({
-  rank: z.number(),
-  xp: z.number(),
-  name: z.string().nullable(),
-  image: z.string().nullable(),
-  career: careerSummarySchema.nullable(),
-});
-export type RankingPositionDto = z.infer<typeof rankingPositionSchema>;
-
 export const leagueSchema = z.enum([
   'HUEVITO',
   'POLLITO',
@@ -38,6 +18,28 @@ export const leagueSchema = z.enum([
   'CACHIMBO',
 ]);
 export type League = z.infer<typeof leagueSchema>;
+
+export const rankingUserSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  image: z.string().nullable(),
+  weeklyPtje: z.number(),
+  rank: z.number(),
+  isMe: z.boolean(),
+  league: leagueSchema,
+  career: careerSummarySchema.nullable(),
+});
+export type RankingUserDto = z.infer<typeof rankingUserSchema>;
+
+export const rankingPositionSchema = z.object({
+  rank: z.number(),
+  weeklyPtje: z.number(),
+  name: z.string().nullable(),
+  image: z.string().nullable(),
+  league: leagueSchema,
+  career: careerSummarySchema.nullable(),
+});
+export type RankingPositionDto = z.infer<typeof rankingPositionSchema>;
 
 export const leagueConfig: Record<
   League,
@@ -113,3 +115,11 @@ export const areaLabels: Record<Area, string> = {
 };
 
 export const areaOrder: Area[] = ['INGENIERIAS', 'SOCIALES', 'BIOMEDICAS'];
+
+export function getLeagueByPtje(ptje: number): League {
+  if (ptje < 40) return 'HUEVITO';
+  if (ptje < 55) return 'POLLITO';
+  if (ptje < 70) return 'DINOSAURIO';
+  if (ptje < 85) return 'FOSIL';
+  return 'CACHIMBO';
+}

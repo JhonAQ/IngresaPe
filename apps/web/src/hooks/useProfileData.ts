@@ -27,7 +27,7 @@ interface BackendCourse {
 
 interface RankingPosition {
   rank: number;
-  xp: number;
+  weeklyPtje: number;
   name?: string | null;
 }
 
@@ -41,7 +41,7 @@ export function useProfileData() {
   const {
     data: rankData,
     isLoading: isRankLoading,
-  } = trpc.ranking.getMyPosition.useQuery(undefined, { retry: false });
+  } = trpc.ranking.getMyLeagueStatus.useQuery(undefined, { retry: false });
 
   const {
     data: courses,

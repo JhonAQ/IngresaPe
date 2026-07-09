@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, ExamMode, ExamStatus } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -24,34 +24,34 @@ const LAST_NAMES = [
   'Santos', 'Domínguez', 'Delgado', 'Guzmán', 'Vilca', 'Tapia', 'Ponce', 'Ventura',
 ];
 
-const LEAGUE_XP_RANGES = [
-  { min: 0, max: 499 },          // Huevito
-  { min: 500, max: 1499 },       // Pollito
-  { min: 1500, max: 2999 },      // Dinosaurio
-  { min: 3000, max: 4999 },      // Fósil
-  { min: 5000, max: 25000 },     // Cachimbo
+// Rangos de puntaje semanal que determinan la liga.
+const LEAGUE_SCORE_RANGES = [
+  { leagueIndex: 0, min: 15, max: 39 },   // Huevito
+  { leagueIndex: 1, min: 40, max: 54 },   // Pollito
+  { leagueIndex: 2, min: 55, max: 69 },   // Dinosaurio
+  { leagueIndex: 3, min: 70, max: 84 },   // Fósil
+  { leagueIndex: 4, min: 85, max: 100 },  // Cachimbo
 ];
+
+// Peso para asegurar distribución visible en todas las ligas.
+const LEAGUE_WEIGHTS = [0.25, 0.25, 0.25, 0.15, 0.1];
 
 function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function generateRandomXP(): number {
-  // Distribución intencional para asegurar competidores en todas las ligas.
-  const weights = [0.3, 0.3, 0.2, 0.12, 0.08];
+function randomInt(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function pickLeagueIndex(): number {
   const roll = Math.random();
   let cumulative = 0;
-
-  for (let i = 0; i < weights.length; i++) {
-    cumulative += weights[i];
-    if (roll <= cumulative) {
-      const range = LEAGUE_XP_RANGES[i];
-      return Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
-    }
+  for (let i = 0; i < LEAGUE_WEIGHTS.length; i++) {
+    cumulative += LEAGUE_WEIGHTS[i];
+    if (roll <= cumulative) return i;
   }
-
-  const last = LEAGUE_XP_RANGES[LEAGUE_XP_RANGES.length - 1];
-  return Math.floor(Math.random() * (last.max - last.min + 1)) + last.min;
+  return LEAGUE_WEIGHTS.length - 1;
 }
 
 function generateName(): string {
@@ -60,18 +60,29 @@ function generateName(): string {
   return `${first} ${last}`;
 }
 
+function getRandomDateThisWeek(): Date {
+  const now = new Date();
+  const day = now.getDay(); // 0 = domingo
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  const monday = new Date(now);
+  monday.setHours(0, 0, 0, 0);
+  monday.setDate(monday.getDate() + diffToMonday);
+
+  const offsetMs = Math.floor(Math.random() * 7 * 24 * 60 * 60 * 1000);
+  return new Date(monday.getTime() + offsetMs);
+}
+
 async function main() {
   console.log('🌱 Sembrando competidores...');
 
   const hashedPassword = await bcrypt.hash('password123', 12);
 
-  // Eliminar competidores previos para evitar duplicados al resembrar.
+  // Eliminar competidores previos y sus intentos asociados.
   const deleted = await prisma.user.deleteMany({
     where: { email: { startsWith: 'competidor' } },
   });
   console.log(`🗑️  Eliminados ${deleted.count} competidores anteriores`);
 
-  // Cargar carreras existentes para asignarles una aleatoriamente.
   const careers = await prisma.career.findMany({
     select: { id: true, area: true },
   });
@@ -81,32 +92,57 @@ async function main() {
   }
 
   const TOTAL_COMPETITORS = 150;
-  const batch: { email: string; name: string; totalXp: number; careerId?: string }[] = [];
+  const createdUsers: { id: string }[] = [];
 
   for (let i = 0; i < TOTAL_COMPETITORS; i++) {
     const career = careers.length > 0 ? pickRandom(careers) : undefined;
-    batch.push({
-      email: `competidor${i}@test.com`,
-      name: generateName(),
-      totalXp: generateRandomXP(),
-      careerId: career?.id,
-    });
-  }
+    const leagueIndex = pickLeagueIndex();
+    const range = LEAGUE_SCORE_RANGES[leagueIndex];
 
-  for (const competitor of batch) {
-    await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
-        email: competitor.email,
+        email: `competidor${i}@test.com`,
         password: hashedPassword,
-        name: competitor.name,
-        totalXp: competitor.totalXp,
+        name: generateName(),
+        totalXp: randomInt(0, 15000),
         role: 'USER',
-        careerId: competitor.careerId,
+        careerId: career?.id,
       },
+      select: { id: true },
     });
+
+    createdUsers.push(user);
+
+    // Cada competidor completa 1-3 simulacros esta semana.
+    const attemptsCount = randomInt(1, 3);
+    for (let j = 0; j < attemptsCount; j++) {
+      const score = randomInt(range.min, range.max);
+      const questionCount = 80;
+      const correctCount = Math.round((score / 100) * questionCount);
+      const incorrectCount = questionCount - correctCount;
+
+      await prisma.examAttempt.create({
+        data: {
+          userId: user.id,
+          mode: ExamMode.GENERATED,
+          questionCount,
+          timeLimitSeconds: 7200,
+          questionIds: [],
+          answers: {},
+          status: ExamStatus.COMPLETED,
+          submittedAt: getRandomDateThisWeek(),
+          correctCount,
+          incorrectCount,
+          blankCount: 0,
+          score,
+          totalXpEarned: correctCount * 10,
+          totalCoinsEarned: correctCount * 5,
+        },
+      });
+    }
   }
 
-  console.log(`✅ ¡${TOTAL_COMPETITORS} competidores creados!`);
+  console.log(`✅ ¡${TOTAL_COMPETITORS} competidores creados con simulacros de esta semana!`);
 }
 
 main()

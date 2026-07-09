@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { usePathname } from 'next/navigation';
 import { DashboardHeader } from '../../components/dashboard/Header';
 import { BottomNav } from '../../components/dashboard/BottomNav';
 import { useDashboardData } from '../../hooks/useDashboardData';
@@ -15,6 +16,8 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   const { data, isLoading } = useDashboardData();
   const { isOpen, open } = useImmersiveOverlay();
   const selectedCourse = useDashboardCourse();
+  const pathname = usePathname();
+  const hideHeader = pathname === '/ranking';
 
   return (
     <AuthGuard>
@@ -27,7 +30,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
         >
           <div className="absolute inset-0 bg-grid-pattern z-0 pointer-events-none opacity-50" />
 
-          {!isOpen && (
+          {!isOpen && !hideHeader && (
             <DashboardHeader
               stats={data.stats}
               selectedCourse={selectedCourse}

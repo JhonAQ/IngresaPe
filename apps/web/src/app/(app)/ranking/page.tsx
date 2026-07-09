@@ -1,47 +1,49 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { Trophy, TrendingUp } from 'lucide-react';
+import { Trophy, TrendingUp, Clock } from 'lucide-react';
 import { trpc } from '../../../utils/trpc';
 import {
   RankingTabs,
   LeagueBadge,
+  LeagueCarousel,
   PodiumCard,
   RankRow,
   AreaFilter,
   CareerFilter,
-  LeagueLadder,
 } from '../../../components/ranking';
-import {
-  type Area,
-  type League,
-  leagueOrder,
-  leagueConfig,
-} from '@ingresa-pe/domain';
+import { type Area, type League, leagueConfig } from '@ingresa-pe/domain';
 
 type Tab = 'weekly' | 'area' | 'career';
 
-function getLeagueByXp(xp: number): League {
-  if (xp < 500) return 'HUEVITO';
-  if (xp < 1500) return 'POLLITO';
-  if (xp < 3000) return 'DINOSAURIO';
-  if (xp < 5000) return 'FOSIL';
-  return 'CACHIMBO';
+type Zone = 'promotion' | 'relegation' | 'safe';
+
+function getZone(rank: number, total: number): Zone {
+  if (rank <= 3) return 'promotion';
+  const relegationCount = Math.min(5, Math.max(0, total - 3));
+  if (rank > total - relegationCount) return 'relegation';
+  return 'safe';
+}
+
+function getDaysUntilSunday(): number {
+  const now = new Date();
+  const day = now.getDay();
+  return day === 0 ? 0 : 7 - day;
 }
 
 export default function RankingPage() {
-  const { data: profile } = trpc.profile.getMe.useQuery();
-
   const [activeTab, setActiveTab] = useState<Tab>('weekly');
-  const [selectedArea, setSelectedArea] = useState<Area>(
-    profile?.career?.area ?? 'INGENIERIAS'
-  );
-  const [selectedCareerId, setSelectedCareerId] = useState<string | null>(
-    profile?.careerId ?? null
-  );
+  const [selectedArea, setSelectedArea] = useState<Area>('INGENIERIAS');
+  const [selectedCareerId, setSelectedCareerId] = useState<string | null>(null);
 
-  const { data: globalTop, isLoading: isGlobalLoading } =
-    trpc.ranking.getTopStudents.useQuery();
+  const { data: profile } = trpc.profile.getMe.useQuery();
+  const { data: myStatus } = trpc.ranking.getMyLeagueStatus.useQuery(undefined, {
+    retry: false,
+  });
+  const { data: weeklyLeague, isLoading: isWeeklyLoading } =
+    trpc.ranking.getWeeklyLeague.useQuery(undefined, {
+      enabled: activeTab === 'weekly',
+    });
   const { data: areaTop, isLoading: isAreaLoading } =
     trpc.ranking.getAreaLeaderboard.useQuery(
       { area: selectedArea },
@@ -54,11 +56,11 @@ export default function RankingPage() {
     );
   const { data: careerOptions } = trpc.ranking.getCareerOptions.useQuery();
 
-  const userXp = profile?.totalXp ?? 0;
-  const userLeague = getLeagueByXp(userXp);
+  const userName = profile?.name?.split(' ')[0] ?? 'Guerrero';
+  const userLeague: League = myStatus?.league ?? 'HUEVITO';
   const leagueInfo = leagueConfig[userLeague];
-  const leagueIndex = leagueOrder.indexOf(userLeague);
-  const nextLeague = leagueOrder[leagueIndex + 1];
+  const userPtje = myStatus?.weeklyPtje ?? 0;
+  const daysLeft = getDaysUntilSunday();
 
   React.useEffect(() => {
     if (profile?.career?.area) {
@@ -75,100 +77,112 @@ export default function RankingPage() {
     }
   }, [careerOptions, selectedCareerId]);
 
-  const currentList = useMemo(() => {
-    if (activeTab === 'weekly') return globalTop ?? [];
-    if (activeTab === 'area') return areaTop ?? [];
-    return careerTop ?? [];
-  }, [activeTab, globalTop, areaTop, careerTop]);
+  const leaderboard = useMemo(() => {
+    if (activeTab === 'weekly') return weeklyLeague;
+    if (activeTab === 'area') return areaTop;
+    return careerTop;
+  }, [activeTab, weeklyLeague, areaTop, careerTop]);
 
   const isLoading =
-    (activeTab === 'weekly' && isGlobalLoading) ||
+    (activeTab === 'weekly' && isWeeklyLoading) ||
     (activeTab === 'area' && isAreaLoading) ||
     (activeTab === 'career' && isCareerLoading);
 
-  const podium = currentList.slice(0, 3);
-  // Reorder podium to show 2nd, 1st, 3rd
+  const topPlayers = leaderboard?.top ?? [];
+  const me = leaderboard?.me ?? null;
+  const totalInLeague = leaderboard?.totalInLeague ?? topPlayers.length;
+  const showMeOutside = me !== null && !topPlayers.some((p) => p.isMe);
+
+  const podium = topPlayers.slice(0, 3);
   const orderedPodium =
     podium.length >= 3 ? [podium[1], podium[0], podium[2]] : podium;
-  const rest = currentList.slice(3);
+  const rest = topPlayers.slice(3);
+
+  const renderZoneLabel = (zone: Zone) => {
+    if (zone === 'promotion') {
+      return (
+        <div className="text-success-600 font-black text-[10px] uppercase tracking-wider mb-2">
+          Zona de ascenso
+        </div>
+      );
+    }
+    if (zone === 'relegation') {
+      return (
+        <div className="text-error-500 font-black text-[10px] uppercase tracking-wider mb-2">
+          Zona de descenso
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
-    <main className="flex-1 overflow-y-auto hide-scrollbar bg-slate-50 pb-24">
-      {/* Hero header */}
-      <div className="relative bg-gradient-to-br from-primary-500 to-primary-700 px-5 pt-8 pb-10 rounded-b-[2.5rem] overflow-hidden">
+    <main className="flex-1 overflow-y-auto hide-scrollbar bg-slate-50">
+      {/* Compact hero */}
+      <div className="relative bg-gradient-to-br from-primary-500 to-primary-700 px-5 pt-6 pb-5 rounded-b-[2rem] overflow-hidden">
         <div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none" />
         <div className="relative z-10">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white shadow-lg">
-                <Trophy size={26} strokeWidth={2.5} />
+              <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white shadow-lg">
+                <Trophy size={22} strokeWidth={2.5} />
               </div>
               <div>
-                <h1 className="font-black text-white text-[26px] leading-tight">
-                  Ranking
+                <h1 className="font-black text-white text-[20px] leading-tight">
+                  ¡Hola, {userName}! 👋
                 </h1>
-                <p className="text-white/70 font-bold text-[12px]">
-                  Compite y sube de liga
+                <p className="text-white/70 font-bold text-[11px]">
+                  Ranking semanal
                 </p>
               </div>
+            </div>
+            <div className="text-right">
+              <p className="font-black text-white text-[22px]">{userPtje.toFixed(1)}</p>
+              <p className="text-white/60 font-bold text-[9px] uppercase">Tu Ptje</p>
             </div>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-md rounded-[1.5rem] p-4 border border-white/20">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <LeagueBadge league={userLeague} size="lg" />
-                <div>
-                  <p className="text-white/70 font-bold text-[11px] uppercase tracking-wider">
-                    Tu liga actual
-                  </p>
-                  <p className="font-black text-white text-[18px] leading-tight">
-                    {leagueInfo.label}
-                  </p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-white/70 font-bold text-[11px] uppercase tracking-wider">
-                  Tu XP
+          <div className="bg-white/10 backdrop-blur-md rounded-[1.2rem] p-3 border border-white/20 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <LeagueBadge league={userLeague} size="md" />
+              <div>
+                <p className="text-white/70 font-bold text-[10px] uppercase tracking-wider">
+                  Liga
                 </p>
-                <p className="font-black text-white text-[20px]">
-                  {userXp.toLocaleString()}
+                <p className="font-black text-white text-[15px] leading-tight">
+                  {leagueInfo.label}
                 </p>
               </div>
             </div>
+            <div className="text-right">
+              <p className="text-white/70 font-bold text-[10px] uppercase tracking-wider">
+                Puesto
+              </p>
+              <p className="font-black text-white text-[18px]">
+                {myStatus?.rank ? `#${myStatus.rank}` : '—'}
+              </p>
+            </div>
+          </div>
 
-            {nextLeague && (
-              <div className="mt-3 pt-3 border-t border-white/10">
-                <div className="flex items-center justify-between text-[11px] font-bold text-white/80 mb-1">
-                  <span>Progreso hacia {leagueConfig[nextLeague].label}</span>
-                  <span>{Math.min(100, Math.round((userXp / 5000) * 100))}%</span>
-                </div>
-                <div className="h-2 bg-black/20 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-white rounded-full transition-all duration-500"
-                    style={{
-                      width: `${Math.min(100, Math.round((userXp / 5000) * 100))}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            )}
+          <div className="mt-2 flex items-center gap-1.5 text-white/60 text-[10px] font-bold">
+            <Clock size={12} />
+            <span>La liga cierra en {daysLeft} {daysLeft === 1 ? 'día' : 'días'}</span>
           </div>
         </div>
       </div>
 
+      {/* League carousel */}
+      <div className="px-5 mt-4">
+        <LeagueCarousel currentLeague={userLeague} />
+      </div>
+
       {/* Tabs */}
-      <div className="px-5 -mt-5 relative z-20">
+      <div className="px-5 mt-4">
         <RankingTabs active={activeTab} onChange={setActiveTab} />
       </div>
 
-      {/* League ladder */}
-      <div className="px-5 mt-5">
-        <LeagueLadder currentLeague={userLeague} />
-      </div>
-
       {/* Filters */}
-      <div className="px-5 mt-5">
+      <div className="px-5 mt-3">
         {activeTab === 'area' && (
           <AreaFilter active={selectedArea} onChange={setSelectedArea} />
         )}
@@ -182,7 +196,7 @@ export default function RankingPage() {
       </div>
 
       {/* Content */}
-      <div className="px-5 mt-5">
+      <div className="px-5 mt-3 pb-24">
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -192,7 +206,7 @@ export default function RankingPage() {
               />
             ))}
           </div>
-        ) : currentList.length === 0 ? (
+        ) : topPlayers.length === 0 ? (
           <div className="text-center py-12 rounded-[2rem] border-2 border-dashed border-slate-200 bg-white">
             <TrendingUp size={40} className="text-slate-300 mx-auto mb-3" />
             <p className="text-slate-400 font-bold text-[14px]">
@@ -200,9 +214,31 @@ export default function RankingPage() {
             </p>
           </div>
         ) : (
-          <div className="space-y-5">
-            {/* Podium */}
-            {orderedPodium.length > 0 && (
+          <div className="space-y-4">
+            {/* Podium + promotion label */}
+            {activeTab === 'weekly' && orderedPodium.length > 0 && (
+              <div className="pt-2">
+                {renderZoneLabel('promotion')}
+                <div className="flex items-end justify-center gap-3">
+                  {orderedPodium.map((user, index) =>
+                    user ? (
+                      <PodiumCard
+                        key={user.id}
+                        user={user}
+                        position={
+                          (orderedPodium.length === 3
+                            ? [2, 1, 3]
+                            : [1, 2, 3])[index] as 1 | 2 | 3
+                        }
+                        delay={index * 0.1}
+                      />
+                    ) : null
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab !== 'weekly' && orderedPodium.length > 0 && (
               <div className="flex items-end justify-center gap-3 pt-2">
                 {orderedPodium.map((user, index) =>
                   user ? (
@@ -221,11 +257,35 @@ export default function RankingPage() {
               </div>
             )}
 
-            {/* List */}
+            {/* List with zone labels */}
             <div className="space-y-2.5">
-              {rest.map((user, index) => (
-                <RankRow key={user.id} user={user} index={index} />
-              ))}
+              {(() => {
+                let lastZone: Zone | null = null;
+                return rest.map((user, index) => {
+                  const zone =
+                    activeTab === 'weekly'
+                      ? getZone(user.rank, totalInLeague)
+                      : 'safe';
+                  const showLabel = zone !== lastZone;
+                  lastZone = zone;
+
+                  return (
+                    <React.Fragment key={user.id}>
+                      {showLabel && renderZoneLabel(zone)}
+                      <RankRow user={user} index={index} />
+                    </React.Fragment>
+                  );
+                });
+              })()}
+
+              {showMeOutside && me && (
+                <>
+                  <div className="flex items-center justify-center py-1">
+                    <span className="text-slate-300 font-black text-[14px]">•••</span>
+                  </div>
+                  <RankRow user={me} index={rest.length} />
+                </>
+              )}
             </div>
           </div>
         )}
