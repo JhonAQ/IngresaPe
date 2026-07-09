@@ -52,7 +52,7 @@ export function DashboardHeader({
         </div>
 
         {/* Stats Panel */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-4 shrink-0">
           <StatBadge value={stats.racha} type="streak" />
           <StatBadge value={stats.gemas} type="gem" />
           <StatBadge value={stats.vidas} type="energy" />

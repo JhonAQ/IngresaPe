@@ -19,7 +19,7 @@ const typeColorClasses: Record<StatBadgeType, string> = {
   gem: 'text-[#1CB0F6]', // Cyan gema
   heart: 'text-[#ff4b4b]', // Vidas rojas
   xp: 'text-[#FFC800]', // Amarillo XP
-  energy: 'text-[#FFC800]', // Amarillo/rayo para energía
+  energy: 'text-[#FF86CD]', // Rosa energía
 };
 
 export const StatBadge = forwardRef<HTMLDivElement, StatBadgeProps>(
