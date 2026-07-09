@@ -7,7 +7,6 @@ import { StatsRow } from '../../../components/perfil/StatsRow';
 import { AcademicDNA } from '../../../components/perfil/AcademicDNA';
 import { AcademicDnaOverlay } from '../../../components/perfil/AcademicDnaOverlay';
 import { TrophyRoom } from '../../../components/perfil/TrophyRoom';
-import { CourseProgressList } from '../../../components/perfil/CourseProgressList';
 import { useProfileData } from '../../../hooks/useProfileData';
 import { useAuth } from '../../../hooks/useAuth';
 import { ChunkyButton } from '../../../components/ui/ChunkyButton';
@@ -15,7 +14,7 @@ import { ProgressBar } from '@ingresa-pe/ui';
 
 export default function PerfilPage() {
   const { logout } = useAuth();
-  const { user, rank, level, xpProgress, courses, isLoading } = useProfileData();
+  const { user, rank, level, xpProgress, isLoading } = useProfileData();
 
   if (isLoading) {
     return (
@@ -66,10 +65,6 @@ export default function PerfilPage() {
           </div>
           <ProgressBar progress={xpProgress.percent} size="md" indicatorColor="success" />
         </div>
-      </div>
-
-      <div className="px-5 mt-6">
-        <CourseProgressList courses={courses} />
       </div>
 
       <div className="px-5 mt-6">
