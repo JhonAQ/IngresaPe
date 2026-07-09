@@ -47,7 +47,7 @@ export const StatBadge = forwardRef<HTMLDivElement, StatBadgeProps>(
     return (
       <div
         ref={ref}
-        className={`flex items-center gap-1 cursor-pointer select-none hover:opacity-80 transition-opacity ${className}`}
+        className={`flex items-center gap-1.5 cursor-pointer select-none hover:opacity-80 transition-opacity ${className}`}
         {...props}
       >
         <div className="flex items-center justify-center shrink-0 w-5 h-5">
