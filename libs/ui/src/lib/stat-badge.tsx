@@ -1,7 +1,7 @@
 import { HTMLAttributes, forwardRef, ReactNode } from 'react';
-import { Zap } from 'lucide-react';
 import { FlameIcon } from './icons/FlameIcon';
 import { GemIcon } from './icons/GemIcon';
+import { EnergyIcon } from './icons/EnergyIcon';
 
 export type StatBadgeType = 'streak' | 'gem' | 'heart' | 'xp' | 'energy';
 
@@ -38,7 +38,7 @@ export const StatBadge = forwardRef<HTMLDivElement, StatBadgeProps>(
         case 'gem':
           return <GemIcon />;
         case 'energy':
-          return <Zap size={20} className="fill-current" strokeWidth={2.5} />;
+          return <EnergyIcon className="w-5 h-5" />;
         default:
           return null;
       }
