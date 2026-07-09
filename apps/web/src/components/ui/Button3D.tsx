@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, HTMLMotionProps } from 'framer-motion';
 
-type ButtonVariant = 'primary' | 'gold' | 'secondary' | 'locked' | 'neon';
+type ButtonVariant = 'primary' | 'gold' | 'secondary' | 'locked' | 'neon' | 'brand';
 
 interface Button3DProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
   children: React.ReactNode;
@@ -19,6 +19,8 @@ export const Button3D: React.FC<Button3DProps> = ({
   const variants: Record<ButtonVariant, string> = {
     primary:
       'bg-blue-600 text-white shadow-[0_5px_0_0_#1d4ed8] hover:bg-blue-500',
+    brand:
+      'bg-primary-500 text-white shadow-[0_5px_0_0_#911019] hover:bg-primary-400',
     gold: 'bg-yellow-400 text-yellow-950 shadow-[0_5px_0_0_#ca8a04] hover:bg-yellow-300',
     secondary:
       'bg-slate-100 text-slate-600 shadow-[0_5px_0_0_#cbd5e1] hover:bg-slate-200 border-2 border-slate-200',
