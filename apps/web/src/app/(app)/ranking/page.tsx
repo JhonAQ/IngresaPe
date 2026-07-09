@@ -63,7 +63,6 @@ export default function RankingPage() {
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
   const scrollRef = useRef<HTMLDivElement>(null);
   const userGroupRef = useRef<HTMLDivElement>(null);
-  const lastScrolledKeyRef = useRef<string | null>(null);
 
   const { data: careersData, isLoading: isCareersLoading } =
     trpc.ranking.getAllCareersLeaderboard.useQuery(undefined, {
@@ -117,12 +116,6 @@ export default function RankingPage() {
     return [];
   }, [activeTab, careersData, areasData, leagueData]);
 
-  // Todas las listas desplegadas desde el inicio.
-  useEffect(() => {
-    if (!groups.length) return;
-    setOpenGroups(new Set(groups.map((g) => g.key)));
-  }, [groups]);
-
   const userGroup = useMemo(() => {
     if (!groups.length) return null;
     return groups.find((g) => isUserInGroup(g)) ?? groups[0];
@@ -140,17 +133,21 @@ export default function RankingPage() {
     container.scrollTo({ top: targetTop, behavior: 'smooth' });
   }, []);
 
-  // Al cambiar de tab o llegar datos, scrollear a la lista del usuario.
+  // Todas las listas desplegadas; el grupo del usuario se reabre siempre.
+  useEffect(() => {
+    if (!groups.length) return;
+    setOpenGroups(new Set(groups.map((g) => g.key)));
+  }, [groups]);
+
+  // Cada vez que se cambia de tab (o llegan datos), scrollear a la lista del usuario.
   useEffect(() => {
     if (!groups.length || !userGroup) return;
 
-    const scrollKey = `${activeTab}-${userGroup.key}`;
-    if (lastScrolledKeyRef.current === scrollKey) return;
+    setOpenGroups((prev) => new Set([...prev, userGroup.key]));
 
     const raf = requestAnimationFrame(() => {
       scrollToUserGroup();
     });
-    lastScrolledKeyRef.current = scrollKey;
 
     return () => cancelAnimationFrame(raf);
   }, [activeTab, groups, userGroup, scrollToUserGroup]);
