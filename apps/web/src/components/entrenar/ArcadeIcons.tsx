@@ -166,3 +166,48 @@ export const ChunkyTimer = () => (
     />
   </svg>
 );
+
+export const ChunkyPotion = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-sm">
+    {/* Cauldron shadow */}
+    <ellipse cx="50" cy="82" rx="28" ry="7" fill="#3a6e01" />
+    {/* Cauldron body bottom */}
+    <path
+      d="M 22 50 Q 22 82 50 82 Q 78 82 78 50 L 78 45 L 22 45 Z"
+      fill="#458a02"
+    />
+    {/* Cauldron body top */}
+    <path
+      d="M 22 45 Q 22 78 50 78 Q 78 78 78 45 L 78 40 L 22 40 Z"
+      fill="#58cc02"
+    />
+    {/* Rim shadow */}
+    <rect x="17" y="37" width="66" height="7" rx="3.5" fill="#458a02" />
+    {/* Rim */}
+    <rect x="17" y="34" width="66" height="7" rx="3.5" fill="#6be612" />
+    {/* Liquid */}
+    <ellipse cx="50" cy="45" rx="22" ry="5" fill="#a7f06a" opacity="0.7" />
+    {/* Bubble 1 */}
+    <circle cx="40" cy="50" r="3.5" fill="#a7f06a" opacity="0.8">
+      <animate attributeName="cy" values="55;42;55" dur="2s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite" />
+    </circle>
+    {/* Bubble 2 */}
+    <circle cx="55" cy="48" r="2.5" fill="#d4ff9e" opacity="0.6">
+      <animate attributeName="cy" values="52;38;52" dur="1.5s" repeatCount="indefinite" />
+    </circle>
+    {/* Sparkle */}
+    <polygon
+      points="50,18 52,24 58,24 53,28 55,34 50,30 45,34 47,28 42,24 48,24"
+      fill="#ffc800"
+    >
+      <animate attributeName="opacity" values="1;0.3;1" dur="1.2s" repeatCount="indefinite" />
+    </polygon>
+    {/* Handle left */}
+    <path d="M 22 42 Q 12 42 12 52 Q 12 60 22 58" stroke="#458a02" strokeWidth="4.5" fill="none" strokeLinecap="round" />
+    {/* Handle right */}
+    <path d="M 78 42 Q 88 42 88 52 Q 88 60 78 58" stroke="#458a02" strokeWidth="4.5" fill="none" strokeLinecap="round" />
+    {/* Shine */}
+    <path d="M 30 48 Q 32 55 34 62" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.4" />
+  </svg>
+);

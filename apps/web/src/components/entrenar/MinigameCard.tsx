@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { MinigameData } from '../../data/entrenar';
-import { DuoTicket, ChunkyHeart, ChunkyTimer } from './ArcadeIcons';
+import type { MinigameData } from '@ingresa-pe/domain';
+import { DuoTicket, ChunkyHeart, ChunkyTimer, ChunkyPotion } from './ArcadeIcons';
 
 interface MinigameCardProps {
   game: MinigameData;
@@ -12,7 +12,11 @@ interface MinigameCardProps {
 
 export function MinigameCard({ game, tickets, onPlay }: MinigameCardProps) {
   const hasTickets = tickets >= game.cost;
-  const Icon = game.id === 'speed' ? ChunkyTimer : ChunkyHeart;
+  const iconMap: Record<string, React.ComponentType> = {
+    speed: ChunkyTimer,
+    alchemy: ChunkyPotion,
+  };
+  const Icon = iconMap[game.id] || ChunkyHeart;
 
   return (
     <div className="relative w-full rounded-[1.5rem] border-2 border-[#e5e5e5] border-b-[6px] bg-white p-5 pt-8 flex flex-col mt-2">

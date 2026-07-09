@@ -28,4 +28,13 @@ export const MINIGAMES: MinigameData[] = [
     shadow: '#cc7800',
     cost: 2,
   },
+  {
+    id: 'alchemy',
+    title: 'El Alquimista',
+    subtitle: 'FÓRMULAS',
+    description: 'Mezcla ingredientes en tu caldero para descubrir fórmulas.',
+    color: '#58cc02',
+    shadow: '#458a02',
+    cost: 1,
+  },
 ];

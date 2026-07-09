@@ -1,16 +1,23 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { MINIGAMES } from '@ingresa-pe/domain';
 import { HeroDailyChallenge } from '../../../components/entrenar/HeroDailyChallenge';
 import { MinigameCard } from '../../../components/entrenar/MinigameCard';
 
 export function EntrenarClient() {
+  const router = useRouter();
   const [tickets, setTickets] = useState(5);
 
-  const handlePlay = (cost = 1) => {
+  const handlePlay = (gameId: string, cost = 1) => {
     if (tickets >= cost) {
       setTickets((prev) => prev - cost);
+
+      // Navigate to the alchemy minigame
+      if (gameId === 'alchemy') {
+        router.push('/entrenar/alquimista');
+      }
     }
   };
 
@@ -24,7 +31,7 @@ export function EntrenarClient() {
         </h2>
       </div>
 
-      <HeroDailyChallenge tickets={tickets} onPlay={() => handlePlay(1)} />
+      <HeroDailyChallenge tickets={tickets} onPlay={() => handlePlay('daily', 1)} />
 
       <div className="flex flex-col gap-10 mt-2">
         {MINIGAMES.map((game) => (
@@ -32,7 +39,7 @@ export function EntrenarClient() {
             key={game.id}
             game={game}
             tickets={tickets}
-            onPlay={() => handlePlay(game.cost)}
+            onPlay={() => handlePlay(game.id, game.cost)}
           />
         ))}
       </div>
