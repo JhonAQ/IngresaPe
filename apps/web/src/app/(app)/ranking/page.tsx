@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TrendingUp } from 'lucide-react';
 import { trpc } from '../../../utils/trpc';
 import {
@@ -9,7 +9,7 @@ import {
   RankingTableHeader,
   RankingTableRow,
   RankingZoneHeader,
-  ScrollToTopFab,
+  ReturnToUserFab,
 } from '../../../components/ranking';
 import type { RankingUserDto } from '@ingresa-pe/domain';
 import { areaLabels } from '@ingresa-pe/domain';
@@ -42,10 +42,23 @@ function groupByZone(students: RankingUserDto[], total: number) {
   ].filter((g) => g.students.length > 0);
 }
 
+type RankingGroup = {
+  key: string;
+  title: string;
+  students: RankingUserDto[];
+  me: RankingUserDto | null;
+};
+
+function findUserInGroup(group: RankingGroup): RankingUserDto | null {
+  return group.students.find((s) => s.isMe) ?? group.me;
+}
+
 export default function RankingPage() {
   const [activeTab, setActiveTab] = useState<Tab>('career');
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  const [activeGroupKey, setActiveGroupKey] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const userRowRef = useRef<HTMLDivElement>(null);
+  const lastScrolledKeyRef = useRef<string | null>(null);
 
   const { data: careersData, isLoading: isCareersLoading } =
     trpc.ranking.getAllCareersLeaderboard.useQuery(undefined, {
@@ -65,11 +78,90 @@ export default function RankingPage() {
     (activeTab === 'area' && isAreasLoading) ||
     (activeTab === 'league' && isLeagueLoading);
 
-  const toggleSection = (key: string) => {
-    setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  const groups: RankingGroup[] = useMemo(() => {
+    if (activeTab === 'career' && careersData) {
+      return careersData.groups.map((g) => ({
+        key: g.careerId,
+        title: `CARRERA >> ${g.careerName}`,
+        students: g.top,
+        me: g.me,
+      }));
+    }
+    if (activeTab === 'area' && areasData) {
+      return areasData.groups.map((g) => ({
+        key: g.area,
+        title: `ÁREA >> ${areaLabels[g.area].toUpperCase()}`,
+        students: g.top,
+        me: g.me,
+      }));
+    }
+    if (activeTab === 'league' && leagueData) {
+      return [
+        {
+          key: 'league',
+          title: 'LIGA SEMANAL',
+          students: leagueData.top,
+          me: leagueData.me,
+        },
+      ];
+    }
+    return [];
+  }, [activeTab, careersData, areasData, leagueData]);
+
+  const activeGroup = useMemo(() => {
+    if (!groups.length) return null;
+    if (activeGroupKey) {
+      return groups.find((g) => g.key === activeGroupKey) ?? groups[0];
+    }
+    const withUser = groups.find((g) => findUserInGroup(g));
+    return withUser ?? groups[0];
+  }, [groups, activeGroupKey]);
+
+  const userStudent = activeGroup ? findUserInGroup(activeGroup) : null;
+
+  const scrollToUser = useCallback(() => {
+    const container = scrollRef.current;
+    const target = userRowRef.current;
+    if (!container || !target) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    const targetTop = targetRect.top - containerRect.top + container.scrollTop;
+    const visibleCenter = container.clientHeight / 2;
+
+    let scrollTop = targetTop - visibleCenter + targetRect.height / 2;
+    const maxScroll = container.scrollHeight - container.clientHeight;
+    if (scrollTop < 0) scrollTop = 0;
+    if (maxScroll > 0 && scrollTop > maxScroll) scrollTop = maxScroll;
+
+    container.scrollTo({ top: scrollTop, behavior: 'smooth' });
+  }, []);
+
+  // Al cambiar de tab o llegar datos, abrir grupo del usuario y scrollear a su fila.
+  useEffect(() => {
+    if (!groups.length) return;
+
+    const withUser = groups.find((g) => findUserInGroup(g));
+    const nextKey = withUser?.key ?? groups[0].key;
+    const scrollKey = `${activeTab}-${nextKey}`;
+
+    setActiveGroupKey(nextKey);
+
+    if (lastScrolledKeyRef.current === scrollKey) return;
+
+    const raf = requestAnimationFrame(() => {
+      scrollToUser();
+    });
+    lastScrolledKeyRef.current = scrollKey;
+
+    return () => cancelAnimationFrame(raf);
+  }, [activeTab, groups, scrollToUser]);
+
+  const toggleGroup = (key: string) => {
+    setActiveGroupKey((current) => (current === key ? null : key));
   };
 
-  const renderStudents = (students: RankingUserDto[]) => {
+  const renderStudents = (students: RankingUserDto[], groupKey: string) => {
     if (students.length === 0) {
       return (
         <div className="py-4 text-center text-slate-400 font-bold text-[12px]">
@@ -77,9 +169,18 @@ export default function RankingPage() {
         </div>
       );
     }
-    return students.map((student, idx) => (
-      <RankingTableRow key={student.id} user={student} index={idx} />
-    ));
+    return students.map((student, idx) => {
+      const isTarget =
+        activeGroup?.key === groupKey && userStudent?.id === student.id;
+      return (
+        <RankingTableRow
+          key={student.id}
+          user={student}
+          index={idx}
+          targetRef={isTarget ? userRowRef : undefined}
+        />
+      );
+    });
   };
 
   const renderEmpty = () => (
@@ -107,77 +208,66 @@ export default function RankingPage() {
         {isLoading ? (
           <div className="space-y-3 pt-4">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-10 bg-slate-100 rounded animate-pulse"
-              />
+              <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />
             ))}
           </div>
-        ) : activeTab === 'career' ? (
-          careersData?.groups.length ? (
-            careersData.groups.map((group) => (
+        ) : activeTab === 'league' ? (
+          groups.length ? (
+            groups.map((group) => (
               <RankingAccordion
-                key={group.careerId}
-                title={`CARRERA >> ${group.careerName}`}
-                isOpen={expandedSections[group.careerName] ?? true}
-                onToggle={() => toggleSection(group.careerName)}
+                key={group.key}
+                title={group.title}
+                isOpen={activeGroup?.key === group.key}
+                onToggle={() => toggleGroup(group.key)}
               >
-                {renderStudents(group.top)}
-                {group.me && !group.top.some((s) => s.isMe) && (
-                  <RankingTableRow user={group.me} index={group.top.length} />
+                {groupByZone(group.students, group.students.length).map(
+                  ({ zone, students }) => (
+                    <div key={zone} className="mb-2">
+                      <RankingZoneHeader zone={zone} />
+                      {renderStudents(students, group.key)}
+                    </div>
+                  )
+                )}
+                {group.me && !group.students.some((s) => s.isMe) && (
+                  <RankingTableRow
+                    user={group.me}
+                    index={group.students.length}
+                    targetRef={
+                      userStudent?.id === group.me.id ? userRowRef : undefined
+                    }
+                  />
                 )}
               </RankingAccordion>
             ))
           ) : (
             renderEmpty()
           )
-        ) : activeTab === 'area' ? (
-          areasData?.groups.length ? (
-            areasData.groups.map((group) => {
-              const title = areaLabels[group.area];
-              return (
-                <RankingAccordion
-                  key={group.area}
-                  title={`ÁREA >> ${title.toUpperCase()}`}
-                  isOpen={expandedSections[title] ?? true}
-                  onToggle={() => toggleSection(title)}
-                >
-                  {renderStudents(group.top)}
-                  {group.me && !group.top.some((s) => s.isMe) && (
-                    <RankingTableRow user={group.me} index={group.top.length} />
-                  )}
-                </RankingAccordion>
-              );
-            })
-          ) : (
-            renderEmpty()
-          )
-        ) : activeTab === 'league' ? (
-          leagueData?.top.length ? (
+        ) : groups.length ? (
+          groups.map((group) => (
             <RankingAccordion
-              title="LIGA SEMANAL"
-              isOpen={expandedSections['Liga semanal'] ?? true}
-              onToggle={() => toggleSection('Liga semanal')}
+              key={group.key}
+              title={group.title}
+              isOpen={activeGroup?.key === group.key}
+              onToggle={() => toggleGroup(group.key)}
             >
-              {groupByZone(leagueData.top, leagueData.totalInLeague).map(
-                ({ zone, students }) => (
-                  <div key={zone} className="mb-3">
-                    <RankingZoneHeader zone={zone} />
-                    {renderStudents(students)}
-                  </div>
-                )
-              )}
-              {leagueData.me && !leagueData.top.some((s) => s.isMe) && (
-                <RankingTableRow user={leagueData.me} index={leagueData.top.length} />
+              {renderStudents(group.students, group.key)}
+              {group.me && !group.students.some((s) => s.isMe) && (
+                <RankingTableRow
+                  user={group.me}
+                  index={group.students.length}
+                  targetRef={
+                    userStudent?.id === group.me.id ? userRowRef : undefined
+                  }
+                />
               )}
             </RankingAccordion>
-          ) : (
-            renderEmpty()
-          )
-        ) : null}
+          ))
+        ) : (
+          renderEmpty()
+        )}
       </div>
 
-      <ScrollToTopFab scrollContainerRef={scrollRef} />
+      <ReturnToUserFab scrollContainerRef={scrollRef} targetRef={userRowRef} />
     </main>
   );
 }

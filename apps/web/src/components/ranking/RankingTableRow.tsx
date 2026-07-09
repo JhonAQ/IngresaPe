@@ -7,15 +7,17 @@ import type { RankingUserDto } from '@ingresa-pe/domain';
 interface RankingTableRowProps {
   user: RankingUserDto;
   index: number;
+  targetRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 function formatScore(score: number): string {
   return score.toFixed(4);
 }
 
-export const RankingTableRow: React.FC<RankingTableRowProps> = ({ user, index }) => {
+export const RankingTableRow: React.FC<RankingTableRowProps> = ({ user, index, targetRef }) => {
   return (
     <motion.div
+      ref={targetRef}
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.2, delay: index * 0.03 }}

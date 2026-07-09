@@ -9,4 +9,4 @@ export * from './RankingTabs';
 export * from './RankingTableHeader';
 export * from './RankingTableRow';
 export * from './RankingZoneHeader';
-export * from './ScrollToTopFab';
+export * from './ReturnToUserFab';

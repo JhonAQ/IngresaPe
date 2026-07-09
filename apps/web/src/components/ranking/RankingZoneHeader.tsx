@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 type Zone = 'promotion' | 'neutral' | 'relegation';
 
@@ -13,35 +12,37 @@ const zoneConfig: Record<
   Zone,
   {
     label: string;
-    wrapperClass: string;
-    icon: React.ReactNode;
+    className: string;
+    dotClass: string;
   }
 > = {
   promotion: {
     label: 'Zona de ascenso',
-    wrapperClass: 'bg-green-200 border-green-400 text-green-900',
-    icon: <TrendingUp size={15} className="text-green-700" />,
+    className: 'text-emerald-600 bg-emerald-50',
+    dotClass: 'bg-emerald-500',
   },
   neutral: {
     label: 'Zona neutral',
-    wrapperClass: 'bg-[#e5e5e5] border-black text-black',
-    icon: <Minus size={15} className="text-slate-600" />,
+    className: 'text-slate-600 bg-slate-100',
+    dotClass: 'bg-slate-400',
   },
   relegation: {
     label: 'Zona de descenso',
-    wrapperClass: 'bg-rose-200 border-rose-400 text-rose-900',
-    icon: <TrendingDown size={15} className="text-rose-700" />,
+    className: 'text-rose-600 bg-rose-50',
+    dotClass: 'bg-rose-500',
   },
 };
 
 export const RankingZoneHeader: React.FC<RankingZoneHeaderProps> = ({ zone }) => {
   const config = zoneConfig[zone];
   return (
-    <div
-      className={`py-1.5 px-3 flex items-center justify-between text-[11px] sm:text-[12px] font-bold tracking-wider uppercase border-y-[1.5px] ${config.wrapperClass}`}
-    >
-      <span>{config.label}</span>
-      <span className="flex items-center gap-1">{config.icon}</span>
+    <div className="flex justify-center py-3">
+      <span
+        className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-wider ${config.className}`}
+      >
+        <span className={`w-1.5 h-1.5 rounded-full ${config.dotClass}`} />
+        {config.label}
+      </span>
     </div>
   );
 };
