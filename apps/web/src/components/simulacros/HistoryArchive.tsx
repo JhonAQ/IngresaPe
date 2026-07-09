@@ -1,8 +1,8 @@
 'use client';
 import React from 'react';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { History, ChevronRight, FileText, LayoutGrid, Lock } from 'lucide-react';
+import { History, ChevronRight } from 'lucide-react';
+import { ArchiveExamCard } from './ArchiveExamCard';
+import { useImmersiveOverlay } from '../dashboard/ImmersiveOverlayContext';
 import type { ExamSummaryDto } from '@ingresa-pe/domain';
 
 interface HistoryArchiveProps {
@@ -18,6 +18,8 @@ export const HistoryArchive: React.FC<HistoryArchiveProps> = ({
   onStartExam,
   startingExamId,
 }) => {
+  const { open } = useImmersiveOverlay();
+
   const handleStart = (examId: string, locked: boolean) => {
     if (locked || !onStartExam || startingExamId === examId) return;
     onStartExam(examId);
@@ -29,12 +31,12 @@ export const HistoryArchive: React.FC<HistoryArchiveProps> = ({
         <h3 className="font-black text-slate-400 text-[11px] uppercase tracking-[0.25em] flex items-center gap-2">
           <History size={14} /> Archivo Histórico
         </h3>
-        <Link
-          href="/simulacros/archivo"
+        <button
+          onClick={() => open('archive')}
           className="text-blue-500 font-black text-[11px] uppercase flex items-center gap-0.5"
         >
           Ver todo <ChevronRight size={14} />
-        </Link>
+        </button>
       </div>
       <div className="mx-5 overflow-hidden">
         <div className="flex overflow-x-auto hide-scrollbar gap-4 px-1 pb-4 snap-x">
@@ -42,40 +44,13 @@ export const HistoryArchive: React.FC<HistoryArchiveProps> = ({
             const isLocked = !isPremium;
             const isStarting = startingExamId === exam.id;
             return (
-              <motion.div
+              <ArchiveExamCard
                 key={exam.id}
-                whileTap={!isLocked && !isStarting ? { scale: 0.95 } : {}}
+                exam={exam}
+                isLocked={isLocked}
+                isStarting={isStarting}
                 onClick={() => handleStart(exam.id, isLocked)}
-                className={`snap-start shrink-0 w-[135px] h-[180px] bg-white rounded-[1.5rem] border-2 border-slate-200 border-b-[6px] border-b-slate-300 p-3.5 flex flex-col shadow-sm group relative
-                  ${isLocked || isStarting ? 'opacity-70 cursor-default' : 'cursor-pointer'}`}
-              >
-                {isLocked && (
-                  <div className="absolute top-3 right-3 w-7 h-7 bg-slate-200 text-slate-500 rounded-full flex items-center justify-center z-10">
-                    <Lock size={14} strokeWidth={3} />
-                  </div>
-                )}
-                <div className="w-8 h-8 bg-rose-50 text-rose-500 rounded-xl flex items-center justify-center mb-2 border border-rose-100">
-                  <FileText size={16} strokeWidth={2.5} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <span className="text-[8px] font-black text-rose-500 uppercase tracking-widest">
-                    {exam.type ?? 'EXAMEN'} {exam.phase ? `- FASE ${exam.phase}` : ''}
-                  </span>
-                  <h4 className="font-black text-slate-800 text-[12.5px] leading-tight mt-0.5 line-clamp-3">
-                    {exam.year}
-                  </h4>
-                </div>
-                <div className="mt-auto pt-2 border-t border-slate-100">
-                  <div className="flex items-center gap-1 text-slate-400 font-bold text-[9px] mb-2">
-                    <LayoutGrid size={10} strokeWidth={3} /> {exam.questionCount}{' '}
-                    Pregs
-                  </div>
-                  <div className="w-full py-1.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center text-[9px] font-black text-slate-500 uppercase tracking-widest group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors"
-                  >
-                    {isStarting ? '...' : isLocked ? 'Premium' : 'Iniciar'}
-                  </div>
-                </div>
-              </motion.div>
+              />
             );
           })}
         </div>

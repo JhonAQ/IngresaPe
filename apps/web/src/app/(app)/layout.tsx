@@ -9,6 +9,7 @@ import { DashboardSkeleton } from '../../components/ui/skeleton';
 import { ImmersiveOverlayProvider, useImmersiveOverlay } from '../../components/dashboard/ImmersiveOverlayContext';
 import { DashboardCourseProvider, useDashboardCourse } from '../../components/dashboard/DashboardCourseContext';
 import { AttemptsHistoryOverlay } from '../../components/simulacros/AttemptsHistoryOverlay';
+import { ArchiveOverlay } from '../../components/simulacros';
 
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const { data, isLoading } = useDashboardData();
@@ -39,6 +40,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
           </div>
 
           <AttemptsHistoryOverlay />
+          <ArchiveOverlay />
 
           {!isOpen && <BottomNav />}
         </div>
