@@ -74,6 +74,14 @@ function comparePlayers(a: Player, b: Player): number {
   return bDate - aDate;
 }
 
+function chunkArray<T>(arr: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) {
+    chunks.push(arr.slice(i, i + size));
+  }
+  return chunks;
+}
+
 @Injectable()
 export class RankingRouter {
   constructor(
@@ -155,16 +163,42 @@ export class RankingRouter {
     };
   }
 
+  private getUserLeagueGroup(
+    allPlayers: Player[],
+    currentUserId: string
+  ): { group: Player[]; currentLeague: League } {
+    const currentPlayer = allPlayers.find((p) => p.id === currentUserId);
+    const currentLeague = currentPlayer?.league ?? 'HUEVITO';
+
+    const leaguePlayers = allPlayers
+      .filter((p) => p.league === currentLeague)
+      .sort(comparePlayers);
+
+    const chunks = chunkArray(leaguePlayers, 10);
+    const userChunk =
+      chunks.find((chunk) => chunk.some((p) => p.id === currentUserId)) ??
+      chunks[chunks.length - 1] ??
+      [];
+
+    return { group: userChunk, currentLeague };
+  }
+
   public router = this.trpc.router({
-    // Liga semanal: compites contra los usuarios de tu misma liga
+    // Liga semanal: grupo de hasta 10 usuarios de la misma liga
     getWeeklyLeague: this.trpc.protectedProcedure.query(async ({ ctx }) => {
       const currentUserId = ctx.user.userId;
       const allPlayers = await this.loadPlayers();
-      const currentPlayer = allPlayers.find((p) => p.id === currentUserId);
-      const currentLeague = currentPlayer?.league ?? 'HUEVITO';
+      const { group } = this.getUserLeagueGroup(allPlayers, currentUserId);
 
-      const leaguePlayers = allPlayers.filter((p) => p.league === currentLeague);
-      return this.buildLeaderboardResult(leaguePlayers, currentUserId);
+      const ranked = group
+        .sort(comparePlayers)
+        .map((p, index) => this.toRankingUserDto(p, index + 1, currentUserId));
+
+      return {
+        top: ranked,
+        me: ranked.find((p) => p.isMe) ?? null,
+        totalInLeague: ranked.length,
+      };
     }),
 
     // Estado del usuario en su liga semanal
@@ -188,13 +222,10 @@ export class RankingRouter {
         };
       }
 
-      const leaguePlayers = allPlayers
-        .filter((p) => p.league === currentPlayer.league)
-        .sort(comparePlayers);
-
-      const rank =
-        leaguePlayers.findIndex((p) => p.id === currentUserId) + 1;
-      const total = leaguePlayers.length;
+      const { group } = this.getUserLeagueGroup(allPlayers, currentUserId);
+      const ranked = group.sort(comparePlayers);
+      const rank = ranked.findIndex((p) => p.id === currentUserId) + 1;
+      const total = ranked.length;
 
       return {
         rank,

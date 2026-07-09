@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { Trophy, TrendingUp, Clock } from 'lucide-react';
+import { Trophy, TrendingUp, Clock, ChevronUp, ChevronDown } from 'lucide-react';
 import { trpc } from '../../../utils/trpc';
 import {
   RankingTabs,
@@ -97,31 +97,33 @@ export default function RankingPage() {
     podium.length >= 3 ? [podium[1], podium[0], podium[2]] : podium;
   const rest = topPlayers.slice(3);
 
-  const myCard = (
-    <div className="bg-slate-900 text-white rounded-[1.2rem] p-3 shadow-2xl border-b-[4px] border-b-slate-950 flex items-center gap-3">
-      <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center font-black text-[16px]">
-        #{myStatus?.rank ?? '-'}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="font-black text-[14px] truncate">{profile?.name ?? 'Tú'}</p>
-        <p className="text-[10px] font-bold text-white/60 truncate">
-          Liga {leagueInfo.label} · Cierra en {daysLeft} {daysLeft === 1 ? 'día' : 'días'}
-        </p>
-      </div>
-      <div className="text-right shrink-0">
-        <p className="font-black text-[16px]">{userPtje.toFixed(1)}</p>
-        <p className="text-[9px] font-bold text-white/50 uppercase">Ptje</p>
-      </div>
-    </div>
-  );
+  const renderZoneLabel = (zone: Zone) => {
+    if (zone === 'promotion') {
+      return (
+        <div className="flex items-center gap-1.5 text-success-600 font-black text-[10px] uppercase tracking-wider mb-2">
+          <ChevronUp size={14} />
+          <span>Zona de ascenso</span>
+        </div>
+      );
+    }
+    if (zone === 'relegation') {
+      return (
+        <div className="flex items-center gap-1.5 text-error-500 font-black text-[10px] uppercase tracking-wider mb-2">
+          <ChevronDown size={14} />
+          <span>Zona de descenso</span>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <main className="flex-1 overflow-y-auto hide-scrollbar bg-slate-50">
       {/* Compact hero */}
-      <div className="relative bg-gradient-to-br from-primary-500 to-primary-700 px-5 pt-6 pb-6 rounded-b-[2rem] overflow-hidden">
+      <div className="relative bg-gradient-to-br from-primary-500 to-primary-700 px-5 pt-6 pb-5 rounded-b-[2rem] overflow-hidden">
         <div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none" />
         <div className="relative z-10">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white shadow-lg">
                 <Trophy size={22} strokeWidth={2.5} />
@@ -195,7 +197,7 @@ export default function RankingPage() {
       </div>
 
       {/* Content */}
-      <div className="px-5 mt-3 pb-28">
+      <div className="px-5 mt-3 pb-24">
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -213,9 +215,31 @@ export default function RankingPage() {
             </p>
           </div>
         ) : (
-          <div className="space-y-5">
-            {/* Podium */}
-            {orderedPodium.length > 0 && (
+          <div className="space-y-4">
+            {/* Podium + promotion label */}
+            {activeTab === 'weekly' && orderedPodium.length > 0 && (
+              <div className="pt-2">
+                {renderZoneLabel('promotion')}
+                <div className="flex items-end justify-center gap-3">
+                  {orderedPodium.map((user, index) =>
+                    user ? (
+                      <PodiumCard
+                        key={user.id}
+                        user={user}
+                        position={
+                          (orderedPodium.length === 3
+                            ? [2, 1, 3]
+                            : [1, 2, 3])[index] as 1 | 2 | 3
+                        }
+                        delay={index * 0.1}
+                      />
+                    ) : null
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab !== 'weekly' && orderedPodium.length > 0 && (
               <div className="flex items-end justify-center gap-3 pt-2">
                 {orderedPodium.map((user, index) =>
                   user ? (
@@ -234,41 +258,44 @@ export default function RankingPage() {
               </div>
             )}
 
-            {/* List */}
+            {/* List with zone labels */}
             <div className="space-y-2.5">
-              {rest.map((user, index) => (
-                <RankRow
-                  key={user.id}
-                  user={user}
-                  index={index}
-                  zone={
+              {(() => {
+                let lastZone: Zone | null = null;
+                return rest.map((user, index) => {
+                  const zone =
                     activeTab === 'weekly'
                       ? getZone(user.rank, totalInLeague)
-                      : 'safe'
-                  }
-                />
-              ))}
+                      : 'safe';
+                  const showLabel = zone !== lastZone;
+                  lastZone = zone;
+
+                  return (
+                    <React.Fragment key={user.id}>
+                      {showLabel && renderZoneLabel(zone)}
+                      <RankRow
+                        user={user}
+                        index={index}
+                        zone={zone}
+                      />
+                    </React.Fragment>
+                  );
+                });
+              })()}
 
               {showMeOutside && me && (
                 <>
                   <div className="flex items-center justify-center py-1">
                     <span className="text-slate-300 font-black text-[14px]">•••</span>
                   </div>
-                  <RankRow
-                    user={me}
-                    index={rest.length}
-                    zone="safe"
-                  />
+                  <div className="sticky bottom-[80px] z-10">
+                    <RankRow user={me} index={rest.length} zone="safe" />
+                  </div>
                 </>
               )}
             </div>
           </div>
         )}
-      </div>
-
-      {/* Sticky user position card */}
-      <div className="sticky bottom-0 left-0 right-0 px-5 py-3 bg-gradient-to-t from-slate-50 via-slate-50 to-transparent z-20 mt-auto">
-        {myCard}
       </div>
     </main>
   );
