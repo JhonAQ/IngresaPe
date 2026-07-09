@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
@@ -40,31 +41,35 @@ const areaConfig: Record<
     border: string;
     shadow: string;
     text: string;
+    gradient: string;
   }
 > = {
   INGENIERIAS: {
     icon: Cpu,
-    color: 'text-duo-blue',
+    color: 'text-blue-600',
     bg: 'bg-blue-50',
     border: 'border-blue-200',
     shadow: 'border-b-blue-300',
     text: 'text-blue-600',
+    gradient: 'from-blue-500 to-cyan-400',
   },
   SOCIALES: {
     icon: Users,
-    color: 'text-duo-purple',
+    color: 'text-purple-600',
     bg: 'bg-purple-50',
     border: 'border-purple-200',
     shadow: 'border-b-purple-300',
     text: 'text-purple-600',
+    gradient: 'from-purple-500 to-fuchsia-400',
   },
   BIOMEDICAS: {
     icon: HeartPulse,
-    color: 'text-duo-green',
+    color: 'text-green-600',
     bg: 'bg-green-50',
     border: 'border-green-200',
     shadow: 'border-b-green-300',
     text: 'text-green-600',
+    gradient: 'from-green-500 to-emerald-400',
   },
 };
 
@@ -73,7 +78,12 @@ export function CareerSelectorModal({ isOpen, onSelect }: CareerSelectorModalPro
   const [selectedArea, setSelectedArea] = useState<Area | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [mounted, setMounted] = useState(false);
   const utils = trpc.useUtils();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { data: careers = [], isLoading } = trpc.simulacro.getCareers.useQuery(undefined, {
     enabled: isOpen,
@@ -130,21 +140,25 @@ export function CareerSelectorModal({ isOpen, onSelect }: CareerSelectorModalPro
     selectCareer.mutate({ careerId: selectedId });
   };
 
-  return (
+  const modal = (
     <AnimatePresence>
       {isOpen && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center"
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
         >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
+
+          {/* Modal */}
           <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="w-full max-w-md bg-white rounded-t-[2rem] sm:rounded-[2rem] max-h-[90vh] flex flex-col shadow-2xl"
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+            className="relative w-full max-w-[400px] max-h-[85vh] bg-white rounded-[2rem] shadow-2xl flex flex-col overflow-hidden"
           >
             <AnimatePresence mode="wait">
               {step === 'area' ? (
@@ -174,6 +188,9 @@ export function CareerSelectorModal({ isOpen, onSelect }: CareerSelectorModalPro
       )}
     </AnimatePresence>
   );
+
+  if (!mounted) return null;
+  return createPortal(modal, document.body);
 }
 
 // =============================================================================
@@ -189,20 +206,16 @@ interface AreaStepProps {
 function AreaStep({ isLoading, counts, onSelectArea }: AreaStepProps) {
   return (
     <div className="flex flex-col h-full">
-      <div className="px-6 pt-6 pb-4">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-11 h-11 rounded-xl bg-primary-500 text-white flex items-center justify-center shadow-[0_3px_0_0_#911019]">
-            <GraduationCap size={24} strokeWidth={2.5} />
-          </div>
-          <div>
-            <h2 className="font-black text-slate-800 text-[22px] leading-tight">
-              ¿Qué área te apasiona?
-            </h2>
-            <p className="text-slate-400 font-bold text-[12px]">
-              Elige un área para ver las carreras disponibles.
-            </p>
-          </div>
+      <div className="px-6 pt-6 pb-4 text-center">
+        <div className="w-14 h-14 rounded-2xl bg-primary-500 text-white flex items-center justify-center mx-auto mb-3 shadow-[0_4px_0_0_#911019]">
+          <GraduationCap size={30} strokeWidth={2.5} />
         </div>
+        <h2 className="font-black text-slate-800 text-[22px] leading-tight">
+          ¿Qué área te apasiona?
+        </h2>
+        <p className="text-slate-400 font-bold text-[13px] mt-1">
+          Elige un área para ver sus carreras.
+        </p>
       </div>
 
       <div className="flex-1 overflow-y-auto hide-scrollbar px-6 py-2 pb-6">
@@ -211,7 +224,7 @@ function AreaStep({ isLoading, counts, onSelectArea }: AreaStepProps) {
             {Array.from({ length: 3 }).map((_, i) => (
               <div
                 key={i}
-                className="h-24 bg-slate-100 rounded-[1.5rem] animate-pulse"
+                className="h-20 bg-slate-100 rounded-[1.5rem] animate-pulse"
               />
             ))}
           </div>
@@ -224,20 +237,20 @@ function AreaStep({ isLoading, counts, onSelectArea }: AreaStepProps) {
               return (
                 <motion.button
                   key={area}
-                  whileTap={{ scale: 0.98 }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={() => onSelectArea(area)}
                   className={`w-full flex items-center gap-4 p-4 rounded-[1.5rem] border-2 ${config.border} ${config.shadow} border-b-[6px] bg-white active:border-b-2 active:translate-y-[4px] transition-all`}
                 >
                   <div
-                    className={`w-14 h-14 rounded-2xl ${config.bg} ${config.color} flex items-center justify-center shrink-0`}
+                    className={`w-13 h-13 rounded-2xl ${config.bg} ${config.color} flex items-center justify-center shrink-0`}
                   >
-                    <Icon size={28} strokeWidth={2.5} />
+                    <Icon size={26} strokeWidth={2.5} />
                   </div>
                   <div className="text-left flex-1 min-w-0">
-                    <h3 className={`font-black text-[18px] leading-tight ${config.text}`}>
+                    <h3 className={`font-black text-[17px] leading-tight ${config.text}`}>
                       {areaLabels[area]}
                     </h3>
-                    <p className="text-slate-400 font-bold text-[12px] mt-0.5">
+                    <p className="text-slate-400 font-bold text-[11px] mt-0.5">
                       {count} {count === 1 ? 'carrera' : 'carreras'}
                     </p>
                   </div>
@@ -297,7 +310,7 @@ function CareerStep({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-6 pt-6 pb-4 border-b border-slate-100">
+      <div className="px-6 pt-5 pb-4 border-b border-slate-100">
         <div className="flex items-center gap-3 mb-3">
           <button
             onClick={onBack}
@@ -306,7 +319,7 @@ function CareerStep({
           >
             <ArrowLeft size={22} strokeWidth={3} />
           </button>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 text-center">
             <h2 className={`font-black text-[20px] leading-tight truncate ${config.text}`}>
               {areaLabels[area]}
             </h2>
@@ -342,7 +355,7 @@ function CareerStep({
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {careers.map((career) => {
               const isSelected = selectedId === career.id;
               return (
@@ -350,7 +363,7 @@ function CareerStep({
                   key={career.id}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => onSelectCareer(career.id)}
-                  className={`w-full flex items-center justify-between px-4 py-3.5 rounded-[1.2rem] border-2 text-left transition-all
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-[1.2rem] border-2 text-left transition-all
                     ${
                       isSelected
                         ? 'bg-primary-50 border-primary-500'
@@ -358,15 +371,15 @@ function CareerStep({
                     }`}
                 >
                   <span
-                    className={`font-black text-[15px] truncate pr-3 ${
+                    className={`font-black text-[14px] truncate pr-3 ${
                       isSelected ? 'text-primary-700' : 'text-slate-700'
                     }`}
                   >
                     {career.name}
                   </span>
                   {isSelected && (
-                    <div className="w-7 h-7 rounded-full bg-primary-500 text-white flex items-center justify-center shrink-0">
-                      <Check size={14} strokeWidth={3} />
+                    <div className="w-6 h-6 rounded-full bg-primary-500 text-white flex items-center justify-center shrink-0">
+                      <Check size={13} strokeWidth={3} />
                     </div>
                   )}
                 </motion.button>
