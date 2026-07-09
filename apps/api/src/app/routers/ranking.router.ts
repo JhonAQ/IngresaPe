@@ -236,7 +236,7 @@ export class RankingRouter {
         career: currentPlayer.career,
         attemptsThisWeek: currentPlayer.weeklyStats.attemptsCount,
         promotionZone: rank <= 3,
-        relegationZone: rank > total - 5,
+        relegationZone: rank > total - 2,
         totalInLeague: total,
       };
     }),

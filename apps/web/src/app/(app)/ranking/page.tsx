@@ -16,13 +16,12 @@ import { type Area, type League, leagueConfig } from '@ingresa-pe/domain';
 
 type Tab = 'weekly' | 'area' | 'career';
 
-type Zone = 'promotion' | 'relegation' | 'safe';
+type Zone = 'promotion' | 'relegation' | 'neutral';
 
 function getZone(rank: number, total: number): Zone {
   if (rank <= 3) return 'promotion';
-  const relegationCount = Math.min(5, Math.max(0, total - 3));
-  if (rank > total - relegationCount) return 'relegation';
-  return 'safe';
+  if (rank > total - 2) return 'relegation';
+  return 'neutral';
 }
 
 function getDaysUntilSunday(): number {
@@ -113,7 +112,11 @@ export default function RankingPage() {
         </div>
       );
     }
-    return null;
+    return (
+      <div className="text-slate-400 font-black text-[10px] uppercase tracking-wider mb-2">
+        Zona neutral
+      </div>
+    );
   };
 
   return (
