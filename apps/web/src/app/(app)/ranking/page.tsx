@@ -66,8 +66,6 @@ export default function RankingPage() {
   const userGroupRef = useRef<HTMLDivElement>(null);
   const userRowRef = useRef<HTMLDivElement>(null);
 
-  const activeTargetRef = activeTab === 'league' ? userRowRef : userGroupRef;
-
   const { data: careersData, isLoading: isCareersLoading } =
     trpc.ranking.getAllCareersLeaderboard.useQuery(undefined, {
       enabled: activeTab === 'career',
@@ -128,7 +126,11 @@ export default function RankingPage() {
 
   const scrollToTarget = useCallback(() => {
     const container = scrollRef.current;
-    const target = activeTargetRef.current;
+    // Liga intenta scrollear a la fila del usuario; si no está disponible,
+    // fallback al grupo.
+    const target =
+      (activeTab === 'league' ? userRowRef.current : null) ??
+      userGroupRef.current;
     if (!container || !target) return;
 
     const containerRect = container.getBoundingClientRect();
@@ -136,7 +138,7 @@ export default function RankingPage() {
     const targetTop = targetRect.top - containerRect.top + container.scrollTop;
 
     container.scrollTo({ top: targetTop, behavior: 'smooth' });
-  }, [activeTargetRef]);
+  }, [activeTab]);
 
   // Todas las listas desplegadas; el grupo del usuario se reabre siempre.
   useEffect(() => {
@@ -151,11 +153,13 @@ export default function RankingPage() {
 
     setOpenGroups((prev) => new Set([...prev, userGroup.key]));
 
-    const raf = requestAnimationFrame(() => {
+    // Esperamos a que el acordeón termine de abrirse (Framer Motion ~250ms)
+    // para que las posiciones del DOM sean finales.
+    const timer = setTimeout(() => {
       scrollToTarget();
-    });
+    }, 320);
 
-    return () => cancelAnimationFrame(raf);
+    return () => clearTimeout(timer);
   }, [activeTab, groups, userGroup, scrollToTarget]);
 
   const toggleGroup = (key: string) => {
@@ -303,10 +307,7 @@ export default function RankingPage() {
         )}
       </div>
 
-      <ReturnToUserFab
-        scrollContainerRef={scrollRef}
-        targetRef={activeTargetRef}
-      />
+      <ReturnToUserFab scrollContainerRef={scrollRef} targetRef={userGroupRef} />
     </main>
   );
 }
