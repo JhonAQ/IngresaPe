@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { Trophy, TrendingUp, Clock, ChevronUp, ChevronDown } from 'lucide-react';
+import { Trophy, TrendingUp, Clock } from 'lucide-react';
 import { trpc } from '../../../utils/trpc';
 import {
   RankingTabs,
@@ -20,7 +20,8 @@ type Zone = 'promotion' | 'relegation' | 'safe';
 
 function getZone(rank: number, total: number): Zone {
   if (rank <= 3) return 'promotion';
-  if (rank > total - 5) return 'relegation';
+  const relegationCount = Math.min(5, Math.max(0, total - 3));
+  if (rank > total - relegationCount) return 'relegation';
   return 'safe';
 }
 
@@ -100,17 +101,15 @@ export default function RankingPage() {
   const renderZoneLabel = (zone: Zone) => {
     if (zone === 'promotion') {
       return (
-        <div className="flex items-center gap-1.5 text-success-600 font-black text-[10px] uppercase tracking-wider mb-2">
-          <ChevronUp size={14} />
-          <span>Zona de ascenso</span>
+        <div className="text-success-600 font-black text-[10px] uppercase tracking-wider mb-2">
+          Zona de ascenso
         </div>
       );
     }
     if (zone === 'relegation') {
       return (
-        <div className="flex items-center gap-1.5 text-error-500 font-black text-[10px] uppercase tracking-wider mb-2">
-          <ChevronDown size={14} />
-          <span>Zona de descenso</span>
+        <div className="text-error-500 font-black text-[10px] uppercase tracking-wider mb-2">
+          Zona de descenso
         </div>
       );
     }
@@ -273,11 +272,7 @@ export default function RankingPage() {
                   return (
                     <React.Fragment key={user.id}>
                       {showLabel && renderZoneLabel(zone)}
-                      <RankRow
-                        user={user}
-                        index={index}
-                        zone={zone}
-                      />
+                      <RankRow user={user} index={index} />
                     </React.Fragment>
                   );
                 });
@@ -288,9 +283,7 @@ export default function RankingPage() {
                   <div className="flex items-center justify-center py-1">
                     <span className="text-slate-300 font-black text-[14px]">•••</span>
                   </div>
-                  <div className="sticky bottom-[80px] z-10">
-                    <RankRow user={me} index={rest.length} zone="safe" />
-                  </div>
+                  <RankRow user={me} index={rest.length} />
                 </>
               )}
             </div>

@@ -16,7 +16,7 @@ const areaStyles: Record<Area, string> = {
 
 export const AreaFilter: React.FC<AreaFilterProps> = ({ active, onChange }) => {
   return (
-    <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
+    <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1 justify-center">
       {areaOrder.map((area) => {
         const isActive = active === area;
         return (

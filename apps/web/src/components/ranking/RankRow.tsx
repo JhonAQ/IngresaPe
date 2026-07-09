@@ -3,29 +3,12 @@ import { motion } from 'framer-motion';
 import { User } from 'lucide-react';
 import type { RankingUserDto } from '@ingresa-pe/domain';
 
-type Zone = 'promotion' | 'relegation' | 'safe';
-
 interface RankRowProps {
   user: RankingUserDto;
   index: number;
-  zone?: Zone;
 }
 
-export const RankRow: React.FC<RankRowProps> = ({ user, index, zone = 'safe' }) => {
-  const effectiveZone = user.isMe ? 'safe' : zone;
-
-  const zoneClasses = {
-    promotion: 'border-l-4 border-l-success-500',
-    relegation: 'border-l-4 border-l-error-500',
-    safe: '',
-  };
-
-  const zoneDot = {
-    promotion: 'bg-success-500',
-    relegation: 'bg-error-500',
-    safe: 'bg-transparent',
-  };
-
+export const RankRow: React.FC<RankRowProps> = ({ user, index }) => {
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
@@ -36,7 +19,7 @@ export const RankRow: React.FC<RankRowProps> = ({ user, index, zone = 'safe' }) 
           user.isMe
             ? 'bg-primary-50 border-primary-500'
             : 'bg-white border-slate-100'
-        } ${zoneClasses[effectiveZone]}`}
+        }`}
     >
       <div
         className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-[14px] shrink-0
@@ -85,23 +68,11 @@ export const RankRow: React.FC<RankRowProps> = ({ user, index, zone = 'safe' }) 
         )}
       </div>
 
-      <div className="flex items-center gap-2 text-right shrink-0">
-        <div
-          className={`w-2 h-2 rounded-full ${zoneDot[effectiveZone]}`}
-          title={
-            zone === 'promotion'
-              ? 'Zona de ascenso'
-              : zone === 'relegation'
-              ? 'Zona de descenso'
-              : ''
-          }
-        />
-        <div>
-          <p className="font-black text-[14px] text-slate-800">
-            {user.weeklyPtje.toFixed(1)}
-          </p>
-          <p className="text-slate-400 font-bold text-[9px] uppercase">Ptje</p>
-        </div>
+      <div className="text-right shrink-0">
+        <p className="font-black text-[14px] text-slate-800">
+          {user.weeklyPtje.toFixed(1)}
+        </p>
+        <p className="text-slate-400 font-bold text-[9px] uppercase">Ptje</p>
       </div>
     </motion.div>
   );
