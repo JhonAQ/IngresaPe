@@ -17,7 +17,12 @@ interface Player {
   id: string;
   name: string | null;
   image: string | null;
-  career: { id: string; name: string; area: 'INGENIERIAS' | 'SOCIALES' | 'BIOMEDICAS' } | null;
+  career: {
+    id: string;
+    name: string;
+    area: 'INGENIERIAS' | 'SOCIALES' | 'BIOMEDICAS';
+    minimumScore: number | null;
+  } | null;
   weeklyStats: WeeklyStats;
   league: League;
 }
@@ -101,7 +106,7 @@ export class RankingRouter {
         name: true,
         image: true,
         career: {
-          select: { id: true, name: true, area: true },
+          select: { id: true, name: true, area: true, minimumScore: true },
         },
         attempts: {
           where: {
@@ -297,6 +302,7 @@ export class RankingRouter {
               careerId,
               careerName: players[0].career!.name,
               area: userArea,
+              minimumScore: players[0].career!.minimumScore ?? null,
               ...result,
             };
           });

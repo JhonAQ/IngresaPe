@@ -10,6 +10,7 @@ interface RankingAccordionProps {
   onToggle: () => void;
   children: React.ReactNode;
   className?: string;
+  rightContent?: React.ReactNode;
 }
 
 export const RankingAccordion: React.FC<RankingAccordionProps> = ({
@@ -18,6 +19,7 @@ export const RankingAccordion: React.FC<RankingAccordionProps> = ({
   onToggle,
   children,
   className = '',
+  rightContent,
 }) => {
   return (
     <div className={`mb-4 ${className}`}>
@@ -25,13 +27,16 @@ export const RankingAccordion: React.FC<RankingAccordionProps> = ({
         onClick={onToggle}
         className="w-full bg-[#e5e5e5] border-y-[1.5px] border-black py-1.5 px-3 flex items-center justify-between transition-colors"
       >
-        <span className="font-bold tracking-wide uppercase text-[11px] sm:text-[12px] text-black text-left">
+        <span className="font-bold tracking-wide uppercase text-[11px] sm:text-[12px] text-black text-left truncate pr-2">
           {title}
         </span>
-        <ChevronDown
-          size={15}
-          className={`text-black transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
-        />
+        <div className="flex items-center gap-2 shrink-0">
+          {rightContent}
+          <ChevronDown
+            size={15}
+            className={`text-black transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+          />
+        </div>
       </button>
 
       <AnimatePresence initial={false}>
