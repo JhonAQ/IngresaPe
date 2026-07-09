@@ -52,7 +52,7 @@ function computeWeeklyStats(
   );
 
   return {
-    ptje: Number((total / valid.length).toFixed(1)),
+    ptje: total / valid.length,
     bestScore,
     attemptsCount: valid.length,
     lastSubmittedAt,
@@ -184,20 +184,26 @@ export class RankingRouter {
   }
 
   public router = this.trpc.router({
-    // Liga semanal: grupo de hasta 10 usuarios de la misma liga
+    // Liga semanal: todos los usuarios de la liga actual del usuario
     getWeeklyLeague: this.trpc.protectedProcedure.query(async ({ ctx }) => {
       const currentUserId = ctx.user.userId;
       const allPlayers = await this.loadPlayers();
-      const { group } = this.getUserLeagueGroup(allPlayers, currentUserId);
+      const currentPlayer = allPlayers.find((p) => p.id === currentUserId);
+      const currentLeague = currentPlayer?.league ?? 'HUEVITO';
 
-      const ranked = group
-        .sort(comparePlayers)
-        .map((p, index) => this.toRankingUserDto(p, index + 1, currentUserId));
+      const leaguePlayers = allPlayers
+        .filter((p) => p.league === currentLeague)
+        .sort(comparePlayers);
+
+      const ranked = leaguePlayers.map((p, index) =>
+        this.toRankingUserDto(p, index + 1, currentUserId)
+      );
 
       return {
         top: ranked,
         me: ranked.find((p) => p.isMe) ?? null,
         totalInLeague: ranked.length,
+        currentLeague,
       };
     }),
 
@@ -236,7 +242,7 @@ export class RankingRouter {
         career: currentPlayer.career,
         attemptsThisWeek: currentPlayer.weeklyStats.attemptsCount,
         promotionZone: rank <= 3,
-        relegationZone: rank > total - 5,
+        relegationZone: rank > total - 2,
         totalInLeague: total,
       };
     }),
@@ -262,6 +268,64 @@ export class RankingRouter {
         );
         return this.buildLeaderboardResult(players, currentUserId);
       }),
+
+    // Ranking de todas las carreras del área del usuario (grupos acordeón)
+    getAllCareersLeaderboard: this.trpc.protectedProcedure.query(
+      async ({ ctx }) => {
+        const currentUserId = ctx.user.userId;
+        const allPlayers = await this.loadPlayers();
+
+        const currentPlayer = allPlayers.find((p) => p.id === currentUserId);
+        const userArea = currentPlayer?.career?.area ?? 'INGENIERIAS';
+
+        const careerMap = new Map<string, Player[]>();
+        allPlayers
+          .filter((p) => p.career?.area === userArea)
+          .forEach((p) => {
+            const careerId = p.career!.id;
+            if (!careerMap.has(careerId)) {
+              careerMap.set(careerId, []);
+            }
+            careerMap.get(careerId)!.push(p);
+          });
+
+        const groups = Array.from(careerMap.entries())
+          .sort((a, b) => a[1][0].career!.name.localeCompare(b[1][0].career!.name))
+          .map(([careerId, players]) => {
+            const result = this.buildLeaderboardResult(players, currentUserId);
+            return {
+              careerId,
+              careerName: players[0].career!.name,
+              area: userArea,
+              ...result,
+            };
+          });
+
+        return { groups };
+      }
+    ),
+
+    // Ranking de todas las áreas (grupos acordeón)
+    getAllAreasLeaderboard: this.trpc.protectedProcedure.query(
+      async ({ ctx }) => {
+        const currentUserId = ctx.user.userId;
+        const allPlayers = await this.loadPlayers();
+
+        const areaOrder: Array<'INGENIERIAS' | 'SOCIALES' | 'BIOMEDICAS'> = [
+          'INGENIERIAS',
+          'SOCIALES',
+          'BIOMEDICAS',
+        ];
+
+        const groups = areaOrder.map((area) => {
+          const players = allPlayers.filter((p) => p.career?.area === area);
+          const result = this.buildLeaderboardResult(players, currentUserId);
+          return { area, ...result };
+        });
+
+        return { groups };
+      }
+    ),
 
     // Listado de carreras para el filtro
     getCareerOptions: this.trpc.protectedProcedure.query(async () => {

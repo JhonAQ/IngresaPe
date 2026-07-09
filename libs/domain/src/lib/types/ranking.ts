@@ -31,6 +31,43 @@ export const rankingUserSchema = z.object({
 });
 export type RankingUserDto = z.infer<typeof rankingUserSchema>;
 
+export const leaderboardGroupSchema = z.object({
+  top: z.array(rankingUserSchema),
+  me: rankingUserSchema.nullable(),
+  totalInLeague: z.number(),
+});
+export type LeaderboardGroupDto = z.infer<typeof leaderboardGroupSchema>;
+
+export const allCareersLeaderboardSchema = z.object({
+  groups: z.array(
+    z.object({
+      careerId: z.string(),
+      careerName: z.string(),
+      area: areaSchema,
+      ...leaderboardGroupSchema.shape,
+    })
+  ),
+});
+export type AllCareersLeaderboardDto = z.infer<typeof allCareersLeaderboardSchema>;
+
+export const allAreasLeaderboardSchema = z.object({
+  groups: z.array(
+    z.object({
+      area: areaSchema,
+      ...leaderboardGroupSchema.shape,
+    })
+  ),
+});
+export type AllAreasLeaderboardDto = z.infer<typeof allAreasLeaderboardSchema>;
+
+export const weeklyLeagueSchema = z.object({
+  top: z.array(rankingUserSchema),
+  me: rankingUserSchema.nullable(),
+  totalInLeague: z.number(),
+  currentLeague: leagueSchema,
+});
+export type WeeklyLeagueDto = z.infer<typeof weeklyLeagueSchema>;
+
 export const rankingPositionSchema = z.object({
   rank: z.number(),
   weeklyPtje: z.number(),

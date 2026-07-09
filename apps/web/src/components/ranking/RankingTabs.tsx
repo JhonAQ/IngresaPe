@@ -1,7 +1,9 @@
+'use client';
+
 import React from 'react';
 import { motion } from 'framer-motion';
 
-type Tab = 'weekly' | 'area' | 'career';
+type Tab = 'career' | 'area' | 'league';
 
 interface RankingTabsProps {
   active: Tab;
@@ -9,35 +11,28 @@ interface RankingTabsProps {
 }
 
 const tabs: { key: Tab; label: string }[] = [
-  { key: 'weekly', label: 'Semanal' },
-  { key: 'area', label: 'Áreas' },
-  { key: 'career', label: 'Carreras' },
+  { key: 'career', label: 'Tu carrera' },
+  { key: 'area', label: 'Área' },
+  { key: 'league', label: 'Ligas' },
 ];
 
 export const RankingTabs: React.FC<RankingTabsProps> = ({ active, onChange }) => {
   return (
-    <div className="flex gap-2 p-1.5 bg-slate-100 rounded-2xl">
+    <div className="flex gap-1.5 mb-4 border-b-2 border-slate-100 pb-4">
       {tabs.map((tab) => {
         const isActive = active === tab.key;
         return (
           <motion.button
             key={tab.key}
-            whileTap={{ scale: 0.97 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => onChange(tab.key)}
-            className={`flex-1 relative py-2.5 rounded-xl font-black text-[12px] uppercase tracking-wider transition-all
+            className={`flex-1 py-2 text-[11.5px] font-black uppercase tracking-wider rounded transition-all border
               ${
                 isActive
-                  ? 'bg-white text-primary-600 shadow-[0_3px_0_0_#cbd5e1]'
-                  : 'text-slate-400 hover:text-slate-600'
+                  ? 'bg-slate-800 text-white border-slate-800 shadow-md'
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
               }`}
           >
-            {isActive && (
-              <motion.div
-                layoutId="ranking-tab"
-                className="absolute inset-0 bg-white rounded-xl border-2 border-slate-200 border-b-[4px] border-b-slate-300 -z-10"
-                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-              />
-            )}
             {tab.label}
           </motion.button>
         );
