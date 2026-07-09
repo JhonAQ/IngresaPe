@@ -6,3 +6,4 @@ export * from './entrenar';
 export * from './question';
 export * from './simulacro';
 export * from './academic-dna';
+export * from './ranking';
