@@ -158,7 +158,7 @@ export function CareerSelectorModal({ isOpen, onSelect }: CareerSelectorModalPro
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-            className="relative w-full max-w-[400px] h-[85vh] max-h-[85vh] bg-white rounded-[2rem] shadow-2xl flex flex-col overflow-hidden"
+            className="relative w-full max-w-[400px] h-auto max-h-[85vh] bg-white rounded-[2rem] shadow-2xl flex flex-col overflow-hidden"
           >
             <AnimatePresence mode="wait">
               {step === 'area' ? (
@@ -205,7 +205,7 @@ interface AreaStepProps {
 
 function AreaStep({ isLoading, counts, onSelectArea }: AreaStepProps) {
   return (
-    <div className="flex flex-col h-full min-h-0">
+    <div className="flex flex-col">
       <div className="px-6 pt-6 pb-4 text-center">
         <div className="w-14 h-14 rounded-2xl bg-primary-500 text-white flex items-center justify-center mx-auto mb-3 shadow-[0_4px_0_0_#911019]">
           <GraduationCap size={30} strokeWidth={2.5} />
@@ -309,7 +309,7 @@ function CareerStep({
   const AreaIcon = config.icon;
 
   return (
-    <div className="flex flex-col h-full min-h-0">
+    <div className="flex flex-col h-[80vh] min-h-0">
       <div className="px-6 pt-5 pb-4 border-b border-slate-100">
         <div className="flex items-center gap-3 mb-3">
           <button
