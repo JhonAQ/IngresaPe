@@ -16,4 +16,4 @@ WORKDIR /app/apps/web
 
 EXPOSE 4200
 
-CMD ["npx", "next", "start", "-p", "4200"]
+CMD ["sh", "-c", "npx next start -p ${PORT:-4200}"]
