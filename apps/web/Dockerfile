@@ -9,6 +9,10 @@ RUN npm install
 # Copiar todo el código fuente
 COPY . .
 
+# Desactivar telemetría y darle más memoria a Node para el build
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_OPTIONS=--max-old-space-size=6144
+
 # Construir el frontend
 RUN npx nx build web
 
