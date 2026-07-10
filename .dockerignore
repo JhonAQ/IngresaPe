@@ -1,0 +1,13 @@
+node_modules
+apps/web/.next
+apps/api/dist
+.git
+.env
+.env.local
+.env.production
+.coverage
+dist
+*.log
+.DS_Store
+.vscode
+.idea
