@@ -44,6 +44,7 @@ export const allCareersLeaderboardSchema = z.object({
       careerId: z.string(),
       careerName: z.string(),
       area: areaSchema,
+      minimumScore: z.number().nullable(),
       ...leaderboardGroupSchema.shape,
     })
   ),

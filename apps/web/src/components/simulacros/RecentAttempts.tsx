@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import {
   BarChart3,
   CheckCircle,
@@ -10,6 +11,7 @@ import {
 } from 'lucide-react';
 import { Button3D } from '../ui/Button3D';
 import { useImmersiveOverlay } from '../dashboard/ImmersiveOverlayContext';
+import { trpc } from '../../utils/trpc';
 import type { ExamAttemptSummaryDto } from '@ingresa-pe/domain';
 
 interface RecentAttemptsProps {
@@ -56,7 +58,34 @@ export const RecentAttempts: React.FC<RecentAttemptsProps> = ({
   title = 'Mis Intentos Recientes',
 }) => {
   const { open } = useImmersiveOverlay();
+  const router = useRouter();
   const displayed = limit ? attempts.slice(0, limit) : attempts;
+
+  const startGenerated = trpc.simulacro.startGeneratedAttempt.useMutation({
+    onSuccess: (data) => {
+      router.push(`/simulator?attemptId=${data.attemptId}`);
+    },
+  });
+
+  const startArchive = trpc.simulacro.startArchiveAttempt.useMutation({
+    onSuccess: (data) => {
+      router.push(`/simulator?attemptId=${data.attemptId}`);
+    },
+  });
+
+  const isStarting = startGenerated.isPending || startArchive.isPending;
+
+  const handleRetake = (attempt: ExamAttemptSummaryDto) => {
+    if (attempt.mode === 'ARCHIVE' && attempt.examId) {
+      startArchive.mutate({ examId: attempt.examId });
+    } else {
+      startGenerated.mutate({
+        questionCount: attempt.questionCount,
+        timeLimitMinutes: Math.max(1, Math.round(attempt.timeLimitSeconds / 60)),
+        strategy: 'RANDOM',
+      });
+    }
+  };
 
   return (
     <div className="px-5 pb-12">
@@ -142,7 +171,11 @@ export const RecentAttempts: React.FC<RecentAttemptsProps> = ({
                 <Button3D variant="secondary" className="flex-1 !py-2.5">
                   Revisar Fallos
                 </Button3D>
-                <button className="w-12 h-12 bg-white border-2 border-slate-200 border-b-4 border-b-slate-300 rounded-2xl flex items-center justify-center text-slate-400 active:translate-y-[2px] active:border-b-0 transition-transform">
+                <button
+                  onClick={() => handleRetake(attempt)}
+                  disabled={isStarting}
+                  className="w-12 h-12 bg-white border-2 border-slate-200 border-b-4 border-b-slate-300 rounded-2xl flex items-center justify-center text-slate-400 active:translate-y-[2px] active:border-b-0 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   <RotateCcw size={20} strokeWidth={3} />
                 </button>
               </div>

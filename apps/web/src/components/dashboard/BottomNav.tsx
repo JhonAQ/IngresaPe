@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ProfileIcon, HomeIcon, SimulacroIcon } from '@ingresa-pe/ui';
-import { Gamepad2, Trophy } from 'lucide-react';
+import { ProfileIcon, HomeIcon, SimulacroIcon, RankingIcon } from '@ingresa-pe/ui';
+import { Gamepad2 } from 'lucide-react';
 
 const tabs = [
   {
@@ -18,7 +18,12 @@ const tabs = [
     icon: SimulacroIcon,
     iconProps: { className: 'w-[22px] h-[26px]' },
   },
-  { href: '/ranking', label: 'Ranking', iconLucide: Trophy, size: 26 },
+  {
+    href: '/ranking',
+    label: 'Ranking',
+    icon: RankingIcon,
+    iconProps: { className: 'w-[26px] h-[26px]' },
+  },
   { href: '/entrenar', label: 'Entrenar', iconLucide: Gamepad2, size: 26 },
   {
     href: '/perfil',

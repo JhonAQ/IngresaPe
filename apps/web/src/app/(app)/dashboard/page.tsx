@@ -10,6 +10,7 @@ import { useDashboardData } from '../../../hooks/useDashboardData';
 import { CourseSelector } from '../../../components/dashboard/CourseSelector';
 import { useSetDashboardCourse } from '../../../components/dashboard/DashboardCourseContext';
 import { trpc } from '../../../utils/trpc';
+import { getCourseMeta } from '../../../lib/courseMeta';
 import type { TemaData } from '@ingresa-pe/domain';
 import { DashboardSkeleton } from '../../../components/ui/skeleton';
 
@@ -82,6 +83,7 @@ function DashboardContent() {
   }, [typedTopics, activeTopicId]);
 
   const selectedCourse = courses.find((c) => c.id === courseId);
+  const courseTheme = getCourseMeta('', selectedCourse?.name).nodeTheme;
   const setDashboardCourse = useSetDashboardCourse();
 
   useEffect(() => {
@@ -176,6 +178,7 @@ function DashboardContent() {
           courseId={courseId ?? courses[0].id}
           topics={typedTopics}
           temario={dashboardData.temario ?? []}
+          courseTheme={courseTheme}
           onOpenSummary={setResumenActivo}
           onActiveTopicChange={setActiveTopicId}
           scrollContainerRef={mainRef}

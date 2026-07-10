@@ -1,7 +1,7 @@
 import { HTMLAttributes, forwardRef, ReactNode } from 'react';
-import { Zap } from 'lucide-react';
 import { FlameIcon } from './icons/FlameIcon';
 import { GemIcon } from './icons/GemIcon';
+import { EnergyIcon } from './icons/EnergyIcon';
 
 export type StatBadgeType = 'streak' | 'gem' | 'heart' | 'xp' | 'energy';
 
@@ -19,7 +19,7 @@ const typeColorClasses: Record<StatBadgeType, string> = {
   gem: 'text-[#1CB0F6]', // Cyan gema
   heart: 'text-[#ff4b4b]', // Vidas rojas
   xp: 'text-[#FFC800]', // Amarillo XP
-  energy: 'text-[#FFC800]', // Amarillo/rayo para energía
+  energy: 'text-[#FF86CD]', // Rosa energía
 };
 
 export const StatBadge = forwardRef<HTMLDivElement, StatBadgeProps>(
@@ -38,7 +38,7 @@ export const StatBadge = forwardRef<HTMLDivElement, StatBadgeProps>(
         case 'gem':
           return <GemIcon />;
         case 'energy':
-          return <Zap size={20} className="fill-current" strokeWidth={2.5} />;
+          return <EnergyIcon className="w-5 h-5" />;
         default:
           return null;
       }
@@ -47,7 +47,7 @@ export const StatBadge = forwardRef<HTMLDivElement, StatBadgeProps>(
     return (
       <div
         ref={ref}
-        className={`flex items-center gap-1 cursor-pointer select-none hover:opacity-80 transition-opacity ${className}`}
+        className={`flex items-center gap-1.5 cursor-pointer select-none hover:opacity-80 transition-opacity ${className}`}
         {...props}
       >
         <div className="flex items-center justify-center shrink-0 w-5 h-5">

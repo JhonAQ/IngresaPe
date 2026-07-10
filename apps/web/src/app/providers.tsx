@@ -9,9 +9,10 @@ import { getAuthToken } from '../lib/auth';
 import { AuthProvider } from '../hooks/useAuth';
 
 function getApiUrl() {
-  // En el navegador usamos el mismo hostname desde el que se sirvió el frontend.
-  // Esto permite probar desde otros dispositivos en la red local (celular, tablet)
-  // sin hardcodear la IP de la laptop.
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  // Fallback para desarrollo local y pruebas en red.
   if (typeof window !== 'undefined') {
     return `http://${window.location.hostname}:3000/trpc`;
   }

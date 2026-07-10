@@ -8,12 +8,14 @@ import {
   Globe,
   LucideIcon,
 } from 'lucide-react';
+import type { PathNodeTheme } from '@ingresa-pe/ui';
 
 export interface CourseMeta {
   icon: LucideIcon;
   colorHex: string;
   bgTint: string;
   areaLabel: string;
+  nodeTheme: PathNodeTheme;
 }
 
 const DEFAULT_META: CourseMeta = {
@@ -21,6 +23,7 @@ const DEFAULT_META: CourseMeta = {
   colorHex: '#58cc02',
   bgTint: '#f1fcdb',
   areaLabel: 'Curso',
+  nodeTheme: 'green',
 };
 
 const COURSE_META: Record<string, CourseMeta> = {
@@ -29,54 +32,63 @@ const COURSE_META: Record<string, CourseMeta> = {
     colorHex: '#1cb0f6',
     bgTint: '#ddf4ff',
     areaLabel: 'Matemática',
+    nodeTheme: 'blue',
   },
   algebra: {
     icon: Calculator,
     colorHex: '#1cb0f6',
     bgTint: '#ddf4ff',
     areaLabel: 'Matemática',
+    nodeTheme: 'blue',
   },
   geometria: {
     icon: Calculator,
     colorHex: '#1cb0f6',
     bgTint: '#ddf4ff',
     areaLabel: 'Matemática',
+    nodeTheme: 'blue',
   },
   'razonamiento-verbal': {
     icon: BookOpen,
     colorHex: '#ce82ff',
     bgTint: '#f8eaff',
     areaLabel: 'Letras',
+    nodeTheme: 'purple',
   },
   literatura: {
     icon: BookA,
     colorHex: '#ff4b4b',
     bgTint: '#ffeaea',
     areaLabel: 'Letras',
+    nodeTheme: 'purple',
   },
   'historia-peru': {
     icon: Globe,
     colorHex: '#ff9600',
     bgTint: '#fff2e0',
     areaLabel: 'Sociales',
+    nodeTheme: 'gold',
   },
   quimica: {
     icon: FlaskConical,
     colorHex: '#58cc02',
     bgTint: '#f1fcdb',
     areaLabel: 'Ciencias',
+    nodeTheme: 'green',
   },
   fisica: {
     icon: Zap,
     colorHex: '#ffc800',
     bgTint: '#fffbea',
     areaLabel: 'Ciencias',
+    nodeTheme: 'gold',
   },
   biologia: {
     icon: Dna,
     colorHex: '#58cc02',
     bgTint: '#f1fcdb',
     areaLabel: 'Ciencias',
+    nodeTheme: 'green',
   },
 };
 

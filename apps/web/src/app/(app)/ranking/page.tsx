@@ -48,6 +48,7 @@ type RankingGroup = {
   students: RankingUserDto[];
   me: RankingUserDto | null;
   totalInLeague: number;
+  minimumScore?: number | null;
 };
 
 function findUserInGroup(group: RankingGroup): RankingUserDto | null {
@@ -63,6 +64,7 @@ export default function RankingPage() {
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
   const scrollRef = useRef<HTMLDivElement>(null);
   const userGroupRef = useRef<HTMLDivElement>(null);
+  const userRowRef = useRef<HTMLDivElement>(null);
 
   const { data: careersData, isLoading: isCareersLoading } =
     trpc.ranking.getAllCareersLeaderboard.useQuery(undefined, {
@@ -90,6 +92,7 @@ export default function RankingPage() {
         students: g.top,
         me: g.me,
         totalInLeague: g.totalInLeague,
+        minimumScore: g.minimumScore,
       }));
     }
     if (activeTab === 'area' && areasData) {
@@ -121,9 +124,13 @@ export default function RankingPage() {
     return groups.find((g) => isUserInGroup(g)) ?? groups[0];
   }, [groups]);
 
-  const scrollToUserGroup = useCallback(() => {
+  const scrollToTarget = useCallback(() => {
     const container = scrollRef.current;
-    const target = userGroupRef.current;
+    // Liga intenta scrollear a la fila del usuario; si no está disponible,
+    // fallback al grupo.
+    const target =
+      (activeTab === 'league' ? userRowRef.current : null) ??
+      userGroupRef.current;
     if (!container || !target) return;
 
     const containerRect = container.getBoundingClientRect();
@@ -131,7 +138,7 @@ export default function RankingPage() {
     const targetTop = targetRect.top - containerRect.top + container.scrollTop;
 
     container.scrollTo({ top: targetTop, behavior: 'smooth' });
-  }, []);
+  }, [activeTab]);
 
   // Todas las listas desplegadas; el grupo del usuario se reabre siempre.
   useEffect(() => {
@@ -139,18 +146,21 @@ export default function RankingPage() {
     setOpenGroups(new Set(groups.map((g) => g.key)));
   }, [groups]);
 
-  // Cada vez que se cambia de tab (o llegan datos), scrollear a la lista del usuario.
+  // Cada vez que se cambia de tab (o llegan datos), abrir el grupo del usuario
+  // y scrollear a la lista (career/area) o a la fila del usuario (league).
   useEffect(() => {
     if (!groups.length || !userGroup) return;
 
     setOpenGroups((prev) => new Set([...prev, userGroup.key]));
 
-    const raf = requestAnimationFrame(() => {
-      scrollToUserGroup();
-    });
+    // Esperamos a que el acordeón termine de abrirse (Framer Motion ~250ms)
+    // para que las posiciones del DOM sean finales.
+    const timer = setTimeout(() => {
+      scrollToTarget();
+    }, 320);
 
-    return () => cancelAnimationFrame(raf);
-  }, [activeTab, groups, userGroup, scrollToUserGroup]);
+    return () => clearTimeout(timer);
+  }, [activeTab, groups, userGroup, scrollToTarget]);
 
   const toggleGroup = (key: string) => {
     setOpenGroups((prev) => {
@@ -161,7 +171,10 @@ export default function RankingPage() {
     });
   };
 
-  const renderStudents = (students: RankingUserDto[]) => {
+  const renderStudents = (
+    students: RankingUserDto[],
+    targetRef?: React.RefObject<HTMLDivElement | null>
+  ) => {
     if (students.length === 0) {
       return (
         <div className="py-4 text-center text-slate-400 font-bold text-[12px]">
@@ -169,9 +182,17 @@ export default function RankingPage() {
         </div>
       );
     }
-    return students.map((student, idx) => (
-      <RankingTableRow key={student.id} user={student} index={idx} />
-    ));
+    return students.map((student, idx) => {
+      const isTarget = targetRef && student.isMe;
+      return (
+        <RankingTableRow
+          key={student.id}
+          user={student}
+          index={idx}
+          targetRef={isTarget ? targetRef : undefined}
+        />
+      );
+    });
   };
 
   const renderHiddenCount = (shown: number, total: number) => {
@@ -187,6 +208,8 @@ export default function RankingPage() {
   };
 
   const renderGroupContent = (group: RankingGroup) => {
+    const leagueTargetRef = activeTab === 'league' ? userRowRef : undefined;
+
     if (activeTab === 'league') {
       return (
         <>
@@ -194,7 +217,7 @@ export default function RankingPage() {
             ({ zone, students }) => (
               <div key={zone} className="mb-1">
                 <RankingZoneHeader zone={zone} />
-                {renderStudents(students)}
+                {renderStudents(students, leagueTargetRef)}
               </div>
             )
           )}
@@ -204,6 +227,7 @@ export default function RankingPage() {
               <RankingTableRow
                 user={group.me}
                 index={group.students.length}
+                targetRef={userRowRef}
               />
             </>
           )}
@@ -265,6 +289,13 @@ export default function RankingPage() {
                   title={group.title}
                   isOpen={openGroups.has(group.key)}
                   onToggle={() => toggleGroup(group.key)}
+                  rightContent={
+                    activeTab === 'career' && group.minimumScore != null ? (
+                      <span className="text-[10px] font-bold text-slate-600 bg-white/60 px-2 py-0.5 rounded">
+                        Histórico Min: {group.minimumScore.toFixed(0)} pts
+                      </span>
+                    ) : undefined
+                  }
                 >
                   {renderGroupContent(group)}
                 </RankingAccordion>
@@ -277,6 +308,7 @@ export default function RankingPage() {
       </div>
 
       <ReturnToUserFab
+        key={`${activeTab}-${userGroup?.key ?? 'none'}`}
         scrollContainerRef={scrollRef}
         targetRef={userGroupRef}
       />

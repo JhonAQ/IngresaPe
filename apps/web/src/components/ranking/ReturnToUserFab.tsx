@@ -16,30 +16,58 @@ export const ReturnToUserFab: React.FC<ReturnToUserFabProps> = ({
   const [isVisible, setIsVisible] = useState(false);
   const [direction, setDirection] = useState<'up' | 'down'>('down');
 
+  // Reiniciar estado cuando cambia el target (ej: cambio de tab en ranking).
+  useEffect(() => {
+    setIsVisible(false);
+    setDirection('down');
+  }, [targetRef]);
+
   useEffect(() => {
     const container = scrollContainerRef.current;
     const target = targetRef.current;
     if (!container || !target) return;
 
+    const updateVisibility = () => {
+      const containerRect = container.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const isAbove = targetRect.bottom < containerRect.top;
+      const isBelow = targetRect.top > containerRect.bottom;
+      const isOutside = isAbove || isBelow;
+
+      setIsVisible(isOutside);
+      if (isOutside) {
+        setDirection(isAbove ? 'up' : 'down');
+      }
+    };
+
+    // Chequeo inicial.
+    updateVisibility();
+
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(false);
-          return;
-        }
-        setIsVisible(true);
-        const rootBounds = entry.rootBounds;
-        if (rootBounds && entry.boundingClientRect.top < rootBounds.top) {
-          setDirection('up');
-        } else {
-          setDirection('down');
+        const containerRect = container.getBoundingClientRect();
+        const targetRect = entry.boundingClientRect;
+        const isAbove = targetRect.bottom < containerRect.top;
+        const isBelow = targetRect.top > containerRect.bottom;
+        const isOutside = isAbove || isBelow;
+
+        setIsVisible(isOutside);
+        if (isOutside) {
+          setDirection(isAbove ? 'up' : 'down');
         }
       },
-      { root: container, threshold: 0 }
+      { root: container, threshold: 0, rootMargin: '40px 0px 40px 0px' }
     );
 
     observer.observe(target);
-    return () => observer.disconnect();
+
+    // También recalcular mientras se hace scroll (animaciones suaves, etc.).
+    container.addEventListener('scroll', updateVisibility, { passive: true });
+
+    return () => {
+      observer.disconnect();
+      container.removeEventListener('scroll', updateVisibility);
+    };
   }, [scrollContainerRef, targetRef]);
 
   const scrollToUser = () => {

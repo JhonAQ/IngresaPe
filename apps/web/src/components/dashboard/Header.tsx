@@ -1,5 +1,4 @@
-import Link from 'next/link';
-import { ChevronDown, Plus } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { UserStats } from '@ingresa-pe/domain';
 import { StatBadge } from '@ingresa-pe/ui';
 
@@ -53,17 +52,10 @@ export function DashboardHeader({
         </div>
 
         {/* Stats Panel */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-5 shrink-0">
           <StatBadge value={stats.racha} type="streak" />
-          <StatBadge value={stats.vidas} type="energy" />
           <StatBadge value={stats.gemas} type="gem" />
-          <Link
-            href="/shop"
-            className="w-7 h-7 rounded-full bg-[#ddf4ff] text-[#1cb0f6] flex items-center justify-center active:scale-90 transition-transform"
-            aria-label="Ir a la tienda"
-          >
-            <Plus size={18} strokeWidth={3} />
-          </Link>
+          <StatBadge value={stats.vidas} type="energy" />
         </div>
       </div>
     </header>
