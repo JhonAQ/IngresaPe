@@ -13,8 +13,11 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_OPTIONS=--max-old-space-size=6144
 
-# Construir el frontend
-RUN npx nx build web
+# Construir las librerías compartidas que usa el frontend
+RUN npx nx run-many -t build -p domain ui
+
+# Construir el frontend directamente con Next.js para tener mejor diagnostico de errores
+RUN cd apps/web && npx next build --debug
 
 WORKDIR /app/apps/web
 
