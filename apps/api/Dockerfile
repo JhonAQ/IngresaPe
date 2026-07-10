@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Instalar dependencias del monorepo
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
 # Copiar todo el código fuente
 COPY . .
