@@ -1,9 +1,9 @@
 import { useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Check, Lock, BookOpen, Target, Star, ChevronDown, ChevronUp } from 'lucide-react';
+import { BookOpen, Target, Star, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { TemaData, SummaryBlock } from '@ingresa-pe/domain';
-import { MapNode, MapNodeColor } from '@ingresa-pe/ui';
+import { MapNodeColor, PathNode, PathNodeIcon, PathNodeTheme } from '@ingresa-pe/ui';
 import { TopicDivider } from './TopicDivider';
 import { trpc } from '../../utils/trpc';
 
@@ -33,6 +33,7 @@ interface TopicListProps {
   courseId: string;
   topics: TopicFromApi[];
   temario: TemaData[];
+  courseTheme?: PathNodeTheme;
   onOpenSummary: (tema: TemaData) => void;
   onActiveTopicChange?: (topicId: string) => void;
   scrollContainerRef?: React.RefObject<HTMLElement | null>;
@@ -152,6 +153,7 @@ export function TopicList({
   courseId,
   topics,
   temario,
+  courseTheme = 'purple',
   onOpenSummary,
   onActiveTopicChange,
   scrollContainerRef,
@@ -174,6 +176,7 @@ export function TopicList({
             actividades: buildActivities(topic, index, isLocked),
             resumenData: topic.summary ?? [],
             color: topic.userProgress?.isGold ? '#58cc02' : '#1cb0f6',
+            isGold: topic.userProgress?.isGold ?? false,
           };
         })
       : temario;
@@ -395,22 +398,14 @@ export function TopicList({
                 const pos = pathPositions[actIndex];
                 if (!pos) return null;
 
-                const isCompleted = act.state === 'completed';
-                const isLocked = act.state === 'locked';
-                const Icon = act.icon;
-
-                const RenderedIcon = isCompleted ? (
-                  <Check size={36} strokeWidth={3.5} />
-                ) : isLocked ? (
-                  <Lock size={26} strokeWidth={2.5} />
-                ) : (
-                  <Icon size={32} strokeWidth={2.5} />
-                );
-
                 const isLoadingNode =
                   spendEnergy.isPending &&
                   pendingNode?.topicId === String(unidad.id) &&
                   pendingNode?.nodeIndex === actIndex;
+
+                const nodeStatus = (unidad as { isGold?: boolean }).isGold
+                  ? 'gold'
+                  : act.state;
 
                 return (
                   <div
@@ -419,16 +414,20 @@ export function TopicList({
                     className="absolute transform -translate-x-1/2 -translate-y-1/2"
                     style={{ left: pos.x, top: pos.y, zIndex: 10 }}
                   >
-                    <MapNode
-                      status={act.state}
-                      currentColor={act.color ?? 'warning'}
-                      icon={RenderedIcon}
-                      disabled={isLocked || isLoadingNode}
+                    <PathNode
+                      status={nodeStatus}
+                      icon={
+                        ['book', 'headphones', 'microphone', 'star', 'video', 'weights'][
+                          actIndex % 6
+                        ] as PathNodeIcon
+                      }
+                      theme={courseTheme}
                       onClick={
-                        isLocked
+                        act.state === 'locked'
                           ? undefined
                           : () => startNode(String(unidad.id), actIndex, act.nodeSize ?? 7)
                       }
+                      disabled={act.state === 'locked' || isLoadingNode}
                       className={isLoadingNode ? 'opacity-60 cursor-wait' : ''}
                     />
                   </div>

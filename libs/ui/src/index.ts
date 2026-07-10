@@ -2,6 +2,7 @@ export * from './lib/ui';
 export * from './lib/button-3d';
 export * from './lib/card-3d';
 export * from './lib/map-node';
+export * from './lib/path-node';
 export * from './lib/progress-bar';
 export * from './lib/stat-badge';
 export * from './lib/icons/FlameIcon';
@@ -15,6 +16,12 @@ export * from './lib/icons/TemarioIcon';
 export * from './lib/icons/EntrenarIcon';
 export * from './lib/icons/SimulacroIcon';
 export * from './lib/icons/RankingIcon';
+export * from './lib/icons/LevelBookIcon';
+export * from './lib/icons/LevelHeadphonesIcon';
+export * from './lib/icons/LevelMicrophoneIcon';
+export * from './lib/icons/LevelStarIcon';
+export * from './lib/icons/LevelVideoIcon';
+export * from './lib/icons/LevelWeightsIcon';
 
 
 
