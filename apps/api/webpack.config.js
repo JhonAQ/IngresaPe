@@ -9,6 +9,11 @@ module.exports = {
       devtoolModuleFilenameTemplate: '[absolute-resource-path]',
     }),
   },
+  resolve: {
+    alias: {
+      '@ingresa-pe/domain': join(__dirname, '../../libs/domain/dist/index.js'),
+    },
+  },
   plugins: [
     new NxAppWebpackPlugin({
       target: 'node',
