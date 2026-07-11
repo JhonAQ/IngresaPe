@@ -1,5 +1,8 @@
 FROM node:22-slim
 
+# Instalar OpenSSL y certificados necesarios para Prisma
+RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # Instalar dependencias del monorepo
