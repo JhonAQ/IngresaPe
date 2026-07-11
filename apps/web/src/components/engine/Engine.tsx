@@ -9,6 +9,7 @@ import { getQuestionRenderer } from './registry';
 import { EngineHeader, FeedbackDrawer, DinoMaxModal, ExitConfirmModal } from './SharedEngineUI';
 import { LatexText } from '../ui/LatexText';
 import { EngineSkeleton } from '../ui/skeleton';
+import { InstallPromptModal } from '../pwa/InstallPromptModal';
 import type { MatchingView, FillInBlankView } from '@ingresa-pe/domain';
 import type { ComponentType } from 'react';
 
@@ -214,6 +215,7 @@ function CompletionScreen({
 }) {
   return (
     <div className="w-full max-w-md mx-auto h-[100dvh] flex flex-col items-center justify-center px-6 text-center bg-[#d7ffb8]">
+      <InstallPromptModal />
       <div className="mb-6 text-[80px]">🏆</div>
       <h1 className="font-black text-[28px] text-[#58a700] mb-3">¡Lección completada!</h1>
       <p className="text-[#3c3c3c] font-bold mb-8">

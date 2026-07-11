@@ -11,6 +11,7 @@ import { useProfileData } from '../../../hooks/useProfileData';
 import { useAuth } from '../../../hooks/useAuth';
 import { ChunkyButton } from '../../../components/ui/ChunkyButton';
 import { ProgressBar } from '@ingresa-pe/ui';
+import { InstallTag } from '../../../components/pwa/InstallTag';
 
 export default function PerfilPage() {
   const { logout } = useAuth();
@@ -76,6 +77,8 @@ export default function PerfilPage() {
       </div>
 
       <AcademicDnaOverlay />
+
+      <InstallTag />
 
       <div className="px-5 py-8">
         <ChunkyButton

@@ -10,6 +10,7 @@ import { ImmersiveOverlayProvider, useImmersiveOverlay } from '../../components/
 import { DashboardCourseProvider, useDashboardCourse } from '../../components/dashboard/DashboardCourseContext';
 import { AttemptsHistoryOverlay } from '../../components/simulacros/AttemptsHistoryOverlay';
 import { ArchiveOverlay } from '../../components/simulacros';
+import { PWAInstallManager } from '../../components/pwa/PWAInstallManager';
 
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const { data, isLoading } = useDashboardData();
@@ -41,6 +42,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 
           <AttemptsHistoryOverlay />
           <ArchiveOverlay />
+          <PWAInstallManager />
 
           {!isOpen && <BottomNav />}
         </div>

@@ -7,6 +7,8 @@ import SuperJSON from 'superjson';
 import { trpc } from '../utils/trpc';
 import { getAuthToken } from '../lib/auth';
 import { AuthProvider } from '../hooks/useAuth';
+import { InstallPromptProvider } from '../components/pwa/InstallPromptContext';
+import { ServiceWorkerRegister } from '../components/pwa/ServiceWorkerRegister';
 
 function getApiUrl() {
   if (process.env.NEXT_PUBLIC_API_URL) {
@@ -39,7 +41,12 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <InstallPromptProvider>
+            {children}
+            <ServiceWorkerRegister />
+          </InstallPromptProvider>
+        </AuthProvider>
       </QueryClientProvider>
     </trpc.Provider>
   );
