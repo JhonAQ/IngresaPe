@@ -6,6 +6,9 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install --no-audit --no-fund
 
+# Instalar OpenSSL para que Prisma generate funcione en Alpine
+RUN apk add --no-cache openssl
+
 # Copiar todo el código fuente
 COPY . .
 
@@ -15,6 +18,9 @@ ENV NODE_OPTIONS=--max-old-space-size=6144
 
 # Construir las librerías compartidas que usa el frontend
 RUN npx nx run-many -t build -p domain ui
+
+# Generar Prisma client (el typecheck de Next incluye apps/api por referencia)
+RUN npx prisma generate --schema=apps/api/prisma/schema.prisma
 
 # Construir el frontend directamente con Next.js para tener mejor diagnostico de errores
 RUN cd apps/web && npx next build --debug
