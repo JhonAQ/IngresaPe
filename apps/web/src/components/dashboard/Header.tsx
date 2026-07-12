@@ -21,13 +21,17 @@ export function DashboardHeader({
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-slate-100 px-4 py-2.5 shrink-0">
       <div className="flex items-center justify-between gap-3">
-        {/* Brand + course selector */}
+        {/* University brand + course selector */}
         <div className="flex items-center gap-2.5 min-w-0">
-          <img
-            src="/logo-horizontal.png"
-            alt="Ingresa.pe"
-            className="h-6 w-auto shrink-0 object-contain"
-          />
+          <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 flex items-center justify-center">
+            <img
+              src="/logos/unsa.png"
+              alt="UNSA"
+              width={32}
+              height={32}
+              className="w-8 h-8 object-contain pointer-events-none"
+            />
+          </div>
 
           {selectedCourse ? (
             <button
@@ -40,7 +44,11 @@ export function DashboardHeader({
               </span>
               <ChevronDown size={16} className="text-slate-400 shrink-0" strokeWidth={3} />
             </button>
-          ) : null}
+          ) : (
+            <span className="font-extrabold text-slate-500 tracking-tight text-[16px] uppercase">
+              UNSA
+            </span>
+          )}
         </div>
 
         {/* Stats Panel */}

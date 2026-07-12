@@ -78,7 +78,7 @@ export function IOSInstallSheet() {
           >
             {/* Header */}
             <div
-              className="shrink-0 cursor-grab active:cursor-grabbing touch-none bg-gradient-to-b from-[#f3e8ff] to-white z-20"
+              className="shrink-0 cursor-grab active:cursor-grabbing touch-none bg-gradient-to-b from-primary-50 to-white z-20"
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}

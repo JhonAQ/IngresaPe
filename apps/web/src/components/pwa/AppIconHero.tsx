@@ -19,12 +19,12 @@ export function AppIconHero({
       {showRing && (
         <>
           <motion.div
-            className="absolute inset-0 rounded-2xl bg-amber-400/30"
+            className="absolute inset-0 rounded-2xl bg-primary-500/30"
             animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0, 0.6] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
           />
           <motion.div
-            className="absolute inset-[-4px] rounded-2xl border-2 border-amber-400/40"
+            className="absolute inset-[-4px] rounded-2xl border-2 border-primary-500/40"
             animate={{ scale: [1, 1.08, 1], opacity: [0.8, 0.2, 0.8] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
           />

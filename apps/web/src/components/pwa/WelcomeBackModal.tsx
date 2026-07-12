@@ -48,7 +48,7 @@ export function WelcomeBackModal() {
             className="relative w-full max-w-[360px] bg-white rounded-[2rem] shadow-2xl overflow-hidden"
           >
             {/* Header gradient */}
-            <div className="relative bg-gradient-to-b from-[#f3e8ff] to-white px-6 pt-6 pb-4 text-center">
+            <div className="relative bg-gradient-to-b from-primary-50 to-white px-6 pt-6 pb-4 text-center">
               <button
                 onClick={handleDismiss}
                 className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/80 text-slate-400 flex items-center justify-center hover:bg-white hover:text-slate-600 transition-colors shadow-sm"
@@ -61,7 +61,7 @@ export function WelcomeBackModal() {
                 <AppIconHero size={72} />
               </div>
 
-              <div className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-700 font-black text-[11px] uppercase tracking-wider px-3 py-1 rounded-full border border-amber-200">
+              <div className="inline-flex items-center gap-1.5 bg-primary-100 text-primary-700 font-black text-[11px] uppercase tracking-wider px-3 py-1 rounded-full border border-primary-200">
                 <Sparkles size={12} strokeWidth={3} />
                 ¡Bienvenido de vuelta!
               </div>
@@ -83,7 +83,7 @@ export function WelcomeBackModal() {
               </div>
 
               <div className="space-y-3">
-                <Button3D variant="gold" onClick={handleInstall}>
+                <Button3D variant="primary" onClick={handleInstall}>
                   Instalar ahora
                 </Button3D>
 
@@ -108,7 +108,7 @@ export function WelcomeBackModal() {
 function Benefit({ icon: Icon, text }: { icon: React.ElementType; text: string }) {
   return (
     <div className="flex flex-col items-center gap-2 p-3 bg-slate-50 rounded-2xl border-2 border-slate-100">
-      <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-500 flex items-center justify-center">
+      <div className="w-10 h-10 rounded-xl bg-primary-100 text-primary-500 flex items-center justify-center">
         <Icon size={20} strokeWidth={2.5} />
       </div>
       <span className="text-slate-600 font-bold text-[12px] leading-tight">{text}</span>

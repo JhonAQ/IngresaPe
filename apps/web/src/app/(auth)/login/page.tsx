@@ -66,7 +66,7 @@ function LoginContent() {
           <img
             src="/logo-horizontal.png"
             alt="Ingresa.pe"
-            className="h-10 sm:h-12 w-auto object-contain mb-2"
+            className="h-12 sm:h-14 w-auto object-contain mb-2"
           />
           <p className="text-slate-500 font-extrabold mt-1 text-[10px] sm:text-[11px] uppercase tracking-wide">
             EL DUOLINGO PARA PREUNIVERSITARIOS
