@@ -11,6 +11,7 @@ import {
   CareerSelectorModal,
 } from '../../../components/simulacros';
 import { trpc } from '../../../utils/trpc';
+import { SimulacrosSkeleton } from '../../../components/ui/skeleton';
 
 export default function SimulacrosDashboardPage() {
   const router = useRouter();
@@ -67,12 +68,7 @@ export default function SimulacrosDashboardPage() {
   };
 
   if (isLoading) {
-    return (
-      <main className="flex-1 overflow-y-auto pt-6 pb-32 hide-scrollbar relative">
-        <div className="px-5 mb-6 h-32 bg-slate-100 rounded-[1.8rem] animate-pulse" />
-        <div className="px-5 mb-8 h-64 bg-slate-100 rounded-[2rem] animate-pulse" />
-      </main>
-    );
+    return <SimulacrosSkeleton />;
   }
 
   return (

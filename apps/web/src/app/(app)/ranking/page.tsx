@@ -13,6 +13,7 @@ import {
 } from '../../../components/ranking';
 import type { RankingUserDto } from '@ingresa-pe/domain';
 import { areaLabels, leagueConfig } from '@ingresa-pe/domain';
+import { RankingSkeleton } from '../../../components/ui/skeleton';
 
 type Tab = 'career' | 'area' | 'league';
 type Zone = 'promotion' | 'neutral' | 'relegation';
@@ -271,11 +272,7 @@ export default function RankingPage() {
         className="flex-1 overflow-y-auto hide-scrollbar relative z-10 px-3 sm:px-4 pb-24 text-[11px] sm:text-[12px]"
       >
         {isLoading ? (
-          <div className="space-y-3 pt-4">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />
-            ))}
-          </div>
+          <RankingSkeleton />
         ) : groups.length ? (
           groups.map((group) => {
             const isUserGroup = userGroup?.key === group.key;

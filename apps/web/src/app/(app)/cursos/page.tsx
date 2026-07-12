@@ -15,6 +15,7 @@ import {
   PenTool,
 } from 'lucide-react';
 import { trpc } from '../../../utils/trpc';
+import { CourseListSkeleton } from '../../../components/ui/skeleton';
 
 type CourseStatus = 'completed' | 'available' | 'locked';
 
@@ -85,11 +86,7 @@ export default function CursosPage() {
     coursesData.find((c) => c.id === activeCourseId) ?? coursesData[0];
 
   if (isLoading) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="font-black text-[#58cc02]">Cargando cursos…</div>
-      </div>
-    );
+    return <CourseListSkeleton />;
   }
 
   if (coursesData.length === 0) {

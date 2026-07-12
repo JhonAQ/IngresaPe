@@ -12,20 +12,14 @@ import { useAuth } from '../../../hooks/useAuth';
 import { ChunkyButton } from '../../../components/ui/ChunkyButton';
 import { ProgressBar } from '@ingresa-pe/ui';
 import { InstallTag } from '../../../components/pwa/InstallTag';
+import { ProfileSkeleton } from '../../../components/ui/skeleton';
 
 export default function PerfilPage() {
   const { logout } = useAuth();
   const { user, rank, level, xpProgress, isLoading } = useProfileData();
 
   if (isLoading) {
-    return (
-      <main className="flex-1 overflow-y-auto hide-scrollbar bg-slate-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-duo-blue/20 border-t-duo-blue" />
-          <span className="text-sm font-bold text-slate-400">Cargando perfil...</span>
-        </div>
-      </main>
-    );
+    return <ProfileSkeleton />;
   }
 
   return (
