@@ -9,7 +9,7 @@ import { getQuestionRenderer } from './registry';
 import { EngineHeader, FeedbackDrawer, DinoMaxModal, ExitConfirmModal } from './SharedEngineUI';
 import { LatexText } from '../ui/LatexText';
 import { EngineSkeleton } from '../ui/skeleton';
-import { InstallPromptModal } from '../pwa/InstallPromptModal';
+import { CompletionScreen } from './CompletionScreen';
 import type { MatchingView, FillInBlankView } from '@ingresa-pe/domain';
 import type { ComponentType } from 'react';
 
@@ -32,6 +32,9 @@ export function Engine() {
     lives,
     answer,
     feedback,
+    questions,
+    correctCount,
+    totalRewards,
     setAnswer,
     submit,
     continueNext,
@@ -134,6 +137,10 @@ export function Engine() {
       <CompletionScreen
         onClose={handleConfirmExit}
         onRetry={() => window.location.reload()}
+        correctCount={correctCount}
+        totalQuestions={questions.length}
+        xpGained={totalRewards.xp}
+        coinsGained={totalRewards.coins}
       />
     );
   }
@@ -202,46 +209,6 @@ export function Engine() {
         onConfirm={handleConfirmExit}
         onCancel={handleCancelExit}
       />
-    </div>
-  );
-}
-
-function CompletionScreen({
-  onClose,
-  onRetry,
-}: {
-  onClose: () => void;
-  onRetry: () => void;
-}) {
-  const [showInstallModal, setShowInstallModal] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setShowInstallModal(true), 1500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  return (
-    <div className="w-full max-w-md mx-auto h-[100dvh] flex flex-col items-center justify-center px-6 text-center bg-[#d7ffb8]">
-      {showInstallModal && <InstallPromptModal />}
-      <div className="mb-6 text-[80px]">🏆</div>
-      <h1 className="font-black text-[28px] text-[#58a700] mb-3">¡Lección completada!</h1>
-      <p className="text-[#3c3c3c] font-bold mb-8">
-        Terminaste este set de preguntas. Vuelve mañana para seguir practicando.
-      </p>
-      <div className="flex flex-col gap-3 w-full">
-        <button
-          onClick={onRetry}
-          className="w-full bg-[#58cc02] text-white font-black text-[16px] uppercase tracking-widest py-3.5 rounded-2xl border-b-[4px] border-[#58a700] active:border-b-0 active:translate-y-[4px] transition-all"
-        >
-          Repetir
-        </button>
-        <button
-          onClick={onClose}
-          className="w-full bg-white text-[#3c3c3c] font-black text-[16px] uppercase tracking-widest py-3.5 rounded-2xl border-b-[4px] border-[#e5e5e5] active:border-b-0 active:translate-y-[4px] transition-all"
-        >
-          Volver
-        </button>
-      </div>
     </div>
   );
 }

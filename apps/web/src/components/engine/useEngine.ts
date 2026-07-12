@@ -24,6 +24,8 @@ export interface UseEngineResult {
   lives: number;
   answer: AnswerSubmission | null;
   feedback: FeedbackState | null;
+  correctCount: number;
+  totalRewards: { xp: number; coins: number };
   setAnswer: (answer: AnswerSubmission) => void;
   submit: () => void;
   continueNext: () => void;
@@ -46,6 +48,8 @@ export function useEngine(
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
   const [lives, setLives] = useState(5);
   const [error, setError] = useState<string | null>(null);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [totalRewards, setTotalRewards] = useState({ xp: 0, coins: 0 });
 
   const utils = trpc.useUtils();
 
@@ -103,6 +107,14 @@ export function useEngine(
       });
       if (!isCorrect) {
         setLives((prev) => Math.max(0, prev - 1));
+      } else {
+        setCorrectCount((prev) => prev + 1);
+      }
+      if (result.rewards) {
+        setTotalRewards((prev) => ({
+          xp: prev.xp + result.rewards.xp,
+          coins: prev.coins + result.rewards.coins,
+        }));
       }
       setStatus('feedback');
       // Invalidar stats/progreso para reflejar cambios en dashboard.
@@ -178,6 +190,8 @@ export function useEngine(
     lives,
     answer,
     feedback,
+    correctCount,
+    totalRewards,
     setAnswer,
     submit,
     continueNext,
