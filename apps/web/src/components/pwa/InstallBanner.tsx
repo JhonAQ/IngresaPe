@@ -26,9 +26,9 @@ export function InstallBanner() {
             <div className="relative flex items-center gap-3 px-4 py-3">
               <div className="relative shrink-0">
                 <img
-                  src="/icon-192.png"
+                  src="/logo-sky.png"
                   alt=""
-                  className="w-11 h-11 rounded-xl shadow-sm border border-white"
+                  className="w-11 h-11 rounded-xl shadow-sm"
                 />
                 <motion.div
                   className="absolute inset-[-3px] rounded-xl border-2 border-amber-400/50"

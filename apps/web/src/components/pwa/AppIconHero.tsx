@@ -32,12 +32,12 @@ export function AppIconHero({
       )}
 
       <motion.div
-        className="relative w-full h-full rounded-2xl overflow-hidden shadow-[0_6px_0_0_#911019] border-2 border-primary-500"
+        className="relative w-full h-full rounded-2xl overflow-hidden"
         animate={{ y: [0, -4, 0] }}
         transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
       >
         <img
-          src="/icon-192.png"
+          src="/logo-sky.png"
           alt="Ingresa.pe"
           className="w-full h-full object-cover"
         />

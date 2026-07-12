@@ -17,6 +17,17 @@ export const metadata = {
     icon: '/icon-192.png',
     apple: '/apple-touch-icon.png',
   },
+  openGraph: {
+    title: 'Ingresa.pe — El Duolingo de los preuniversitarios',
+    description:
+      'Prepárate para tu examen de admisión universitaria con lecciones gamificadas, simulacros y seguimiento inteligente.',
+    images: ['/logo-sky.png'],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['/logo-sky.png'],
+  },
   other: {
     'mobile-web-app-capable': 'yes',
   },

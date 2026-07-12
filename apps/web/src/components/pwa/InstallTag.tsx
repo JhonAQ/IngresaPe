@@ -67,8 +67,8 @@ function PhoneIllustration() {
   return (
     <div className="relative w-16 h-20">
       <div className="absolute inset-0 bg-purple-500 rounded-[1.2rem] shadow-[0_4px_0_0_#7e22ce] border-2 border-purple-400 flex flex-col items-center justify-center gap-1.5">
-        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-          <img src="/icon-192.png" alt="" className="w-7 h-7 rounded-lg" />
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center">
+          <img src="/logo-sky.png" alt="" className="w-7 h-7 rounded-lg" />
         </div>
         <div className="w-6 h-1 rounded-full bg-white/30" />
       </div>

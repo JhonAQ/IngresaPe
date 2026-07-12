@@ -52,9 +52,11 @@ function RegisterContent() {
     <div className="min-h-screen bg-slate-50 flex justify-center items-center p-4 sm:p-8 font-sans text-slate-800">
       <div className="w-full max-w-md bg-white rounded-[24px] sm:rounded-[32px] shadow-sm overflow-hidden flex flex-col p-6 sm:px-10 sm:py-12 border-2 border-slate-200">
         <div className="text-center mb-8 sm:mb-10 mt-2 flex flex-col items-center">
-          <h1 className="text-[36px] sm:text-[44px] font-extrabold text-error-500 tracking-tighter leading-none mb-1">
-            Ingresa.pe
-          </h1>
+          <img
+            src="/logo-horizontal.png"
+            alt="Ingresa.pe"
+            className="h-10 sm:h-12 w-auto object-contain mb-2"
+          />
           <p className="text-slate-500 font-extrabold mt-1 text-[10px] sm:text-[11px] uppercase tracking-wide">
             EL DUOLINGO PARA PREUNIVERSITARIOS
           </p>
