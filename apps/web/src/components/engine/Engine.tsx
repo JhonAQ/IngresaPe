@@ -35,6 +35,7 @@ export function Engine() {
     questions,
     correctCount,
     totalRewards,
+    durationSeconds,
     setAnswer,
     submit,
     continueNext,
@@ -141,6 +142,7 @@ export function Engine() {
         totalQuestions={questions.length}
         xpGained={totalRewards.xp}
         coinsGained={totalRewards.coins}
+        durationSeconds={durationSeconds}
       />
     );
   }

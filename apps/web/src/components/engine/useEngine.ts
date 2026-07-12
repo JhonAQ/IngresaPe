@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { trpc } from '../../utils/trpc';
 import type { AnswerSubmission, QuestionDto } from '@ingresa-pe/domain';
 
@@ -26,6 +26,7 @@ export interface UseEngineResult {
   feedback: FeedbackState | null;
   correctCount: number;
   totalRewards: { xp: number; coins: number };
+  durationSeconds: number;
   setAnswer: (answer: AnswerSubmission) => void;
   submit: () => void;
   continueNext: () => void;
@@ -50,6 +51,7 @@ export function useEngine(
   const [error, setError] = useState<string | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
   const [totalRewards, setTotalRewards] = useState({ xp: 0, coins: 0 });
+  const startTimeRef = useRef<number | null>(null);
 
   const utils = trpc.useUtils();
 
@@ -80,6 +82,12 @@ export function useEngine(
       console.error('Error completando nodo:', err.message);
     },
   });
+
+  useEffect(() => {
+    if (status !== 'loading' && startTimeRef.current === null) {
+      startTimeRef.current = Date.now();
+    }
+  }, [status]);
 
   useEffect(() => {
     if (status !== 'loading') return;
@@ -180,6 +188,11 @@ export function useEngine(
       ? 'error'
       : status;
 
+  const durationSeconds =
+    status === 'completed' && startTimeRef.current !== null
+      ? Math.floor((Date.now() - startTimeRef.current) / 1000)
+      : 0;
+
   return {
     status: derivedStatus,
     error,
@@ -192,6 +205,7 @@ export function useEngine(
     feedback,
     correctCount,
     totalRewards,
+    durationSeconds,
     setAnswer,
     submit,
     continueNext,
