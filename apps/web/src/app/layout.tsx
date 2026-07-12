@@ -26,6 +26,9 @@ export const metadata = {
   },
   twitter: {
     card: 'summary_large_image',
+    title: 'Ingresa.pe — El Duolingo de los preuniversitarios',
+    description:
+      'Prepárate para tu examen de admisión universitaria con lecciones gamificadas, simulacros y seguimiento inteligente.',
     images: ['/logo-sky.png'],
   },
   other: {

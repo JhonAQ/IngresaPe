@@ -3,7 +3,7 @@ import type { MetadataRoute } from 'next';
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Ingresa.pe',
-    short_name: 'Ingresa',
+    short_name: 'Ingresa.pe',
     description: 'El Duolingo de los preuniversitarios',
     start_url: '/',
     display: 'standalone',
