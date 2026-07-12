@@ -213,9 +213,16 @@ function CompletionScreen({
   onClose: () => void;
   onRetry: () => void;
 }) {
+  const [showInstallModal, setShowInstallModal] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowInstallModal(true), 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="w-full max-w-md mx-auto h-[100dvh] flex flex-col items-center justify-center px-6 text-center bg-[#d7ffb8]">
-      <InstallPromptModal />
+      {showInstallModal && <InstallPromptModal />}
       <div className="mb-6 text-[80px]">🏆</div>
       <h1 className="font-black text-[28px] text-[#58a700] mb-3">¡Lección completada!</h1>
       <p className="text-[#3c3c3c] font-bold mb-8">

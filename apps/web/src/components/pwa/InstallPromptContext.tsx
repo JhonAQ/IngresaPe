@@ -31,8 +31,11 @@ interface InstallPromptContextValue {
   deferredPrompt: BeforeInstallPromptEvent | null;
   state: InstallPromptState;
   showIOSInstructions: boolean;
+  showWelcomeBack: boolean;
   openIOSInstructions: () => void;
   closeIOSInstructions: () => void;
+  openWelcomeBack: () => void;
+  closeWelcomeBack: () => void;
   promptInstall: () => Promise<void>;
   dismiss: (options?: { neverShowAgain?: boolean }) => void;
   accept: () => void;
@@ -51,6 +54,7 @@ export function InstallPromptProvider({ children }: { children: React.ReactNode 
   const [ios, setIos] = useState(false);
   const [state, setState] = useState<InstallPromptState>(getInstallPromptState());
   const [showIOSInstructions, setShowIOSInstructions] = useState(false);
+  const [showWelcomeBack, setShowWelcomeBack] = useState(false);
 
   useEffect(() => {
     setStandalone(isStandalone());
@@ -113,6 +117,9 @@ export function InstallPromptProvider({ children }: { children: React.ReactNode 
   const openIOSInstructions = useCallback(() => setShowIOSInstructions(true), []);
   const closeIOSInstructions = useCallback(() => setShowIOSInstructions(false), []);
 
+  const openWelcomeBack = useCallback(() => setShowWelcomeBack(true), []);
+  const closeWelcomeBack = useCallback(() => setShowWelcomeBack(false), []);
+
   const isInstallable = useMemo(() => {
     if (standalone) return false;
     return !!deferredPrompt || ios;
@@ -136,8 +143,11 @@ export function InstallPromptProvider({ children }: { children: React.ReactNode 
       deferredPrompt,
       state,
       showIOSInstructions,
+      showWelcomeBack,
       openIOSInstructions,
       closeIOSInstructions,
+      openWelcomeBack,
+      closeWelcomeBack,
       promptInstall,
       dismiss,
       accept,
@@ -151,8 +161,11 @@ export function InstallPromptProvider({ children }: { children: React.ReactNode 
       deferredPrompt,
       state,
       showIOSInstructions,
+      showWelcomeBack,
       openIOSInstructions,
       closeIOSInstructions,
+      openWelcomeBack,
+      closeWelcomeBack,
       promptInstall,
       dismiss,
       accept,
