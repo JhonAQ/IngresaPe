@@ -2,11 +2,17 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, Clock, ChevronRight, Share2 } from 'lucide-react';
+import { ChevronRight, Share2 } from 'lucide-react';
 import { ChunkyTrophy } from './ChunkyTrophy';
 import { AnimatedCounter } from './AnimatedCounter';
-import { FreezeHotIcon } from './FreezeHotIcon';
-import { XpIcon, FlameIcon, GemIcon } from '@ingresa-pe/ui';
+import {
+  XpIcon,
+  FlameIcon,
+  GemIcon,
+  FreezeHotIcon,
+  TargetIcon,
+  TimerIcon,
+} from '@ingresa-pe/ui';
 import { useProfileData } from '../../hooks/useProfileData';
 
 interface CompletionScreenProps {
@@ -340,7 +346,7 @@ export function CompletionScreen({
             <StatCard
               show={showAcc}
               header="Precisión"
-              icon={<Target size={24} className="text-[#58cc02]" strokeWidth={2.5} />}
+              icon={<TargetIcon className="w-6 h-6 text-[#58cc02]" />}
               value={accuracy}
               suffix="%"
               bgColor="bg-[#58cc02]"
@@ -351,7 +357,7 @@ export function CompletionScreen({
             <StatCard
               show={showTime}
               header="Tiempo"
-              icon={<Clock size={24} className="text-[#1cb0f6]" strokeWidth={2.5} />}
+              icon={<TimerIcon className="w-6 h-6 text-[#1cb0f6]" />}
               value={durationSeconds}
               formatTime
               bgColor="bg-[#1cb0f6]"

@@ -1,8 +1,6 @@
 import React from 'react';
 
-type FreezeHotIconProps = React.SVGProps<SVGSVGElement>;
-
-export const FreezeHotIcon: React.FC<FreezeHotIconProps> = ({
+export const FreezeHotIcon: React.FC<React.SVGProps<SVGSVGElement>> = ({
   className = '',
   ...props
 }) => (

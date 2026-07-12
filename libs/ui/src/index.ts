@@ -23,6 +23,12 @@ export * from './lib/icons/LevelStarIcon';
 export * from './lib/icons/LevelVideoIcon';
 export * from './lib/icons/LevelWeightsIcon';
 export * from './lib/icons/NewsIcon';
+export * from './lib/icons/BellIcon';
+export * from './lib/icons/FreezeHotIcon';
+export * from './lib/icons/HeartIcon';
+export * from './lib/icons/LightIcon';
+export * from './lib/icons/TargetIcon';
+export * from './lib/icons/TimerIcon';
 
 
 
