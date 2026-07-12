@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma.service';
 import { QuestionGraderService } from './question-grader.service';
 import { TRPCError } from '@trpc/server';
 import { AnswerSubmission } from '@ingresa-pe/domain';
+import { calculateNewStreak } from '../utils/streak.utils';
 
 interface SubmitAnswerInput {
   userId: string;
@@ -46,7 +47,7 @@ export class GameService {
     const { xp: xpEarned, coins: coinsEarned } = rewards;
 
     // 5. Calcular Nueva Racha (Streak)
-    const { newStreak, shouldUpdateDate } = this.calculateNewStreak(
+    const { newStreak, shouldUpdateDate } = calculateNewStreak(
       user.streak,
       user.lastInteraction
     );
@@ -92,25 +93,4 @@ export class GameService {
     });
   }
 
-  /**
-   * 🧠 Algoritmo de Racha (Streak)
-   * Determina si el usuario merece aumentar su racha basándose en la última interacción
-   */
-  private calculateNewStreak(currentStreak: number, lastDate: Date) {
-    const now = new Date();
-    const last = new Date(lastDate);
-
-    const isToday = now.toDateString() === last.toDateString();
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const isYesterday = yesterday.toDateString() === last.toDateString();
-
-    if (isToday) {
-      return { newStreak: currentStreak, shouldUpdateDate: true };
-    } else if (isYesterday) {
-      return { newStreak: currentStreak + 1, shouldUpdateDate: true };
-    } else {
-      return { newStreak: 1, shouldUpdateDate: true };
-    }
-  }
 }

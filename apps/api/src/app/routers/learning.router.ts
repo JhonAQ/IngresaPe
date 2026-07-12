@@ -5,6 +5,7 @@ import { PrismaService } from '../prisma.service';
 import { TRPCError } from '@trpc/server';
 import { QuestionGraderService } from '../services/question-grader.service';
 import { answerSubmissionSchema } from '@ingresa-pe/domain';
+import { calculateNewStreak } from '../utils/streak.utils';
 
 @Injectable()
 export class LearningRouter {
@@ -68,12 +69,22 @@ export class LearningRouter {
         const now = new Date();
         const user = await this.prisma.user.findUnique({ where: { id: ctx.user.userId } });
 
+        if (!user) {
+          throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Usuario no encontrado' });
+        }
+
+        const { newStreak, shouldUpdateDate } = calculateNewStreak(
+          user.streak,
+          user.lastInteraction
+        );
+
         await this.prisma.user.update({
           where: { id: ctx.user.userId },
           data: {
             totalXp: { increment: xpEarned },
             coins: { increment: coinsEarned },
-            lastInteraction: now,
+            streak: newStreak,
+            lastInteraction: shouldUpdateDate ? now : undefined,
           }
         });
 
