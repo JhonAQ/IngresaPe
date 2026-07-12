@@ -1,4 +1,5 @@
 import React from 'react';
+import { HeartIcon } from '@ingresa-pe/ui';
 
 export const DuoTicket = ({ className = 'w-8 h-8' }) => (
   <svg viewBox="0 0 100 100" className={className}>
@@ -101,36 +102,8 @@ export const ChunkyArcade = () => (
   </svg>
 );
 
-export const ChunkyHeart = () => (
-  <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-sm">
-    <path
-      d="M 50 95 L 15 55 C 5 45 5 25 20 15 C 30 10 40 15 50 25 C 60 15 70 10 80 15 C 95 25 95 45 85 55 Z"
-      fill="#df2b2b"
-    />
-    <path
-      d="M 50 85 L 15 45 C 5 35 5 15 20 5 C 30 0 40 5 50 15 C 60 5 70 0 80 5 C 95 15 95 35 85 45 Z"
-      fill="#ff4b4b"
-    />
-    <path
-      d="M 22 15 C 30 8 42 12 48 20"
-      stroke="#ffffff"
-      strokeWidth="5"
-      strokeLinecap="round"
-      fill="none"
-      opacity="0.5"
-    />
-    <path
-      d="M 35 35 L 65 35 L 65 50 C 65 60 50 70 50 70 C 50 70 35 60 35 50 Z"
-      fill="#ffffff"
-      opacity="0.9"
-    />
-    <path
-      d="M 50 40 L 50 60 M 40 50 L 60 50"
-      stroke="#ff4b4b"
-      strokeWidth="5"
-      strokeLinecap="round"
-    />
-  </svg>
+export const ChunkyHeart = ({ className = 'w-full h-full' }: { className?: string }) => (
+  <HeartIcon className={className} />
 );
 
 export const ChunkyTimer = () => (

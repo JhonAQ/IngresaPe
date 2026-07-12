@@ -27,6 +27,7 @@ export * from './lib/icons/BellIcon';
 export * from './lib/icons/FreezeHotIcon';
 export * from './lib/icons/HeartIcon';
 export * from './lib/icons/LightIcon';
+export * from './lib/icons/RatingIcon';
 export * from './lib/icons/TargetIcon';
 export * from './lib/icons/TimerIcon';
 

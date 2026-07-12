@@ -1,7 +1,8 @@
 'use client';
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Target, Flame } from 'lucide-react';
+import { Flame } from 'lucide-react';
+import { TargetIcon } from '@ingresa-pe/ui';
 
 interface GoalCardProps {
   career: string;
@@ -27,7 +28,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({
         <div className="flex items-center justify-between mb-3 relative z-10">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-[0_3px_0_0_#1d4ed8]">
-              <Target size={22} strokeWidth={3} />
+              <TargetIcon className="w-6 h-6" />
             </div>
             <h2 className="text-[19px] font-black text-slate-800 leading-tight">
               {career}

@@ -2,27 +2,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, CheckCircle2, Check, Flag, AlertTriangle } from 'lucide-react';
+import { HeartIcon } from '@ingresa-pe/ui';
 import { LatexText } from '../ui/LatexText';
 
 // ============================================================================
 // ARTE SVG CUSTOM (Chunky & Flat 3D)
 // ============================================================================
-export const ChunkyHeart = ({ className = 'w-6 h-6' }) => (
-  <svg viewBox="0 0 100 100" className={`drop-shadow-sm ${className}`}>
-    <path
-      d="M 50 90 L 15 50 C 5 40 5 20 20 10 C 30 5 40 10 50 20 C 60 10 70 5 80 10 C 95 20 95 40 85 50 Z"
-      fill="#ff4b4b"
-    />
-    <path
-      d="M 22 15 C 30 8 42 12 48 20"
-      stroke="#ffffff"
-      strokeWidth="5"
-      strokeLinecap="round"
-      fill="none"
-      opacity="0.5"
-    />
-  </svg>
-);
 
 export const DuoBot = ({
   className = 'w-24 h-24',
@@ -162,8 +147,8 @@ export function EngineHeader({ progress, lives, onClose }: EngineHeaderProps) {
           <div className="absolute top-[3px] left-2 right-2 h-[4px] bg-white/30 rounded-full"></div>
         </motion.div>
       </div>
-      <div className="flex items-center gap-1.5 font-black text-[#ff4b4b]">
-        <ChunkyHeart className="w-7 h-7" /> {lives}
+      <div className="flex items-center gap-1.5 font-black text-duo-red">
+        <HeartIcon className="w-7 h-7" /> {lives}
       </div>
     </header>
   );

@@ -4,6 +4,39 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    /* Duolingo-style palette as CSS variables */
+    --duo-green-base: #58cc02;
+    --duo-green-light: #89e219;
+    --duo-green-dark: #58a700;
+
+    --duo-blue-base: #1cb0f6;
+    --duo-blue-light: #71d2ff;
+    --duo-blue-dark: #1899d6;
+
+    --duo-red-base: #ff4b4b;
+    --duo-red-light: #ff7a7a;
+    --duo-red-dark: #ea2b2b;
+
+    --duo-orange-base: #ff9600;
+    --duo-orange-light: #ffc800;
+    --duo-orange-dark: #cd7900;
+
+    --duo-purple-base: #ce82ff;
+    --duo-purple-light: #e6c3ff;
+    --duo-purple-dark: #a568cc;
+
+    --duo-gold-base: #ffc800;
+    --duo-gold-light: #ffe166;
+    --duo-gold-dark: #e5b400;
+
+    --duo-gray: #afafaf;
+    --duo-dark: #3c3c3c;
+    --duo-border: #e5e5e5;
+  }
+}
+
 /* =============================================
    BASE RESETS
    ============================================= */

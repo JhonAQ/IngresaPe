@@ -92,15 +92,39 @@ module.exports = {
         },
         // Duolingo Accent Colors (used across the app)
         duo: {
-          green: '#58cc02',
-          blue: '#1cb0f6',
-          red: '#ff4b4b',
-          orange: '#ff9600',
-          purple: '#ce82ff',
-          gold: '#ffc800',
-          gray: '#afafaf',
-          dark: '#3c3c3c',
-          border: '#e5e5e5',
+          green: {
+            DEFAULT: 'var(--duo-green-base)',
+            light: 'var(--duo-green-light)',
+            dark: 'var(--duo-green-dark)',
+          },
+          blue: {
+            DEFAULT: 'var(--duo-blue-base)',
+            light: 'var(--duo-blue-light)',
+            dark: 'var(--duo-blue-dark)',
+          },
+          red: {
+            DEFAULT: 'var(--duo-red-base)',
+            light: 'var(--duo-red-light)',
+            dark: 'var(--duo-red-dark)',
+          },
+          orange: {
+            DEFAULT: 'var(--duo-orange-base)',
+            light: 'var(--duo-orange-light)',
+            dark: 'var(--duo-orange-dark)',
+          },
+          purple: {
+            DEFAULT: 'var(--duo-purple-base)',
+            light: 'var(--duo-purple-light)',
+            dark: 'var(--duo-purple-dark)',
+          },
+          gold: {
+            DEFAULT: 'var(--duo-gold-base)',
+            light: 'var(--duo-gold-light)',
+            dark: 'var(--duo-gold-dark)',
+          },
+          gray: 'var(--duo-gray)',
+          dark: 'var(--duo-dark)',
+          border: 'var(--duo-border)',
         },
       },
       boxShadow: {
