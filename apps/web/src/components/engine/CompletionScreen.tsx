@@ -6,7 +6,7 @@ import { Target, Clock, ChevronRight, Share2 } from 'lucide-react';
 import { ChunkyTrophy } from './ChunkyTrophy';
 import { AnimatedCounter } from './AnimatedCounter';
 import { FreezeHotIcon } from './FreezeHotIcon';
-import { XpIcon, FlameIcon, GemIcon, RankingIcon } from '@ingresa-pe/ui';
+import { XpIcon, FlameIcon, GemIcon } from '@ingresa-pe/ui';
 import { useProfileData } from '../../hooks/useProfileData';
 
 interface CompletionScreenProps {
@@ -167,19 +167,15 @@ function StreakCard({
   );
 }
 
-function RewardSummaryCard({
+function GemsCard({
   show,
   coinsGained,
-  rank,
-  onProtect,
-  isProtected,
 }: {
   show: boolean;
   coinsGained: number;
-  rank: number | null;
-  onProtect: () => void;
-  isProtected: boolean;
 }) {
+  const [claimed, setClaimed] = useState(false);
+
   return (
     <AnimatePresence>
       {show && (
@@ -187,51 +183,79 @@ function RewardSummaryCard({
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ type: 'spring', bounce: 0.4 }}
-          className="w-full bg-white border-2 border-[#e5e5e5] border-b-[6px] rounded-[1.5rem] p-4 flex flex-col gap-4"
+          className="w-full bg-white border-2 border-[#e5e5e5] border-b-[6px] rounded-[1.5rem] p-4 flex items-center gap-4"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-[#e0f4ff] rounded-2xl flex items-center justify-center border-2 border-[#1cb0f6]/20">
-              <GemIcon className="w-7 h-7" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-black text-[#1cb0f6] text-[18px] leading-tight">
-                Ganaste{' '}
-                <AnimatedCounter targetValue={coinsGained} duration={1} prefix="+" />{' '}
-                gemas
-              </h3>
-              <p className="font-bold text-[#afafaf] text-[13px] leading-snug">
-                Sigue acumulando para la tienda.
-              </p>
-            </div>
+          <div className="w-16 h-16 bg-[#e0f4ff] rounded-2xl flex items-center justify-center border-2 border-[#1cb0f6]/20 shrink-0">
+            <GemIcon className="w-8 h-8" />
           </div>
 
-          {rank !== null && (
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-[#fff8db] rounded-2xl flex items-center justify-center border-2 border-[#fec701]/30">
-                <RankingIcon className="w-7 h-7" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-black text-[#e5a900] text-[18px] leading-tight">
-                  Ranking #{rank}
-                </h3>
-                <p className="font-bold text-[#afafaf] text-[13px] leading-snug">
-                  Tu posición actual en la liga.
-                </p>
-              </div>
-            </div>
-          )}
+          <div className="flex-1 min-w-0">
+            <h3 className="font-black text-[#1cb0f6] text-[20px] leading-tight">
+              Ganaste{' '}
+              <AnimatedCounter targetValue={coinsGained} duration={1} prefix="+" />{' '}
+              gemas
+            </h3>
+            <p className="font-bold text-[#afafaf] text-[13px] leading-snug">
+              Úsalas en la tienda para desbloquear recompensas.
+            </p>
+          </div>
 
           <button
-            onClick={onProtect}
-            disabled={isProtected}
-            className={`w-full flex items-center justify-center gap-2 font-black text-[15px] uppercase tracking-widest py-3 rounded-xl border-b-[4px] transition-all active:border-b-0 active:translate-y-[4px] ${
-              isProtected
-                ? 'bg-[#e5e5e5] text-[#afafaf] border-[#d4d4d4] cursor-default'
-                : 'bg-[#71d2ff] text-white border-[#1cb0f6] hover:bg-[#5ec9ff]'
+            onClick={() => setClaimed(true)}
+            disabled={claimed}
+            className={`shrink-0 px-4 h-10 rounded-xl font-black text-[13px] uppercase tracking-wider transition-all active:scale-90 ${
+              claimed
+                ? 'bg-[#e5e5e5] text-[#afafaf]'
+                : 'bg-[#1cb0f6] text-white border-b-4 border-[#1899d6] active:border-b-0 active:translate-y-[4px]'
             }`}
           >
-            <FreezeHotIcon className="w-6 h-9" />
-            {isProtected ? 'Racha protegida' : 'Obtener protector de racha'}
+            {claimed ? 'Recogido' : 'Obtener'}
+          </button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function StreakProtectorCard({
+  show,
+}: {
+  show: boolean;
+}) {
+  const [used, setUsed] = useState(false);
+
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', bounce: 0.4 }}
+          className="w-full bg-white border-2 border-[#e5e5e5] border-b-[6px] rounded-[1.5rem] p-4 flex items-center gap-4"
+        >
+          <div className="w-16 h-16 bg-[#e0f4ff] rounded-2xl flex items-center justify-center border-2 border-[#71d2ff]/30 shrink-0">
+            <FreezeHotIcon className="w-10 h-10" />
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <h3 className="font-black text-[#1cb0f6] text-[20px] leading-tight">
+              ¡Ganaste un protector de racha!
+            </h3>
+            <p className="font-bold text-[#afafaf] text-[13px] leading-snug">
+              Protege tu racha por 1 día si no puedes practicar.
+            </p>
+          </div>
+
+          <button
+            onClick={() => setUsed(true)}
+            disabled={used}
+            className={`shrink-0 px-4 h-10 rounded-xl font-black text-[13px] uppercase tracking-wider transition-all active:scale-90 ${
+              used
+                ? 'bg-[#e5e5e5] text-[#afafaf]'
+                : 'bg-[#71d2ff] text-white border-b-4 border-[#1cb0f6] active:border-b-0 active:translate-y-[4px]'
+            }`}
+          >
+            {used ? 'Activo' : 'Usar'}
           </button>
         </motion.div>
       )}
@@ -247,7 +271,7 @@ export function CompletionScreen({
   coinsGained,
   durationSeconds,
 }: CompletionScreenProps) {
-  const { user, rank } = useProfileData();
+  const { user } = useProfileData();
   const streak = user?.streak ?? 0;
   const firstActivityToday = isFirstActivityToday(user?.lastInteraction);
 
@@ -258,7 +282,6 @@ export function CompletionScreen({
   const [showTime, setShowTime] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [showButton, setShowButton] = useState(false);
-  const [streakProtected, setStreakProtected] = useState(false);
 
   useEffect(() => {
     const timers = [
@@ -351,13 +374,10 @@ export function CompletionScreen({
               }}
             />
           ) : (
-            <RewardSummaryCard
-              show={showSummary}
-              coinsGained={coinsGained}
-              rank={rank}
-              onProtect={() => setStreakProtected(true)}
-              isProtected={streakProtected}
-            />
+            <>
+              <GemsCard show={showSummary} coinsGained={coinsGained} />
+              <StreakProtectorCard show={showSummary} />
+            </>
           )}
         </main>
       </div>
