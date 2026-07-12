@@ -22,6 +22,8 @@ export * from './lib/icons/LevelMicrophoneIcon';
 export * from './lib/icons/LevelStarIcon';
 export * from './lib/icons/LevelVideoIcon';
 export * from './lib/icons/LevelWeightsIcon';
+export * from './lib/icons/NewsIcon';
+
 
 
 

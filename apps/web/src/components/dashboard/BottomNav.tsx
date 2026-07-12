@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ProfileIcon, HomeIcon, SimulacroIcon, RankingIcon } from '@ingresa-pe/ui';
-import { Gamepad2 } from 'lucide-react';
+import { ProfileIcon, HomeIcon, SimulacroIcon, RankingIcon, NewsIcon } from '@ingresa-pe/ui';
+
 
 const tabs = [
   {
@@ -24,7 +24,12 @@ const tabs = [
     icon: RankingIcon,
     iconProps: { className: 'w-[26px] h-[26px]' },
   },
-  { href: '/entrenar', label: 'Entrenar', iconLucide: Gamepad2, size: 26 },
+  {
+    href: '/news',
+    label: 'News',
+    icon: NewsIcon,
+    iconProps: { className: 'w-[26px] h-[26px]' },
+  },
   {
     href: '/perfil',
     label: 'Perfil',
@@ -49,11 +54,7 @@ export function BottomNav() {
             href={tab.href}
             className={`flex-1 flex flex-col items-center justify-center gap-1 transition-colors ${colorClass}`}
           >
-            {tab.icon ? (
-              <tab.icon {...(tab.iconProps || {})} />
-            ) : tab.iconLucide ? (
-              <tab.iconLucide size={tab.size || 26} strokeWidth={2.5} />
-            ) : null}
+            <tab.icon {...(tab.iconProps || {})} />
             <span className={`text-[10px] uppercase ${fontClass}`}>
               {tab.label}
             </span>
