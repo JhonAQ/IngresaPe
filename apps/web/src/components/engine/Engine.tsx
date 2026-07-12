@@ -137,11 +137,9 @@ export function Engine() {
     return (
       <CompletionScreen
         onClose={handleConfirmExit}
-        onRetry={() => window.location.reload()}
         correctCount={correctCount}
         totalQuestions={questions.length}
         xpGained={totalRewards.xp}
-        coinsGained={totalRewards.coins}
         durationSeconds={durationSeconds}
       />
     );

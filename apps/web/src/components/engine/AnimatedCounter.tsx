@@ -64,6 +64,7 @@ export function AnimatedCounter({
           ? {
               scale: [1, 1.4, 0.9, 1.1, 1],
               rotate: [0, -4, 4, -2, 0],
+              color: ['inherit', '#ffffff', 'inherit'],
             }
           : {}
       }
