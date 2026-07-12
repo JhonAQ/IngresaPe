@@ -14,6 +14,7 @@ interface BackendUser {
   inventory?: string[];
   totalXp?: number;
   streak?: number;
+  lastInteraction?: Date | string | null;
   isPremium?: boolean;
 }
 

@@ -140,6 +140,7 @@ export function Engine() {
         correctCount={correctCount}
         totalQuestions={questions.length}
         xpGained={totalRewards.xp}
+        coinsGained={totalRewards.coins}
         durationSeconds={durationSeconds}
       />
     );
