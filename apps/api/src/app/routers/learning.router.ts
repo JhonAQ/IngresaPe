@@ -73,7 +73,7 @@ export class LearningRouter {
           throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Usuario no encontrado' });
         }
 
-        const { newStreak, shouldUpdateDate } = calculateNewStreak(
+        const { newStreak, shouldUpdateDate, streakIncremented } = calculateNewStreak(
           user.streak,
           user.lastInteraction
         );
@@ -102,6 +102,7 @@ export class LearningRouter {
           correctAnswerText,
           explanation: explanation ?? question.explanation,
           rewards: { xp: xpEarned, coins: coinsEarned },
+          streakIncremented,
           newTotalCoins: (user?.coins || 0) + coinsEarned
         };
       }),

@@ -27,6 +27,7 @@ export interface UseEngineResult {
   correctCount: number;
   totalRewards: { xp: number; coins: number };
   durationSeconds: number;
+  streakIncremented: boolean;
   setAnswer: (answer: AnswerSubmission) => void;
   submit: () => void;
   continueNext: () => void;
@@ -51,6 +52,7 @@ export function useEngine(
   const [error, setError] = useState<string | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
   const [totalRewards, setTotalRewards] = useState({ xp: 0, coins: 0 });
+  const [streakIncremented, setStreakIncremented] = useState(false);
   const startTimeRef = useRef<number | null>(null);
 
   const utils = trpc.useUtils();
@@ -123,6 +125,9 @@ export function useEngine(
           xp: prev.xp + result.rewards.xp,
           coins: prev.coins + result.rewards.coins,
         }));
+      }
+      if (result.streakIncremented) {
+        setStreakIncremented(true);
       }
       setStatus('feedback');
       // Invalidar stats/progreso para reflejar cambios en dashboard.
@@ -206,6 +211,7 @@ export function useEngine(
     correctCount,
     totalRewards,
     durationSeconds,
+    streakIncremented,
     setAnswer,
     submit,
     continueNext,

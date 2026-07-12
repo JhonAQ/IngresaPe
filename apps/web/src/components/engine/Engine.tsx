@@ -36,6 +36,7 @@ export function Engine() {
     correctCount,
     totalRewards,
     durationSeconds,
+    streakIncremented,
     setAnswer,
     submit,
     continueNext,
@@ -142,6 +143,7 @@ export function Engine() {
         xpGained={totalRewards.xp}
         coinsGained={totalRewards.coins}
         durationSeconds={durationSeconds}
+        streakIncremented={streakIncremented}
       />
     );
   }

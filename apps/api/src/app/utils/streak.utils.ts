@@ -11,15 +11,15 @@
 export function calculateNewStreak(
   currentStreak: number,
   lastDate: Date | null
-): { newStreak: number; shouldUpdateDate: boolean } {
+): { newStreak: number; shouldUpdateDate: boolean; streakIncremented: boolean } {
   const now = new Date();
 
   if (currentStreak === 0) {
-    return { newStreak: 1, shouldUpdateDate: true };
+    return { newStreak: 1, shouldUpdateDate: true, streakIncremented: true };
   }
 
   if (!lastDate) {
-    return { newStreak: 1, shouldUpdateDate: true };
+    return { newStreak: 1, shouldUpdateDate: true, streakIncremented: true };
   }
 
   const last = new Date(lastDate);
@@ -29,12 +29,20 @@ export function calculateNewStreak(
   const isYesterday = yesterday.toDateString() === last.toDateString();
 
   if (isToday) {
-    return { newStreak: currentStreak, shouldUpdateDate: true };
+    return {
+      newStreak: currentStreak,
+      shouldUpdateDate: true,
+      streakIncremented: false,
+    };
   }
 
   if (isYesterday) {
-    return { newStreak: currentStreak + 1, shouldUpdateDate: true };
+    return {
+      newStreak: currentStreak + 1,
+      shouldUpdateDate: true,
+      streakIncremented: true,
+    };
   }
 
-  return { newStreak: 1, shouldUpdateDate: true };
+  return { newStreak: 1, shouldUpdateDate: true, streakIncremented: true };
 }

@@ -47,7 +47,7 @@ export class GameService {
     const { xp: xpEarned, coins: coinsEarned } = rewards;
 
     // 5. Calcular Nueva Racha (Streak)
-    const { newStreak, shouldUpdateDate } = calculateNewStreak(
+    const { newStreak, shouldUpdateDate, streakIncremented } = calculateNewStreak(
       user.streak,
       user.lastInteraction
     );
@@ -84,6 +84,7 @@ export class GameService {
         correctOrder,
         explanation: explanation ?? question.explanation,
         rewards,
+        streakIncremented,
         userStats: {
           xp: updatedUser.totalXp,
           energy: updatedUser.energy,

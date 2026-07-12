@@ -16,19 +16,7 @@ interface CompletionScreenProps {
   xpGained: number;
   coinsGained: number;
   durationSeconds: number;
-}
-
-function isFirstActivityToday(
-  lastInteraction: Date | string | null | undefined
-): boolean {
-  if (!lastInteraction) return true;
-  const last = new Date(lastInteraction);
-  const now = new Date();
-  return (
-    last.getFullYear() !== now.getFullYear() ||
-    last.getMonth() !== now.getMonth() ||
-    last.getDate() !== now.getDate()
-  );
+  streakIncremented: boolean;
 }
 
 function Particles() {
@@ -137,11 +125,22 @@ function StreakCard({
 
           <div className="flex-1 min-w-0">
             <h3 className="font-black text-[#ff9600] text-[20px] leading-tight">
-              Racha de{' '}
-              <AnimatedCounter targetValue={streak} duration={1} /> días
+              {streak === 1 ? (
+                <>
+                  ¡Racha iniciada!{' '}
+                  <AnimatedCounter targetValue={streak} duration={1} /> día
+                </>
+              ) : (
+                <>
+                  Racha de{' '}
+                  <AnimatedCounter targetValue={streak} duration={1} /> días
+                </>
+              )}
             </h3>
             <p className="font-bold text-[#afafaf] text-[13px] leading-snug">
-              ¡Estás en llamas! Vuelve mañana para no perderla.
+              {streak === 1
+                ? '¡Empezaste tu racha hoy! Vuelve mañana para mantenerla.'
+                : '¡Estás en llamas! Vuelve mañana para no perderla.'}
             </p>
           </div>
 
@@ -270,11 +269,10 @@ export function CompletionScreen({
   xpGained,
   coinsGained,
   durationSeconds,
+  streakIncremented,
 }: CompletionScreenProps) {
   const { user } = useProfileData();
   const streak = user?.streak ?? 0;
-  const firstActivityToday = isFirstActivityToday(user?.lastInteraction);
-
   const accuracy = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
 
   const [showExp, setShowExp] = useState(false);
@@ -362,7 +360,7 @@ export function CompletionScreen({
             />
           </div>
 
-          {firstActivityToday ? (
+          {streakIncremented ? (
             <StreakCard
               show={showSummary}
               streak={streak}
