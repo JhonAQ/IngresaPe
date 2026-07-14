@@ -1,4 +1,6 @@
+import { useMemo, useRef, useState } from 'react';
 import { TrendingUp } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { RANKS, getRankInfo } from '../../lib/rankMeta';
 
 interface RatingChartProps {
@@ -7,8 +9,78 @@ interface RatingChartProps {
   currentMax?: number;
 }
 
+const WIDTH = 320;
+const HEIGHT = 160;
+const PADDING = { top: 10, right: 10, bottom: 24, left: 28 };
+
 export function RatingChart({ history, dates, currentMax }: RatingChartProps) {
-  if (history.length < 2) {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [tooltip, setTooltip] = useState<{
+    x: number;
+    y: number;
+    date: string;
+    score: number;
+  } | null>(null);
+
+  const graphWidth = WIDTH - PADDING.left - PADDING.right;
+  const graphHeight = HEIGHT - PADDING.top - PADDING.bottom;
+  const bottomY = PADDING.top + graphHeight;
+
+  const points = useMemo(() => {
+    if (history.length === 0) return [];
+    const maxValue = 100;
+    const count = history.length;
+    return history.map((val, idx) => ({
+      x: PADDING.left + (count === 1 ? graphWidth / 2 : idx * (graphWidth / (count - 1))),
+      y: bottomY - (val / maxValue) * graphHeight,
+      val,
+    }));
+  }, [history, graphWidth, graphHeight, bottomY]);
+
+  const pathD = useMemo(() => {
+    if (points.length === 0) return '';
+    return `M ${points.map((p) => `${p.x},${p.y}`).join(' L ')}`;
+  }, [points]);
+
+  const areaPathD = useMemo(() => {
+    if (points.length === 0) return '';
+    return `${pathD} L ${points[points.length - 1].x},${bottomY} L ${points[0].x},${bottomY} Z`;
+  }, [pathD, points, bottomY]);
+
+  const yLabels = [0, 20, 40, 60, 80, 100];
+
+  const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    if (points.length === 0 || !svgRef.current) return;
+    const rect = svgRef.current.getBoundingClientRect();
+    const scaleX = WIDTH / rect.width;
+    const svgX = (e.clientX - rect.left) * scaleX;
+
+    let nearest = points[0];
+    let minDist = Math.abs(nearest.x - svgX);
+    for (let i = 1; i < points.length; i++) {
+      const dist = Math.abs(points[i].x - svgX);
+      if (dist < minDist) {
+        minDist = dist;
+        nearest = points[i];
+      }
+    }
+
+    if (minDist <= 40) {
+      const idx = points.indexOf(nearest);
+      setTooltip({
+        x: e.clientX - rect.left,
+        y: nearest.y / HEIGHT * rect.height,
+        date: dates[idx] ?? '',
+        score: nearest.val,
+      });
+    } else {
+      setTooltip(null);
+    }
+  };
+
+  const handleMouseLeave = () => setTooltip(null);
+
+  if (history.length === 0) {
     return (
       <div className="w-full bg-white border-2 border-slate-200 border-b-[4px] rounded-[1.5rem] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
         <div className="flex justify-between items-center mb-4">
@@ -26,34 +98,8 @@ export function RatingChart({ history, dates, currentMax }: RatingChartProps) {
     );
   }
 
-  const width = 320;
-  const height = 160;
-  const paddingLeft = 25;
-  const paddingRight = 10;
-  const paddingTop = 10;
-  const paddingBottom = 20;
-
-  const graphWidth = width - paddingLeft - paddingRight;
-  const graphHeight = height - paddingTop - paddingBottom;
-  const bottomY = paddingTop + graphHeight;
-
-  const getPoint = (val: number, idx: number) => ({
-    x: paddingLeft + idx * (graphWidth / (history.length - 1)),
-    y: bottomY - (val / 100) * graphHeight,
-    val,
-  });
-
-  const points = history.map((val, idx) => getPoint(val, idx));
-  const pathD = `M ${points.map((p) => `${p.x},${p.y}`).join(' L ')}`;
-  const areaPathD = `${pathD} L ${points[points.length - 1].x},${bottomY} L ${points[0].x},${bottomY} Z`;
-  const flatPoints = points.map((p) => ({ ...p, y: bottomY }));
-  const flatPathD = `M ${flatPoints.map((p) => `${p.x},${p.y}`).join(' L ')}`;
-  const flatAreaPathD = `${flatPathD} L ${flatPoints[flatPoints.length - 1].x},${bottomY} L ${flatPoints[0].x},${bottomY} Z`;
-
-  const yLabels = [0, 20, 40, 60, 80, 100];
-
   return (
-    <div className="w-full bg-white border-2 border-slate-200 border-b-[4px] rounded-[1.5rem] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+    <div className="relative w-full bg-white border-2 border-slate-200 border-b-[4px] rounded-[1.5rem] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
       <div className="flex justify-between items-center mb-4">
         <h3 className="font-black text-slate-800 text-[15px] flex items-center gap-2">
           <TrendingUp size={18} className="text-[#1cb0f6]" strokeWidth={3} /> Desempeño
@@ -63,8 +109,14 @@ export function RatingChart({ history, dates, currentMax }: RatingChartProps) {
         </span>
       </div>
 
-      <div className="relative w-full overflow-visible">
-        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible">
+      <div className="relative w-full">
+        <svg
+          ref={svgRef}
+          viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+          className="w-full h-auto overflow-visible"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+        >
           <defs>
             <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
               <stop offset="0%" stopColor="#1cb0f6" stopOpacity="0.2" />
@@ -79,14 +131,14 @@ export function RatingChart({ history, dates, currentMax }: RatingChartProps) {
             ))}
           </defs>
 
-          {/* Franjas de ligas (de arriba hacia abajo: Cachimbo → Huevito) */}
+          {/* Franjas de ligas */}
           {[...RANKS].reverse().map((rank, i) => {
             const bandHeight = graphHeight / 5;
-            const y = paddingTop + i * bandHeight;
+            const y = PADDING.top + i * bandHeight;
             return (
               <rect
                 key={rank.id}
-                x={paddingLeft}
+                x={PADDING.left}
                 y={y}
                 width={graphWidth}
                 height={bandHeight}
@@ -95,13 +147,13 @@ export function RatingChart({ history, dates, currentMax }: RatingChartProps) {
             );
           })}
 
-          {/* Ejes Y y líneas guía */}
+          {/* Líneas guía Y */}
           {yLabels.map((val) => {
             const y = bottomY - (val / 100) * graphHeight;
             return (
               <g key={`y-${val}`}>
                 <text
-                  x={paddingLeft - 8}
+                  x={PADDING.left - 8}
                   y={y + 3}
                   fill="#94a3b8"
                   fontSize="10"
@@ -111,9 +163,9 @@ export function RatingChart({ history, dates, currentMax }: RatingChartProps) {
                   {val}
                 </text>
                 <line
-                  x1={paddingLeft}
+                  x1={PADDING.left}
                   y1={y}
-                  x2={width - paddingRight}
+                  x2={WIDTH - PADDING.right}
                   y2={y}
                   stroke="#e2e8f0"
                   strokeWidth="1"
@@ -124,15 +176,14 @@ export function RatingChart({ history, dates, currentMax }: RatingChartProps) {
             );
           })}
 
-          {/* Eje X (fechas) */}
+          {/* Eje X */}
           {dates.map((date, i) => {
-            const x =
-              paddingLeft + i * (graphWidth / (dates.length - 1 || 1));
+            const x = points[i]?.x ?? PADDING.left;
             return (
               <text
                 key={`x-${i}`}
                 x={x}
-                y={height - 2}
+                y={HEIGHT - 4}
                 fill="#94a3b8"
                 fontSize="9"
                 fontWeight="800"
@@ -144,53 +195,43 @@ export function RatingChart({ history, dates, currentMax }: RatingChartProps) {
           })}
 
           {/* Área bajo la línea */}
-          <path fill="url(#chartGradient)">
-            <animate
-              attributeName="d"
-              from={flatAreaPathD}
-              to={areaPathD}
-              dur="1s"
-              fill="freeze"
-              calcMode="spline"
-              keyTimes="0; 1"
-              keySplines="0.25 1 0.5 1"
+          {points.length > 1 && (
+            <motion.path
+              d={areaPathD}
+              fill="url(#chartGradient)"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8, ease: 'easeOut' }}
             />
-            <animate attributeName="opacity" from="0" to="1" dur="0.8s" fill="freeze" />
-          </path>
+          )}
 
           {/* Línea principal */}
-          <path
-            fill="none"
-            stroke="#1e293b"
-            strokeWidth="3.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="drop-shadow-[0_4px_4px_rgba(0,0,0,0.1)]"
-          >
-            <animate
-              attributeName="d"
-              from={flatPathD}
-              to={pathD}
-              dur="1s"
-              fill="freeze"
-              calcMode="spline"
-              keyTimes="0; 1"
-              keySplines="0.25 1 0.5 1"
+          {points.length > 1 && (
+            <motion.path
+              d={pathD}
+              fill="none"
+              stroke="#1e293b"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="drop-shadow-[0_4px_4px_rgba(0,0,0,0.1)]"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 1, ease: 'easeOut' }}
             />
-          </path>
+          )}
 
-          {/* Puntos con pop-bounce escalonado */}
+          {/* Puntos */}
           {points.map((p, idx) => {
             const rankInfo = getRankInfo(p.val);
             const isMax = currentMax !== undefined && p.val === currentMax;
             return (
-              <g
+              <motion.g
                 key={`p-${idx}`}
-                className="opacity-0 animate-[pop-bounce_0.6s_ease-out_forwards]"
-                style={{
-                  animationDelay: `${700 + idx * 80}ms`,
-                  transformOrigin: `${p.x}px ${p.y}px`,
-                }}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5 + idx * 0.08, type: 'spring', stiffness: 400, damping: 15 }}
+                style={{ transformOrigin: `${p.x}px ${p.y}px` }}
               >
                 {isMax && (
                   <circle
@@ -214,10 +255,22 @@ export function RatingChart({ history, dates, currentMax }: RatingChartProps) {
                   strokeWidth="2.5"
                   className="drop-shadow-md"
                 />
-              </g>
+              </motion.g>
             );
           })}
         </svg>
+
+        {tooltip && (
+          <div
+            className="absolute pointer-events-none bg-slate-800 text-white text-[11px] font-black px-2 py-1 rounded-md shadow-lg -translate-x-1/2 -translate-y-full mt-[-6px]"
+            style={{
+              left: tooltip.x,
+              top: tooltip.y,
+            }}
+          >
+            {tooltip.date} · {tooltip.score.toFixed(1)}
+          </div>
+        )}
       </div>
     </div>
   );
