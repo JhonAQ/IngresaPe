@@ -26,16 +26,19 @@ export default function PerfilPage() {
   const { data: graph } = trpc.profile.getRatingGraph.useQuery({}, {
     retry: false,
   });
+  const { data: heatmap } = trpc.profile.getActivityHeatmap.useQuery({}, {
+    retry: false,
+  });
 
-  // Valores reales con fallback a demo mientras carga.
-  const displayName = user?.name ?? 'Jhonatan Arias';
-  const username = user?.email?.split('@')[0] ?? 'jhonatan_x';
-  const career = user?.career?.name ?? 'Medicina Humana';
+  // Datos reales del backend (sin fallback de demo en campos disponibles).
+  const displayName = user?.name ?? 'Usuario';
+  const username = user?.email?.split('@')[0] ?? 'usuario';
+  const career = user?.career?.name ?? 'Sin carrera';
 
-  const currentScore = score ?? 52.4;
-  const maxScore = highestScore ?? 81.2;
-  const totalQuestions = stats?.totalQuestionsAnswered ?? 2150;
-  const streak = user?.streak ?? 14;
+  const currentScore = score ?? 0;
+  const maxScore = highestScore ?? 0;
+  const totalQuestions = stats?.totalQuestionsAnswered ?? 0;
+  const streak = user?.streak ?? 0;
 
   const animatedScore = useCountUp(currentScore, 1500, 1);
   const animatedMaxScore = useCountUp(maxScore, 1800, 1);
@@ -192,7 +195,7 @@ export default function PerfilPage() {
           dates={simDates}
           currentMax={maxScore}
         />
-        <ContributionGraph />
+        <ContributionGraph data={heatmap ?? []} />
       </div>
 
       <InstallTag />

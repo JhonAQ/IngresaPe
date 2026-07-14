@@ -1,13 +1,18 @@
 import { Activity } from 'lucide-react';
 
+export interface HeatmapDay {
+  date: string;
+  intensity: number;
+}
+
 interface ContributionGraphProps {
   /** Semanas a mostrar. Por defecto 18. */
   weeks?: number;
   /**
-   * Datos de actividad como array plano de valores 0-4.
-   * Longitud esperada: weeks * 7. Si no se proporciona, se genera demo.
+   * Datos de actividad del backend. Se usa `intensity` (0-4).
+   * Si no se proporciona, se genera demo.
    */
-  data?: number[];
+  data?: HeatmapDay[];
 }
 
 const DAYS = ['Lun', '', 'Mié', '', 'Vie', '', ''];
@@ -20,13 +25,14 @@ const INTENSITY_COLORS = [
   '#46a302', // 4
 ];
 
-function generateDemoData(weeks: number): number[] {
+function generateDemoData(weeks: number): HeatmapDay[] {
   const total = weeks * 7;
   return Array.from({ length: total }, (_, i) => {
     const isRecent = i > total - 40;
-    return Math.random() > (isRecent ? 0.3 : 0.75)
+    const intensity = Math.random() > (isRecent ? 0.3 : 0.75)
       ? Math.floor(Math.random() * 4) + 1
       : 0;
+    return { date: '', intensity };
   });
 }
 
@@ -70,12 +76,14 @@ export function ContributionGraph({ weeks = 18, data }: ContributionGraphProps) 
                 style={{ animationDelay: `${weekIdx * 30}ms` }}
               >
                 {Array.from({ length: 7 }).map((_, dayIdx) => {
-                  const val = padded[weekIdx * 7 + dayIdx] ?? 0;
+                  const day = padded[weekIdx * 7 + dayIdx];
+                  const val = day?.intensity ?? 0;
                   const color = INTENSITY_COLORS[val] ?? INTENSITY_COLORS[0];
                   return (
                     <div
                       key={`day-${weekIdx}-${dayIdx}`}
                       className="w-3.5 h-3.5 rounded-[4px] shadow-sm"
+                      title={day?.date || 'Sin actividad'}
                       style={{
                         backgroundColor: color,
                         boxShadow: val > 0 ? `0 0 8px ${color}40` : 'none',
