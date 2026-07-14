@@ -1,6 +1,7 @@
 'use client';
 
-import { Share2, Settings, Target, Crown, Shield, Zap, Flame, Award, LogOut } from 'lucide-react';
+import { Share2, Settings, Target, Crown, Shield, Award, LogOut } from 'lucide-react';
+import { EntrenarIcon, FlameIcon } from '@ingresa-pe/ui';
 import { useAuth } from '../../../hooks/useAuth';
 import { useProfileData } from '../../../hooks/useProfileData';
 import { useCountUp } from '../../../hooks/useCountUp';
@@ -162,7 +163,7 @@ export default function PerfilPage() {
         <div className="flex gap-3">
           <div className="flex-[1.2] bg-white border-2 border-slate-200 border-b-[4px] rounded-[1.25rem] px-4 py-3.5 flex items-center gap-3.5 shadow-sm">
             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center border border-blue-200">
-              <Zap size={22} className="text-blue-500 fill-blue-500" />
+              <EntrenarIcon className="w-7 h-7" />
             </div>
             <div className="flex flex-col">
               <span className="font-black text-[20px] text-slate-800 leading-tight tracking-tight">{Math.floor(animatedQuestions)}</span>
@@ -172,7 +173,7 @@ export default function PerfilPage() {
 
           <div className="flex-1 bg-white border-2 border-slate-200 border-b-[4px] rounded-[1.25rem] px-4 py-3.5 flex items-center gap-3.5 shadow-sm">
             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center border border-orange-200">
-              <Flame size={22} className="text-orange-500 fill-orange-500" />
+              <FlameIcon className="w-7 h-7" />
             </div>
             <div className="flex flex-col">
               <span className="font-black text-[20px] text-slate-800 leading-tight tracking-tight">
