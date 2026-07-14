@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
+import { ScheduleModule } from '@nestjs/schedule';
 
 // Core Services
 import { TrpcService } from './trpc.service';
@@ -10,6 +11,11 @@ import { AppRouter } from './app.router';
 import { QuestionGraderService } from './services/question-grader.service';
 import { QuestionViewService } from './services/question-view.service';
 import { WeakTopicAnalyzerService } from './services/weak-topic-analyzer.service';
+import { RatingService } from './services/rating.service';
+import { SeasonService } from './services/season.service';
+import { LeaderboardService } from './services/leaderboard.service';
+import { ActivityService } from './services/activity.service';
+import { ShopService } from './services/shop.service';
 
 // Routers (tRPC)
 import { AuthRouter } from './routers/auth.router';
@@ -29,6 +35,7 @@ import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { GameService } from './services/game.service';
+import { RankingCronService } from './ranking-cron.service';
 
 @Module({
   imports: [
@@ -37,6 +44,8 @@ import { GameService } from './services/game.service';
       secret: process.env.JWT_SECRET || 'secret',
       signOptions: { expiresIn: '7d' }, // El token dura 7 días
     }),
+    // Tareas programadas
+    ScheduleModule.forRoot(),
   ],
   controllers: [
     AuthController,
@@ -51,6 +60,14 @@ import { GameService } from './services/game.service';
     QuestionGraderService,
     QuestionViewService,
     WeakTopicAnalyzerService,
+
+    // Ranking competitivo
+    RatingService,
+    SeasonService,
+    LeaderboardService,
+    ActivityService,
+    ShopService,
+    RankingCronService,
 
     // Routers tRPC (Inyectables)
     AuthRouter,

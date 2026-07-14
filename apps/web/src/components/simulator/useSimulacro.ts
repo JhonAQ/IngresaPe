@@ -1,14 +1,19 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { trpc } from '../../utils/trpc';
-import type { ExamAttemptDetailDto, ExamResultDto } from '@ingresa-pe/domain';
+import type {
+  ExamAttemptDetailDto,
+  ExamResultDto,
+  ExamSubmitResponseDto,
+} from '@ingresa-pe/domain';
 
 export type SimulacroStatus =
   | 'loading'
   | 'idle'
   | 'submitting'
   | 'completed'
+  | 'locked'
   | 'error';
 
 export interface SimulacroAnswer {
@@ -37,6 +42,12 @@ export interface UseSimulacroResult {
   goPrev: () => void;
   submit: () => void;
   result: ExamResultDto | null;
+  lockedMessage: string | null;
+}
+
+function toMs(date: string | Date | null | undefined): number | null {
+  if (!date) return null;
+  return new Date(date).getTime();
 }
 
 export function useSimulacro(attemptId: string): UseSimulacroResult {
@@ -47,7 +58,10 @@ export function useSimulacro(attemptId: string): UseSimulacroResult {
   const [markedIds, setMarkedIds] = useState<string[]>([]);
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [result, setResult] = useState<ExamResultDto | null>(null);
+  const [lockedMessage, setLockedMessage] = useState<string | null>(null);
   const [questionStartTime, setQuestionStartTime] = useState(Date.now());
+
+  const serverOffsetRef = useRef(0);
 
   const {
     data: attempt,
@@ -63,11 +77,28 @@ export function useSimulacro(attemptId: string): UseSimulacroResult {
 
   useEffect(() => {
     if (attempt) {
+      serverOffsetRef.current = Date.now() - toMs(attempt.serverNow)!;
+
       if (attempt.status === 'COMPLETED') {
-        setStatus('completed');
-      } else {
+        if (attempt.isOfficial && !attempt.isRevealed) {
+          setLockedMessage('Examen recibido. Calculando percentiles...');
+          setStatus('locked');
+        } else {
+          setStatus('completed');
+        }
+      } else if (attempt.status === 'IN_PROGRESS') {
         setStatus('idle');
-        setTimeRemaining(attempt.timeLimitSeconds);
+        const timerStartedAt = toMs(attempt.timerStartedAt);
+        if (timerStartedAt != null) {
+          const serverMs = Date.now() - serverOffsetRef.current;
+          const elapsedSec = Math.max(0, serverMs - timerStartedAt) / 1000;
+          setTimeRemaining(Math.max(0, attempt.serverTimeLimitSec - elapsedSec));
+        } else {
+          setTimeRemaining(attempt.timeLimitSeconds);
+        }
+      } else {
+        setStatus('error');
+        setError('El intento no está disponible');
       }
     } else if (isError) {
       setStatus('error');
@@ -76,9 +107,14 @@ export function useSimulacro(attemptId: string): UseSimulacroResult {
   }, [attempt, isError, queryError]);
 
   const submitMutation = trpc.simulacro.submit.useMutation({
-    onSuccess: (data) => {
-      setResult(data);
-      setStatus('completed');
+    onSuccess: (data: ExamSubmitResponseDto) => {
+      if (data.status === 'RECEIVED') {
+        setLockedMessage(data.message);
+        setStatus('locked');
+      } else {
+        setResult(data);
+        setStatus('completed');
+      }
     },
     onError: (err) => {
       setStatus('error');
@@ -87,27 +123,37 @@ export function useSimulacro(attemptId: string): UseSimulacroResult {
   });
 
   const handleSubmit = useCallback(() => {
-    if (!attempt || status !== 'idle') return;
+    if (!attempt || (status !== 'idle' && status !== 'submitting')) return;
     setStatus('submitting');
     submitMutation.mutate({ attemptId, answers });
   }, [attempt, status, submitMutation, attemptId, answers]);
 
-  // Temporizador global del examen
+  // Temporizador global del examen sincronizado con el servidor.
   useEffect(() => {
     if (status !== 'idle' || timeRemaining <= 0) return;
     const interval = setInterval(() => {
       setTimeRemaining((prev) => {
-        if (prev <= 1) {
+        const timerStartedAt = toMs(attempt?.timerStartedAt);
+        let next: number;
+        if (timerStartedAt != null) {
+          const serverMs = Date.now() - serverOffsetRef.current;
+          const elapsedSec = Math.max(0, serverMs - timerStartedAt) / 1000;
+          next = Math.max(0, (attempt?.serverTimeLimitSec ?? 0) - elapsedSec);
+        } else {
+          next = Math.max(0, prev - 1);
+        }
+
+        if (next <= 0) {
           clearInterval(interval);
           // Auto-submit al acabar el tiempo
           handleSubmit();
           return 0;
         }
-        return prev - 1;
+        return next;
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [status, timeRemaining, handleSubmit]);
+  }, [status, timeRemaining, attempt, handleSubmit]);
 
   // Reiniciar cronómetro por pregunta al cambiar de índice
   useEffect(() => {
@@ -189,5 +235,6 @@ export function useSimulacro(attemptId: string): UseSimulacroResult {
     goPrev,
     submit: handleSubmit,
     result,
+    lockedMessage,
   };
 }

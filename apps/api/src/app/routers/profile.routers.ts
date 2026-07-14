@@ -8,6 +8,9 @@ import {
   getAxisIdByCourseSlug,
   type AcademicAxisId,
 } from '../lib/academic-dna';
+import { ActivityService } from '../services/activity.service';
+import { ratingToScore } from '../services/rating.service';
+import { ShopService } from '../services/shop.service';
 
 const updateProfileSchema = z.object({
   name: z.string().min(2).max(50).optional(),
@@ -40,7 +43,9 @@ function calculateEnergy(
 export class ProfileRouter {
   constructor(
     private readonly trpc: TrpcService,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
+    private readonly activityService: ActivityService,
+    private readonly shopService: ShopService
   ) {}
 
   public router = this.trpc.router({
@@ -66,6 +71,7 @@ export class ProfileRouter {
           },
           energy: true,
           coins: true,
+          gems: true,
           inventory: true,
           lastRefill: true,
           totalXp: true,
@@ -76,6 +82,12 @@ export class ProfileRouter {
           lastExamScore: true,
           freeSimAttemptsUsed: true,
           freeSimAttemptsResetAt: true,
+          rating: true,
+          highestRating: true,
+          division: true,
+          highestDivision: true,
+          seasonHighestRating: true,
+          seasonBestDivision: true,
         },
       });
 
@@ -84,6 +96,8 @@ export class ProfileRouter {
       return {
         ...user,
         energy: calculateEnergy(user.energy, user.lastRefill, user.isPremium),
+        score: ratingToScore(user.rating),
+        highestScore: ratingToScore(user.highestRating),
       };
     }),
 
@@ -318,5 +332,58 @@ export class ProfileRouter {
 
         return { success: true, energy: newEnergy };
       }),
+
+    getStats: this.trpc.protectedProcedure.query(async ({ ctx }) => {
+      const user = await this.prisma.user.findUnique({
+        where: { id: ctx.user.userId },
+        select: {
+          rating: true,
+          highestRating: true,
+          division: true,
+          highestDivision: true,
+        },
+      });
+      if (!user) throw new TRPCError({ code: 'NOT_FOUND', message: 'Usuario no encontrado' });
+
+      const activityStats = await this.activityService.getStats(ctx.user.userId);
+      return {
+        ...activityStats,
+        rating: user.rating,
+        score: ratingToScore(user.rating),
+        highestRating: user.highestRating,
+        highestScore: ratingToScore(user.highestRating),
+        division: user.division,
+        highestDivision: user.highestDivision,
+      };
+    }),
+
+    getActivityHeatmap: this.trpc.protectedProcedure
+      .input(z.object({ days: z.number().int().min(7).max(365).default(84) }))
+      .query(async ({ ctx, input }) => {
+        return await this.activityService.getHeatmap(ctx.user.userId, input.days);
+      }),
+
+    getRatingGraph: this.trpc.protectedProcedure
+      .input(z.object({ weeks: z.number().int().min(2).max(52).default(12) }))
+      .query(async ({ ctx, input }) => {
+        const histories = await this.prisma.ratingHistory.findMany({
+          where: { userId: ctx.user.userId, appliedAt: { not: null } },
+          orderBy: { appliedAt: 'asc' },
+          take: input.weeks,
+          include: { season: { select: { weekIndex: true } } },
+        });
+
+        return histories.map((h) => ({
+          weekIndex: h.season.weekIndex,
+          score: ratingToScore(h.newRating),
+          rating: h.newRating,
+          delta: h.delta,
+          division: h.divisionAtTime,
+        }));
+      }),
+
+    getInventory: this.trpc.protectedProcedure.query(async ({ ctx }) => {
+      return await this.shopService.getInventory(ctx.user.userId);
+    }),
   });
 }

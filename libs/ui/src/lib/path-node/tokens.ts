@@ -3,7 +3,14 @@ export type PathNodeTheme =
   | 'gold'
   | 'green'
   | 'purple'
-  | 'trip-green';
+  | 'trip-green'
+  | 'coral'
+  | 'orange'
+  | 'pink'
+  | 'indigo'
+  | 'lime'
+  | 'cyan'
+  | 'rose';
 
 export interface ThemeColors {
   medium: string;
@@ -48,6 +55,55 @@ export const PATH_NODE_THEMES: Record<PathNodeTheme, ThemeColors> = {
     light: '#35dbb4',
     ice: '#d0fff4',
     darkShine: '#35dbb4',
+  },
+  coral: {
+    medium: '#d93838',
+    base: '#ff4b4b',
+    light: '#ff7a7a',
+    ice: '#ffe0e0',
+    darkShine: '#ff7a7a',
+  },
+  orange: {
+    medium: '#cd7900',
+    base: '#ff9600',
+    light: '#ffb64d',
+    ice: '#fff0d9',
+    darkShine: '#ffb64d',
+  },
+  pink: {
+    medium: '#cc4d9a',
+    base: '#ff7eb9',
+    light: '#ffaed4',
+    ice: '#ffe6f2',
+    darkShine: '#ffaed4',
+  },
+  indigo: {
+    medium: '#4a5fcb',
+    base: '#5b7cfa',
+    light: '#8aa3ff',
+    ice: '#e4eaff',
+    darkShine: '#8aa3ff',
+  },
+  lime: {
+    medium: '#6ca300',
+    base: '#84cc16',
+    light: '#a3e635',
+    ice: '#f1ffe0',
+    darkShine: '#a3e635',
+  },
+  cyan: {
+    medium: '#0891b2',
+    base: '#22d3ee',
+    light: '#67e8f9',
+    ice: '#e0fcff',
+    darkShine: '#67e8f9',
+  },
+  rose: {
+    medium: '#c7244d',
+    base: '#fb7185',
+    light: '#fda4af',
+    ice: '#ffe4e8',
+    darkShine: '#fda4af',
   },
 };
 

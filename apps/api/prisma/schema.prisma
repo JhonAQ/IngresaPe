@@ -70,6 +70,15 @@ enum ExamStatus {
   ABANDONED
 }
 
+// Divisiones del ranking competitivo
+enum Division {
+  HUEVITO
+  POLLITO
+  DINOSAURIO
+  FOSIL
+  CACHIMBO
+}
+
 // =========================================================
 // 2. IDENTIDAD Y PERFIL DEL ESTUDIANTE
 // =========================================================
@@ -97,11 +106,23 @@ model User {
   // --- Gamificación (Stats rápidas para el Ranking) ---
   energy          Int       @default(25) // Moneda de juego (Max 25)
   coins           Int       @default(100) // Monedas (Empieza con 100 de regalo)
-  inventory       String[]  @default(["default"]) // Lista de IDs de items comprados
+  gems            Int       @default(0) // Gemas para protectores de rating
+  inventory       String[]  @default(["default"]) // Lista de IDs de items comprados (legacy)
   lastRefill      DateTime  @default(now()) // Hora de última recarga automática
   totalXp         Int       @default(0) // Puntaje total (Leaderboard)
   streak          Int       @default(0) // Racha de días consecutivos
   lastInteraction DateTime  @default(now()) // Para comparar si jugó ayer u hoy
+
+  // --- Sistema de Rating Competitivo ---
+  rating              Int       @default(400)
+  highestRating       Int       @default(400)
+  division            Division  @default(HUEVITO)
+  highestDivision     Division  @default(HUEVITO)
+  seasonHighestRating Int       @default(400)
+  seasonBestDivision  Division  @default(HUEVITO)
+  riskFlags           String[]  @default([])
+  ratingFrozenUntil   DateTime?
+
   // --- Estado Premium ---
   isPremium       Boolean   @default(false) // TRUE = Energía ilimitada
   subExpiresAt    DateTime? // Fecha de vencimiento de la suscripción
@@ -117,6 +138,10 @@ model User {
   nodeCompletions UserTopicNodeCompletion[] // Nodos completados por tema
   subscriptions   Subscription[] // Pagos realizados
   answers         AnswerLog[] // Respuestas dadas (Data para IA)
+  ratingHistories RatingHistory[]
+  seasonStandings SeasonStanding[]
+  activityLogs    ActivityLog[]
+  userItems       UserItem[]
 }
 
 // =========================================================
@@ -298,6 +323,18 @@ model ExamAttempt {
   submittedAt     DateTime?
   timeUsedSeconds Int?
 
+  // --- Evento oficial de ranking (fin de semana) ---
+  isOfficial            Boolean   @default(false)
+  seasonId              String?
+  season                Season?   @relation(fields: [seasonId], references: [id], onDelete: SetNull)
+  timerStartedAt        DateTime?
+  serverTimeLimitSec    Int       @default(7200) // 2 horas
+  serverSubmittedAt     DateTime?
+  isRevealed            Boolean   @default(false)
+  calculatedScore       Float?
+  calculatedRatingDelta Int?
+  ratingHistory         RatingHistory?
+
   correctCount   Int?
   incorrectCount Int?
   blankCount     Int?
@@ -307,6 +344,111 @@ model ExamAttempt {
   totalCoinsEarned Int @default(0)
 
   @@index([userId, status, startedAt])
+  @@index([seasonId])
+}
+
+// =========================================================
+// 5.6 RANKING COMPETITIVO (Seasons, rating, standings, actividad)
+// =========================================================
+
+model Season {
+  id            String    @id @default(uuid())
+  weekIndex     Int       @unique
+  eventStartsAt DateTime
+  eventEndsAt   DateTime
+  revealedAt    DateTime?
+  isActive      Boolean   @default(true)
+  isRevealed    Boolean   @default(false)
+
+  ratingHistories RatingHistory[]
+  standings       SeasonStanding[]
+  attempts        ExamAttempt[]
+
+  @@index([isActive, isRevealed])
+}
+
+model RatingHistory {
+  id                String   @id @default(uuid())
+  createdAt         DateTime @default(now())
+  appliedAt         DateTime?
+
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  seasonId String
+  season   Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  examAttemptId     String?      @unique
+  examAttempt       ExamAttempt? @relation(fields: [examAttemptId], references: [id], onDelete: Cascade)
+
+  mode              ExamMode
+  score             Float // 0-100
+  oldRating         Int
+  newRating         Int
+  delta             Int
+  divisionAtTime    Division
+  kFactorUsed       Int
+  avgOpponentRating Int
+  protectorsUsed    String[] @default([])
+
+  @@index([userId, createdAt])
+  @@index([seasonId])
+}
+
+model SeasonStanding {
+  id                  String   @id @default(uuid())
+  seasonId            String
+  season              Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  userId              String
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  division            Division
+  startOfSeasonRating Int
+  endOfSeasonRating   Int
+  bestRating          Int
+  simulacrosCompleted Int     @default(0)
+  rankInDivision      Int?
+
+  @@unique([seasonId, userId])
+  @@index([seasonId, division, rankInDivision])
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  date      DateTime @db.Date
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  simulacrosCompleted Int @default(0)
+  questionsAnswered   Int @default(0)
+  questionsCorrect    Int @default(0)
+  nodesCompleted      Int @default(0)
+  xpEarned            Int @default(0)
+  gemsEarned          Int @default(0)
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
+
+model UserItem {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemKey   String // ej: RATING_SHIELD_50, RATING_FREEZE, RATING_BOOSTER
+  quantity  Int       @default(0)
+  expiresAt DateTime?
+
+  @@unique([userId, itemKey])
+  @@index([userId])
+}
+
+model ShopItem {
+  id          String  @id @default(uuid())
+  key         String  @unique
+  name        String
+  description String
+  priceGems   Int
+  maxQuantity Int? // límite por usuario (null = ilimitado)
+  isActive    Boolean @default(true)
 }
 
 // Registro de nodos completados por usuario/tema (progreso estable del mapa)

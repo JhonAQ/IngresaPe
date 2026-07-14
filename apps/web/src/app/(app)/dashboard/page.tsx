@@ -11,6 +11,7 @@ import { CourseSelector } from '../../../components/dashboard/CourseSelector';
 import { useSetDashboardCourse } from '../../../components/dashboard/DashboardCourseContext';
 import { trpc } from '../../../utils/trpc';
 import { getCourseMeta } from '../../../lib/courseMeta';
+import { getTopicTheme } from '../../../lib/topicMeta';
 import type { TemaData } from '@ingresa-pe/domain';
 import { DashboardSkeleton } from '../../../components/ui/skeleton';
 import { InstallBanner } from '../../../components/pwa/InstallBanner';
@@ -172,6 +173,8 @@ function DashboardContent() {
             <TopicHeader
               subtitle={`TEMA ${activeTopic.tema}`}
               title={activeTopic.titulo}
+              bgColor={getTopicTheme(activeTopicIndex).base}
+              shadowColor={getTopicTheme(activeTopicIndex).medium}
               onGuideClick={() => setResumenActivo(activeTopic)}
             />
           )}

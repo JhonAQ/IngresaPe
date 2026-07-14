@@ -6,6 +6,7 @@ import { TemaData, SummaryBlock } from '@ingresa-pe/domain';
 import { MapNodeColor, PathNode, PathNodeIcon, PathNodeTheme } from '@ingresa-pe/ui';
 import { TopicDivider } from './TopicDivider';
 import { trpc } from '../../utils/trpc';
+import { getTopicTheme } from '../../lib/topicMeta';
 
 export interface TopicFromApi {
   id: string;
@@ -95,7 +96,6 @@ function buildActivities(
     Math.max(1, Math.ceil(totalQuestions / nodeSize));
   const completedNodes = topic.userProgress?.completedNodes ?? 0;
   const isCompleted = topic.userProgress?.isCompleted ?? false;
-  const isGold = topic.userProgress?.isGold ?? false;
 
   // Si el tema está bloqueado, todo bloqueado.
   if (isLocked) {
@@ -109,15 +109,15 @@ function buildActivities(
     }));
   }
 
-  // Si el tema ya fue completado o dominado, todos los nodos completados.
-  if (isCompleted || isGold) {
+  // Si el tema ya fue completado, todos los nodos completados.
+  if (isCompleted) {
     return Array.from({ length: nodeCount }, (_, i) => ({
       id: `${topicIndex}-${i}`,
       name: getNodeName(i),
       state: 'completed' as const,
       icon: getNodeIcon(i),
       nodeSize,
-      color: (isGold ? 'success' : 'primary') as MapNodeColor,
+      color: 'primary' as MapNodeColor,
     }));
   }
 
@@ -166,6 +166,7 @@ export function TopicList({
             topics[index - 1].userProgress?.isCompleted === true ||
             topics[index - 1].userProgress?.isGold === true;
           const isLocked = !previousTopicCompleted;
+          const topicTheme = getTopicTheme(index);
 
           return {
             id: topic.id,
@@ -175,8 +176,7 @@ export function TopicList({
             variant: 'primary' as const,
             actividades: buildActivities(topic, index, isLocked),
             resumenData: topic.summary ?? [],
-            color: topic.userProgress?.isGold ? '#58cc02' : '#1cb0f6',
-            isGold: topic.userProgress?.isGold ?? false,
+            color: topicTheme.base,
           };
         })
       : temario;
@@ -212,27 +212,41 @@ export function TopicList({
     if (!scrollContainerRef?.current || !onActiveTopicChange) return;
 
     const container = scrollContainerRef.current;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries.filter((entry) => entry.isIntersecting);
-        if (visible.length === 0) return;
+    const sticky = document.getElementById('course-progress-sticky');
+    const TRIGGER_OFFSET = 16;
 
-        const topmost = visible.reduce((a, b) =>
-          a.boundingClientRect.top <= b.boundingClientRect.top ? a : b
-        );
+    const determineActiveTopic = () => {
+      const stickyBottom = sticky
+        ? sticky.getBoundingClientRect().bottom
+        : container.getBoundingClientRect().top + 120;
 
-        const topicId = topmost.target.getAttribute('data-topic-id');
-        if (topicId) onActiveTopicChange(topicId);
-      },
-      {
-        root: container,
-        rootMargin: '-15% 0px -60% 0px',
-        threshold: 0,
+      let activeTopicId: string | null = null;
+
+      // Recorrer en orden para encontrar el último tema cuyo tope esté arriba de la línea de activación.
+      for (const unidad of mergedUnits) {
+        const el = topicRefs.current.get(String(unidad.id));
+        if (!el) continue;
+        const rect = el.getBoundingClientRect();
+        if (rect.top <= stickyBottom + TRIGGER_OFFSET) {
+          activeTopicId = String(unidad.id);
+        }
       }
-    );
 
-    topicRefs.current.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
+      if (activeTopicId) {
+        onActiveTopicChange(activeTopicId);
+      }
+    };
+
+    // Llamada inicial para sincronizar al montar.
+    determineActiveTopic();
+
+    container.addEventListener('scroll', determineActiveTopic, { passive: true });
+    window.addEventListener('resize', determineActiveTopic);
+
+    return () => {
+      container.removeEventListener('scroll', determineActiveTopic);
+      window.removeEventListener('resize', determineActiveTopic);
+    };
   }, [mergedUnits, onActiveTopicChange, scrollContainerRef]);
 
   const setTopicRef =
@@ -403,9 +417,7 @@ export function TopicList({
                   pendingNode?.topicId === String(unidad.id) &&
                   pendingNode?.nodeIndex === actIndex;
 
-                const nodeStatus = (unidad as { isGold?: boolean }).isGold
-                  ? 'gold'
-                  : act.state;
+                const nodeStatus = act.state;
 
                 return (
                   <div
@@ -421,7 +433,7 @@ export function TopicList({
                           actIndex % 6
                         ] as PathNodeIcon
                       }
-                      theme={courseTheme}
+                      theme={getTopicTheme(index).nodeTheme}
                       onClick={
                         act.state === 'locked'
                           ? undefined

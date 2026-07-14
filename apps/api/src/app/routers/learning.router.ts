@@ -6,13 +6,17 @@ import { TRPCError } from '@trpc/server';
 import { QuestionGraderService } from '../services/question-grader.service';
 import { answerSubmissionSchema } from '@ingresa-pe/domain';
 import { calculateNewStreak } from '../utils/streak.utils';
+import { ActivityService } from '../services/activity.service';
+
+const GEMS_PER_CORRECT = 1;
 
 @Injectable()
 export class LearningRouter {
   constructor(
     private readonly trpc: TrpcService,
     private readonly prisma: PrismaService,
-    private readonly grader: QuestionGraderService
+    private readonly grader: QuestionGraderService,
+    private readonly activityService: ActivityService
   ) {}
 
   public router = this.trpc.router({
@@ -65,6 +69,7 @@ export class LearningRouter {
           question.difficulty,
           isCorrect
         );
+        const gemsEarned = isCorrect ? GEMS_PER_CORRECT : 0;
 
         const now = new Date();
         const user = await this.prisma.user.findUnique({ where: { id: ctx.user.userId } });
@@ -83,6 +88,7 @@ export class LearningRouter {
           data: {
             totalXp: { increment: xpEarned },
             coins: { increment: coinsEarned },
+            gems: { increment: gemsEarned },
             streak: newStreak,
             lastInteraction: shouldUpdateDate ? now : undefined,
           }
@@ -97,13 +103,22 @@ export class LearningRouter {
           }
         });
 
+        await this.activityService.log({
+          userId: ctx.user.userId,
+          questionsAnswered: 1,
+          questionsCorrect: isCorrect ? 1 : 0,
+          xpEarned,
+          gemsEarned,
+        });
+
         return {
           correct: isCorrect,
           correctAnswerText,
           explanation: explanation ?? question.explanation,
-          rewards: { xp: xpEarned, coins: coinsEarned },
+          rewards: { xp: xpEarned, coins: coinsEarned, gems: gemsEarned },
           streakIncremented,
-          newTotalCoins: (user?.coins || 0) + coinsEarned
+          newTotalCoins: (user?.coins || 0) + coinsEarned,
+          newTotalGems: (user?.gems || 0) + gemsEarned,
         };
       }),
   });

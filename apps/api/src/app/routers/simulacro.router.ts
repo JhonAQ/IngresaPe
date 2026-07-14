@@ -4,6 +4,9 @@ import { TRPCError } from '@trpc/server';
 import { TrpcService } from '../trpc.service';
 import { PrismaService } from '../prisma.service';
 import { WeakTopicAnalyzerService } from '../services/weak-topic-analyzer.service';
+import { SeasonService } from '../services/season.service';
+import { ratingToScore } from '../services/rating.service';
+import { ActivityService } from '../services/activity.service';
 
 const FREE_WEEKLY_ATTEMPTS = 1;
 
@@ -13,6 +16,7 @@ const startGeneratedSchema = z.object({
   questionCount: z.number().int().min(5).max(100),
   timeLimitMinutes: z.number().int().min(5).max(180),
   strategy: z.enum(['AI', 'RANDOM']),
+  isOfficial: z.boolean().default(false),
 });
 
 const submitSchema = z.object({
@@ -34,7 +38,9 @@ export class SimulacroRouter {
   constructor(
     private readonly trpc: TrpcService,
     private readonly prisma: PrismaService,
-    private readonly analyzer: WeakTopicAnalyzerService
+    private readonly analyzer: WeakTopicAnalyzerService,
+    private readonly seasonService: SeasonService,
+    private readonly activityService: ActivityService
   ) {}
 
   public router = this.trpc.router({
@@ -47,12 +53,20 @@ export class SimulacroRouter {
           lastExamScore: true,
           freeSimAttemptsUsed: true,
           freeSimAttemptsResetAt: true,
+          rating: true,
+          division: true,
+          highestRating: true,
+          gems: true,
         },
       });
 
       if (!user) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Usuario no encontrado' });
       }
+
+      const season = await this.seasonService.getOrCreateCurrentSeason();
+      const hasOfficialAttempt = await this.seasonService.hasOfficialAttempt(user.id, season.id);
+      const officialAttempt = await this.seasonService.getCurrentOfficialAttempt(user.id, season.id);
 
       const completedAttempts = await this.prisma.examAttempt.findMany({
         where: {
@@ -73,43 +87,32 @@ export class SimulacroRouter {
           ? Number((scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1))
           : null;
 
-      const recentAttempts = await this.prisma.examAttempt.findMany({
-        where: {
-          userId: user.id,
-          status: 'COMPLETED',
-          score: { not: null },
-        },
-        orderBy: { submittedAt: 'desc' },
-        take: 5,
-        select: { score: true },
-      });
-
-      const recentScores = recentAttempts
-        .map((a) => a.score)
-        .filter((s): s is number => s !== null);
-
-      const recentAverageScore =
-        recentScores.length > 0
-          ? Number((recentScores.reduce((a, b) => a + b, 0) / recentScores.length).toFixed(1))
-          : null;
-
-      const totalAttempts = await this.prisma.examAttempt.count({
-        where: { userId: user.id },
-      });
-
       const { remaining, resetAt } = this.computeFreeAttemptState(user);
 
       return {
-        lastExamScore: recentAverageScore ?? user.lastExamScore ?? null,
-        recentAverageScore,
+        lastExamScore: user.lastExamScore ?? null,
         bestScore,
         averageScore,
-        totalAttempts,
+        totalAttempts: completedAttempts.length,
         freeAttemptsUsed: user.isPremium ? 0 : user.freeSimAttemptsUsed,
         freeAttemptsLimit: FREE_WEEKLY_ATTEMPTS,
         freeAttemptsRemaining: user.isPremium ? FREE_WEEKLY_ATTEMPTS : remaining,
         freeAttemptsResetAt: resetAt ?? null,
         isPremium: user.isPremium,
+        rating: user.rating,
+        score: ratingToScore(user.rating),
+        division: user.division,
+        highestRating: user.highestRating,
+        gems: user.gems,
+        season: {
+          id: season.id,
+          isEventOpen: this.seasonService.isEventOpen(season),
+          eventStartsAt: season.eventStartsAt,
+          eventEndsAt: season.eventEndsAt,
+          isRevealed: season.isRevealed,
+          hasOfficialAttempt,
+          officialAttemptStatus: officialAttempt?.status ?? null,
+        },
       };
     }),
 
@@ -118,6 +121,7 @@ export class SimulacroRouter {
         where: { userId: ctx.user.userId },
         include: { exam: { select: { title: true } } },
         orderBy: { startedAt: 'desc' },
+        take: 10,
       });
 
       return attempts.map((a) => ({
@@ -126,7 +130,7 @@ export class SimulacroRouter {
         examTitle: a.exam?.title ?? null,
         mode: a.mode,
         status: a.status,
-        score: a.score,
+        score: a.isOfficial ? (a.isRevealed ? a.score : null) : a.score,
         correctCount: a.correctCount,
         incorrectCount: a.incorrectCount,
         blankCount: a.blankCount,
@@ -135,6 +139,9 @@ export class SimulacroRouter {
         timeUsedSeconds: a.timeUsedSeconds,
         startedAt: a.startedAt,
         submittedAt: a.submittedAt,
+        isOfficial: a.isOfficial,
+        isRevealed: a.isRevealed,
+        calculatedRatingDelta: a.calculatedRatingDelta,
       }));
     }),
 
@@ -188,6 +195,17 @@ export class SimulacroRouter {
           });
         }
 
+        const season = await this.seasonService.getOrCreateCurrentSeason();
+        if (this.seasonService.isEventOpen(season)) {
+          const hasOfficial = await this.seasonService.hasOfficialAttempt(user.id, season.id);
+          if (hasOfficial) {
+            throw new TRPCError({
+              code: 'FORBIDDEN',
+              message: 'Ya iniciaste tu simulacro oficial de este fin de semana.',
+            });
+          }
+        }
+
         const exam = await this.prisma.exam.findUnique({
           where: { id: input.examId },
           include: {
@@ -203,6 +221,7 @@ export class SimulacroRouter {
         }
 
         const questionIds = exam.questions.map((q) => q.id);
+        const isOfficial = this.seasonService.isEventOpen(season);
 
         const attempt = await this.prisma.examAttempt.create({
           data: {
@@ -212,11 +231,14 @@ export class SimulacroRouter {
             questionCount: exam.questionCount,
             timeLimitSeconds: exam.timeLimitMinutes * 60,
             questionIds,
+            isOfficial,
+            seasonId: isOfficial ? season.id : null,
+            timerStartedAt: isOfficial ? new Date() : null,
           },
           select: { id: true },
         });
 
-        return { attemptId: attempt.id };
+        return { attemptId: attempt.id, isOfficial };
       }),
 
     // Fase 4: generar simulacro personalizado (IA o aleatorio)
@@ -237,13 +259,37 @@ export class SimulacroRouter {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Usuario no encontrado' });
         }
 
-        const { resetAt, remaining } = this.computeFreeAttemptState(user);
+        const season = await this.seasonService.getOrCreateCurrentSeason();
+        const isOfficial = input.isOfficial && this.seasonService.isEventOpen(season);
 
-        if (!user.isPremium && remaining <= 0) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Has usado tu simulacro gratuito de esta semana. Sube a premium para intentos ilimitados.',
-          });
+        if (isOfficial) {
+          const hasOfficial = await this.seasonService.hasOfficialAttempt(user.id, season.id);
+          if (hasOfficial) {
+            throw new TRPCError({
+              code: 'FORBIDDEN',
+              message: 'Ya iniciaste tu simulacro oficial de este fin de semana.',
+            });
+          }
+        } else {
+          const { resetAt, remaining } = this.computeFreeAttemptState(user);
+          if (!user.isPremium && remaining <= 0) {
+            throw new TRPCError({
+              code: 'FORBIDDEN',
+              message: 'Has usado tu simulacro gratuito de esta semana. Sube a premium para intentos ilimitados.',
+            });
+          }
+
+          if (!user.isPremium) {
+            await this.prisma.user.update({
+              where: { id: user.id },
+              data: {
+                freeSimAttemptsUsed: { increment: 1 },
+                ...(resetAt && (!user.freeSimAttemptsResetAt || resetAt > user.freeSimAttemptsResetAt)
+                  ? { freeSimAttemptsResetAt: resetAt }
+                  : {}),
+              },
+            });
+          }
         }
 
         const questionIds =
@@ -258,32 +304,21 @@ export class SimulacroRouter {
           });
         }
 
-        const attempt = await this.prisma.$transaction(async (tx) => {
-          if (!user.isPremium) {
-            await tx.user.update({
-              where: { id: user.id },
-              data: {
-                freeSimAttemptsUsed: { increment: 1 },
-                ...(resetAt && (!user.freeSimAttemptsResetAt || resetAt > user.freeSimAttemptsResetAt)
-                  ? { freeSimAttemptsResetAt: resetAt }
-                  : {}),
-              },
-            });
-          }
-
-          return tx.examAttempt.create({
-            data: {
-              userId: user.id,
-              mode: 'GENERATED',
-              questionCount: questionIds.length,
-              timeLimitSeconds: input.timeLimitMinutes * 60,
-              questionIds,
-            },
-            select: { id: true },
-          });
+        const attempt = await this.prisma.examAttempt.create({
+          data: {
+            userId: user.id,
+            mode: 'GENERATED',
+            questionCount: questionIds.length,
+            timeLimitSeconds: input.timeLimitMinutes * 60,
+            questionIds,
+            isOfficial,
+            seasonId: isOfficial ? season.id : null,
+            timerStartedAt: isOfficial ? new Date() : null,
+          },
+          select: { id: true },
         });
 
-        return { attemptId: attempt.id };
+        return { attemptId: attempt.id, isOfficial };
       }),
 
     // Fase 2-3: recuperar un intento con sus preguntas
@@ -322,7 +357,7 @@ export class SimulacroRouter {
           examTitle: attempt.exam?.title ?? null,
           mode: attempt.mode,
           status: attempt.status,
-          score: attempt.score,
+          score: attempt.isOfficial ? (attempt.isRevealed ? attempt.score : null) : attempt.score,
           correctCount: attempt.correctCount,
           incorrectCount: attempt.incorrectCount,
           blankCount: attempt.blankCount,
@@ -331,6 +366,11 @@ export class SimulacroRouter {
           timeUsedSeconds: attempt.timeUsedSeconds,
           startedAt: attempt.startedAt,
           submittedAt: attempt.submittedAt,
+          timerStartedAt: attempt.timerStartedAt,
+          serverTimeLimitSec: attempt.serverTimeLimitSec,
+          isOfficial: attempt.isOfficial,
+          isRevealed: attempt.isRevealed,
+          serverNow: new Date(),
           questions: orderedQuestions.map((q) => ({
             id: q.id,
             examId: q.examId,
@@ -423,10 +463,9 @@ export class SimulacroRouter {
           ? Number(((correctCount / attempt.questionCount) * 100).toFixed(1))
           : 0;
 
-        const timeUsedSeconds = Math.max(
-          0,
-          Math.floor((Date.now() - attempt.startedAt.getTime()) / 1000)
-        );
+        const timeUsedSeconds = attempt.timerStartedAt
+          ? Math.max(0, Math.floor((Date.now() - attempt.timerStartedAt.getTime()) / 1000))
+          : Math.max(0, Math.floor((Date.now() - attempt.startedAt.getTime()) / 1000));
 
         const xpEarned = correctCount * XP_PER_CORRECT;
         const coinsEarned = correctCount * COINS_PER_CORRECT;
@@ -437,6 +476,7 @@ export class SimulacroRouter {
             data: {
               status: 'COMPLETED',
               submittedAt: new Date(),
+              serverSubmittedAt: new Date(),
               timeUsedSeconds,
               correctCount,
               incorrectCount,
@@ -452,20 +492,35 @@ export class SimulacroRouter {
             await tx.answerLog.create({ data: log as any });
           }
 
-          const userUpdateData: any = {
-            totalXp: { increment: xpEarned },
-            coins: { increment: coinsEarned },
-            lastExamScore: score,
-          };
-
-          await tx.user.update({
-            where: { id: ctx.user.userId },
-            data: userUpdateData,
-          });
+          if (!attempt.isOfficial) {
+            await tx.user.update({
+              where: { id: ctx.user.userId },
+              data: {
+                totalXp: { increment: xpEarned },
+                coins: { increment: coinsEarned },
+                lastExamScore: score,
+              },
+            });
+          }
         });
+
+        await this.activityService.log({
+          userId: ctx.user.userId,
+          simulacrosCompleted: 1,
+          xpEarned,
+        });
+
+        if (attempt.isOfficial) {
+          return {
+            attemptId: attempt.id,
+            status: 'RECEIVED' as const,
+            message: 'Examen recibido. Calculando percentiles...',
+          };
+        }
 
         return {
           attemptId: attempt.id,
+          status: 'COMPLETED' as const,
           score,
           correctCount,
           incorrectCount,

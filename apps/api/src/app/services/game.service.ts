@@ -4,6 +4,7 @@ import { QuestionGraderService } from './question-grader.service';
 import { TRPCError } from '@trpc/server';
 import { AnswerSubmission } from '@ingresa-pe/domain';
 import { calculateNewStreak } from '../utils/streak.utils';
+import { ActivityService } from './activity.service';
 
 interface SubmitAnswerInput {
   userId: string;
@@ -11,11 +12,14 @@ interface SubmitAnswerInput {
   answer: AnswerSubmission;
 }
 
+const GEMS_PER_CORRECT = 1;
+
 @Injectable()
 export class GameService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly grader: QuestionGraderService
+    private readonly grader: QuestionGraderService,
+    private readonly activityService: ActivityService
   ) {}
 
   /**
@@ -54,12 +58,14 @@ export class GameService {
 
     // 6. Transacción Atómica: Guardar Intento y Actualizar User
     return await this.prisma.$transaction(async (tx) => {
-      // A. Actualizar Stats del Usuario (XP, monedas y racha)
+      // A. Actualizar Stats del Usuario (XP, monedas, gemas y racha)
+      const gemsEarned = isCorrect ? GEMS_PER_CORRECT : 0;
       const updatedUser = await tx.user.update({
         where: { id: userId },
         data: {
           totalXp: { increment: xpEarned },
           coins: { increment: coinsEarned },
+          gems: { increment: gemsEarned },
           streak: newStreak,
           lastInteraction: shouldUpdateDate ? new Date() : undefined,
         },
@@ -76,6 +82,15 @@ export class GameService {
         },
       });
 
+      // C. Registrar actividad diaria
+      await this.activityService.log({
+        userId,
+        questionsAnswered: 1,
+        questionsCorrect: isCorrect ? 1 : 0,
+        xpEarned,
+        gemsEarned,
+      });
+
       // Retornamos el resultado procesado
       return {
         success: true,
@@ -89,6 +104,8 @@ export class GameService {
           xp: updatedUser.totalXp,
           energy: updatedUser.energy,
           streak: updatedUser.streak,
+          coins: updatedUser.coins,
+          gems: updatedUser.gems,
         },
       };
     });

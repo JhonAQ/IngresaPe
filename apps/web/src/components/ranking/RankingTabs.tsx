@@ -3,17 +3,18 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-type Tab = 'career' | 'area' | 'league';
+export type RankingTab = 'league' | 'career' | 'area' | 'global';
 
 interface RankingTabsProps {
-  active: Tab;
-  onChange: (tab: Tab) => void;
+  active: RankingTab;
+  onChange: (tab: RankingTab) => void;
 }
 
-const tabs: { key: Tab; label: string }[] = [
-  { key: 'career', label: 'Tu carrera' },
+const tabs: { key: RankingTab; label: string }[] = [
+  { key: 'league', label: 'Liga' },
+  { key: 'career', label: 'Carrera' },
   { key: 'area', label: 'Área' },
-  { key: 'league', label: 'Ligas' },
+  { key: 'global', label: 'Global' },
 ];
 
 export const RankingTabs: React.FC<RankingTabsProps> = ({ active, onChange }) => {

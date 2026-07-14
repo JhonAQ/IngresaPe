@@ -2,6 +2,7 @@
 
 import React, { Suspense, useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Lock } from 'lucide-react';
 import {
   TopBar,
   ProgressBar,
@@ -54,6 +55,7 @@ function SimulatorPage() {
     goPrev,
     submit,
     result,
+    lockedMessage,
   } = useSimulacro(attemptId);
 
   const [fichaAbierta, setFichaAbierta] = useState(false);
@@ -66,6 +68,13 @@ function SimulatorPage() {
       router.replace('/simulacros');
     }
   }, [attemptId, status, router]);
+
+  // Los intentos completados sin datos de resultado se redirigen al dashboard.
+  useEffect(() => {
+    if (status === 'completed' && !result) {
+      router.replace('/simulacros');
+    }
+  }, [status, result, router]);
 
   // Abrir ficha óptica automáticamente al responder la última pregunta
   useEffect(() => {
@@ -110,6 +119,15 @@ function SimulatorPage() {
           </button>
         </div>
       </div>
+    );
+  }
+
+  if (status === 'locked') {
+    return (
+      <PostExamLockedScreen
+        message={lockedMessage}
+        onHome={() => router.push('/simulacros')}
+      />
     );
   }
 
@@ -211,6 +229,39 @@ function SimulatorPage() {
           onCancel={() => setExitConfirmOpen(false)}
         />
       )}
+    </div>
+  );
+}
+
+function PostExamLockedScreen({
+  message,
+  onHome,
+}: {
+  message: string | null;
+  onHome: () => void;
+}) {
+  return (
+    <div className="w-full max-w-md mx-auto h-[100dvh] flex flex-col items-center justify-center px-6 text-center bg-slate-50">
+      <div className="bg-white rounded-[2rem] p-6 border-2 border-slate-200 border-b-[6px] border-b-slate-300 shadow-sm w-full">
+        <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+          <Lock size={32} className="text-slate-500" />
+        </div>
+        <h1 className="font-black text-[22px] text-slate-800 mb-2">
+          Examen recibido
+        </h1>
+        <p className="text-slate-500 font-bold text-[14px] mb-6">
+          {message ?? 'Calculando percentiles...'}
+        </p>
+        <p className="text-slate-400 font-bold text-[12px] mb-6">
+          Los resultados se revelarán el lunes. Mientras tanto, no compartas las preguntas.
+        </p>
+        <button
+          onClick={onHome}
+          className="w-full bg-slate-900 text-white font-black text-[16px] uppercase tracking-widest py-3.5 rounded-2xl border-b-[4px] border-black active:border-b-0 active:translate-y-[4px] transition-all"
+        >
+          Volver a simulacros
+        </button>
+      </div>
     </div>
   );
 }

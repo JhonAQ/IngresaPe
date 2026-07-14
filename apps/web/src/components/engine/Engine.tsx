@@ -10,6 +10,7 @@ import { EngineHeader, FeedbackDrawer, DinoMaxModal, ExitConfirmModal } from './
 import { LatexText } from '../ui/LatexText';
 import { EngineSkeleton } from '../ui/skeleton';
 import { CompletionScreen } from './CompletionScreen';
+import { NodeFailedScreen } from './NodeFailedScreen';
 import type { MatchingView, FillInBlankView } from '@ingresa-pe/domain';
 import type { ComponentType } from 'react';
 
@@ -212,38 +213,6 @@ export function Engine() {
         onConfirm={handleConfirmExit}
         onCancel={handleCancelExit}
       />
-    </div>
-  );
-}
-
-function NodeFailedScreen({
-  onClose,
-  onRetry,
-}: {
-  onClose: () => void;
-  onRetry: () => void;
-}) {
-  return (
-    <div className="w-full max-w-md mx-auto h-[100dvh] flex flex-col items-center justify-center px-6 text-center bg-[#ffdfe0]">
-      <div className="mb-6 text-[80px]">💔</div>
-      <h1 className="font-black text-[28px] text-[#ea2b2b] mb-3">¡Se acabaron las vidas!</h1>
-      <p className="text-[#3c3c3c] font-bold mb-8">
-        Perdiste todas las vidas de este nodo. No se marcará como completado, pero puedes intentarlo de nuevo.
-      </p>
-      <div className="flex flex-col gap-3 w-full">
-        <button
-          onClick={onRetry}
-          className="w-full bg-[#ff4b4b] text-white font-black text-[16px] uppercase tracking-widest py-3.5 rounded-2xl border-b-[4px] border-[#df2b2b] active:border-b-0 active:translate-y-[4px] transition-all"
-        >
-          Reintentar
-        </button>
-        <button
-          onClick={onClose}
-          className="w-full bg-white text-[#3c3c3c] font-black text-[16px] uppercase tracking-widest py-3.5 rounded-2xl border-b-[4px] border-[#e5e5e5] active:border-b-0 active:translate-y-[4px] transition-all"
-        >
-          Volver
-        </button>
-      </div>
     </div>
   );
 }
