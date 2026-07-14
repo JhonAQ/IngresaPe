@@ -58,24 +58,26 @@ function monthLabel(month: number): string {
 
 function generateDemoData(weeks: number): HeatmapDay[] {
   const today = startOfDay(new Date());
-  const total = weeks * 7;
+  const totalCells = weeks * 7;
+  const start = getMonday(addDays(today, -(weeks - 1) * 7));
   const values: HeatmapDay[] = [];
-  for (let i = total - 1; i >= 0; i--) {
-    const date = formatISODate(addDays(today, -i));
-    const isRecent = i < 40;
+
+  for (let i = 0; i < totalCells; i++) {
+    const date = formatISODate(addDays(start, i));
+    const isRecent = i > totalCells - 40;
     const intensity = Math.random() > (isRecent ? 0.35 : 0.8)
       ? Math.floor(Math.random() * 4) + 1
       : 0;
     values.push({ date, intensity });
   }
+
   return values;
 }
 
 function buildHeatmap(data: HeatmapDay[], weeks: number): HeatmapDay[] {
   const today = startOfDay(new Date());
   const totalCells = weeks * 7;
-  const rawStart = addDays(today, -(totalCells - 1));
-  const start = getMonday(rawStart);
+  const start = getMonday(addDays(today, -(weeks - 1) * 7));
 
   const lookup = new Map(data.map((d) => [d.date, d]));
   const values: HeatmapDay[] = [];
@@ -180,6 +182,8 @@ export function ContributionGraph({ weeks = 18, data }: ContributionGraphProps) 
                   return (
                     <div
                       key={`day-${weekIdx}-${dayIdx}`}
+                      data-testid="heatmap-day"
+                      data-intensity={val}
                       className="w-4 h-4 sm:w-5 sm:h-5 rounded-[4px] shadow-sm transition-transform duration-150 hover:scale-110 hover:ring-2 hover:ring-slate-300 cursor-pointer"
                       title={day ? tooltipText(day) : ''}
                       style={{

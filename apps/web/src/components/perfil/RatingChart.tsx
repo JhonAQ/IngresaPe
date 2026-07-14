@@ -228,6 +228,7 @@ export function RatingChart({ history, dates, currentMax }: RatingChartProps) {
             return (
               <motion.g
                 key={`p-${idx}`}
+                data-testid="rating-point"
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.5 + idx * 0.08, type: 'spring', stiffness: 400, damping: 15 }}

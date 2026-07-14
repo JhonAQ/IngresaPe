@@ -69,6 +69,8 @@ export class ActivityService {
         questionsAnswered: log.questionsAnswered,
         nodesCompleted: log.nodesCompleted,
         simulacrosCompleted: log.simulacrosCompleted,
+        xpEarned: log.xpEarned,
+        gemsEarned: log.gemsEarned,
       }),
       questionsAnswered: log.questionsAnswered,
       nodesCompleted: log.nodesCompleted,
@@ -104,8 +106,19 @@ export class ActivityService {
     return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
   }
 
-  private intensity(log: { questionsAnswered: number; nodesCompleted: number; simulacrosCompleted: number }): number {
-    const value = log.questionsAnswered + log.nodesCompleted * 3 + log.simulacrosCompleted * 20;
+  private intensity(log: {
+    questionsAnswered: number;
+    nodesCompleted: number;
+    simulacrosCompleted: number;
+    xpEarned: number;
+    gemsEarned: number;
+  }): number {
+    const value =
+      log.questionsAnswered +
+      log.nodesCompleted * 3 +
+      log.simulacrosCompleted * 20 +
+      Math.floor(log.xpEarned / 10) +
+      log.gemsEarned;
     if (value === 0) return 0;
     if (value < 5) return 1;
     if (value < 15) return 2;
