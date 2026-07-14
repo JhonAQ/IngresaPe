@@ -166,53 +166,87 @@ export function RankingSkeleton() {
 }
 
 /**
- * Layout de carga para el perfil completo.
+ * Layout de carga para el nuevo perfil.
  */
 export function ProfileSkeleton() {
   return (
-    <main className="flex-1 overflow-y-auto hide-scrollbar bg-slate-50 pb-8">
+    <main className="flex-1 overflow-y-auto hide-scrollbar pb-32 bg-premium-pattern">
       {/* Header */}
-      <div className="bg-success-200 pt-8 pb-14 px-5 rounded-b-[2.5rem] flex flex-col items-center gap-4">
-        <SkeletonCircle size={100} />
-        <Skeleton className="h-7 w-48 rounded-xl" />
-        <Skeleton className="h-6 w-32 rounded-full" />
-      </div>
+      <header className="sticky top-0 z-50 flex items-center justify-between p-4 bg-white/70 backdrop-blur-xl border-b border-slate-200/60 shrink-0">
+        <Skeleton className="h-6 w-20 rounded-lg ml-2" />
+        <div className="flex gap-2">
+          <Skeleton className="w-10 h-10 rounded-2xl" />
+          <Skeleton className="w-10 h-10 rounded-2xl" />
+        </div>
+      </header>
 
-      {/* Stats row */}
-      <div className="grid grid-cols-3 gap-3 px-4 -mt-8 relative z-20">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div
-            key={i}
-            className="bg-white rounded-2xl border-2 border-slate-200 border-b-[4px] px-3 py-3 flex flex-col items-center gap-2"
-          >
-            <SkeletonCircle size={28} />
-            <Skeleton className="h-5 w-10 rounded-lg" />
-            <Skeleton className="h-3 w-14 rounded-full" />
-          </div>
-        ))}
-      </div>
-
-      {/* Level card */}
-      <div className="px-5 mt-5">
-        <div className="bg-white rounded-2xl border-2 border-slate-200 border-b-[4px] border-b-slate-300 p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <SkeletonCircle size={40} />
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-24 rounded-lg" />
-                <Skeleton className="h-3 w-16 rounded-lg" />
-              </div>
-            </div>
-            <Skeleton className="h-6 w-12 rounded-lg" />
-          </div>
-          <Skeleton className="h-3 w-full rounded-full" />
+      {/* Perfil intro */}
+      <div className="px-5 pt-8 pb-6 flex items-center gap-5">
+        <SkeletonCircle size={80} />
+        <div className="flex flex-col gap-2 min-w-0">
+          <Skeleton className="h-7 w-40 rounded-xl" />
+          <Skeleton className="h-4 w-24 rounded-lg" />
+          <Skeleton className="h-8 w-32 rounded-xl" />
         </div>
       </div>
 
-      {/* ADN + Trophies */}
-      <div className="px-5 mt-6 space-y-6">
-        <Skeleton className="h-80 w-full rounded-2xl" />
-        <Skeleton className="h-72 w-full rounded-2xl" />
+      {/* Tarjetas de liga */}
+      <div className="px-5 mb-6">
+        <div className="flex gap-3">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div
+              key={i}
+              className="flex-1 bg-slate-100 border-2 border-slate-200 border-b-[4px] rounded-[1.5rem] p-4 space-y-3"
+            >
+              <div className="flex justify-between items-start">
+                <Skeleton className="h-3 w-16 rounded-md" />
+                <Skeleton className="w-8 h-8 rounded-full" />
+              </div>
+              <Skeleton className="h-9 w-20 rounded-lg" />
+              <Skeleton className="h-3 w-14 rounded-md" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Stats row */}
+      <div className="px-5 mb-8">
+        <div className="flex gap-3">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div
+              key={i}
+              className="flex-1 bg-white border-2 border-slate-200 border-b-[4px] rounded-[1.25rem] px-4 py-3.5 flex items-center gap-3.5"
+            >
+              <Skeleton className="w-11 h-11 rounded-xl" />
+              <div className="flex flex-col gap-2">
+                <Skeleton className="h-6 w-14 rounded-lg" />
+                <Skeleton className="h-3 w-16 rounded-md" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Chart + Heatmap */}
+      <div className="px-5 flex flex-col gap-6">
+        <div className="bg-white border-2 border-slate-200 border-b-[4px] rounded-[1.5rem] p-5 space-y-4">
+          <div className="flex justify-between">
+            <Skeleton className="h-5 w-28 rounded-lg" />
+            <Skeleton className="h-5 w-20 rounded-md" />
+          </div>
+          <Skeleton className="h-40 w-full rounded-xl" />
+        </div>
+        <div className="bg-white border-2 border-slate-200 border-b-[4px] rounded-[1.5rem] p-5 space-y-4">
+          <div className="flex justify-between">
+            <Skeleton className="h-5 w-24 rounded-lg" />
+            <Skeleton className="h-5 w-20 rounded-md" />
+          </div>
+          <Skeleton className="h-28 w-full rounded-xl" />
+        </div>
+      </div>
+
+      <div className="px-5 py-8">
+        <Skeleton className="h-14 w-full rounded-2xl" />
       </div>
     </main>
   );
