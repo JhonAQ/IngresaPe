@@ -13,8 +13,6 @@ import { InstallTag } from '../../../components/pwa/InstallTag';
 import { ChunkyButton } from '../../../components/ui/ChunkyButton';
 import { trpc } from '../../../utils/trpc';
 
-const DEMO_HISTORY = [15, 25, 45, 60, 81.2, 70, 52.4];
-const DEMO_DATES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Hoy'];
 
 export default function PerfilPage() {
   const { logout } = useAuth();
@@ -45,12 +43,8 @@ export default function PerfilPage() {
   const animatedQuestions = useCountUp(totalQuestions, 2000, 0);
   const animatedStreak = useCountUp(streak, 1200, 0);
 
-  const simHistory =
-    graph && graph.length > 0 ? graph.map((g) => g.score) : DEMO_HISTORY;
-  const simDates =
-    graph && graph.length > 0
-      ? graph.map((g) => `S${g.weekIndex}`)
-      : DEMO_DATES;
+  const simHistory = graph?.map((g) => g.score) ?? [];
+  const simDates = graph?.map((g) => `S${g.weekIndex}`) ?? [];
 
   const currentRank = division
     ? getRankInfoByDivision(division)
