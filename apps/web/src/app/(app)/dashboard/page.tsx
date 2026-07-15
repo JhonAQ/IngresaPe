@@ -3,7 +3,10 @@
 import { useState, Suspense, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CourseProgress } from '../../../components/dashboard/CourseProgress';
-import { TopicList, TopicFromApi } from '../../../components/dashboard/TopicList';
+import {
+  TopicList,
+  TopicFromApi,
+} from '../../../components/dashboard/TopicList';
 import { TopicHeader } from '../../../components/dashboard/TopicHeader';
 import { SummaryModal } from '../../../components/dashboard/SummaryModal';
 import { useDashboardData } from '../../../hooks/useDashboardData';
@@ -11,6 +14,7 @@ import { CourseSelector } from '../../../components/dashboard/CourseSelector';
 import { useSetDashboardCourse } from '../../../components/dashboard/DashboardCourseContext';
 import { trpc } from '../../../utils/trpc';
 import { getCourseMeta } from '../../../lib/courseMeta';
+import { getTopicTheme } from '../../../lib/topicMeta';
 import type { TemaData } from '@ingresa-pe/domain';
 import { DashboardSkeleton } from '../../../components/ui/skeleton';
 import { InstallBanner } from '../../../components/pwa/InstallBanner';
@@ -106,7 +110,11 @@ function DashboardContent() {
     router.replace(`/dashboard?courseId=${nextCourseId}`, { scroll: false });
   };
 
-  if (isDashboardLoading || isCoursesLoading || (isTopicsLoading && !!courseId)) {
+  if (
+    isDashboardLoading ||
+    isCoursesLoading ||
+    (isTopicsLoading && !!courseId)
+  ) {
     return <DashboardSkeleton />;
   }
 
@@ -114,8 +122,12 @@ function DashboardContent() {
     return (
       <div className="flex-1 flex items-center justify-center px-6 text-center">
         <div>
-          <h1 className="font-black text-[22px] text-[#3c3c3c] mb-2">No hay cursos</h1>
-          <p className="text-[#777777]">Vuelve más tarde cuando haya contenido disponible.</p>
+          <h1 className="font-black text-[22px] text-[#3c3c3c] mb-2">
+            No hay cursos
+          </h1>
+          <p className="text-[#777777]">
+            Vuelve más tarde cuando haya contenido disponible.
+          </p>
         </div>
       </div>
     );
@@ -126,7 +138,9 @@ function DashboardContent() {
       <div className="flex-1 flex items-center justify-center px-6 text-center">
         <div>
           <h1 className="font-black text-[22px] text-[#ea2b2b] mb-2">Ups</h1>
-          <p className="text-[#777777]">{topicsError?.message ?? 'No se pudieron cargar los temas'}</p>
+          <p className="text-[#777777]">
+            {topicsError?.message ?? 'No se pudieron cargar los temas'}
+          </p>
         </div>
       </div>
     );
@@ -147,7 +161,9 @@ function DashboardContent() {
 
   const activeTopicIndex = typedTopics.findIndex((t) => t.id === activeTopicId);
   const activeTopic =
-    activeTopicIndex >= 0 ? buildTemaData(typedTopics[activeTopicIndex], activeTopicIndex) : null;
+    activeTopicIndex >= 0
+      ? buildTemaData(typedTopics[activeTopicIndex], activeTopicIndex)
+      : null;
 
   return (
     <>
@@ -160,7 +176,10 @@ function DashboardContent() {
         ref={mainRef}
         className="flex-1 flex flex-col gap-2 overflow-y-auto px-5 pb-32 hide-scrollbar bg-slate-50/50"
       >
-        <div id="course-progress-sticky" className="sticky top-0 z-40 -mx-5 px-5 pt-2 pb-2 bg-slate-50/95 backdrop-blur-sm space-y-2">
+        <div
+          id="course-progress-sticky"
+          className="sticky top-0 z-40 -mx-5 px-5 pt-2 pb-2 bg-slate-50/95 backdrop-blur-sm space-y-2"
+        >
           <InstallBanner />
 
           <CourseProgress
@@ -172,6 +191,8 @@ function DashboardContent() {
             <TopicHeader
               subtitle={`TEMA ${activeTopic.tema}`}
               title={activeTopic.titulo}
+              bgColor={getTopicTheme(activeTopicIndex).base}
+              shadowColor={getTopicTheme(activeTopicIndex).medium}
               onGuideClick={() => setResumenActivo(activeTopic)}
             />
           )}

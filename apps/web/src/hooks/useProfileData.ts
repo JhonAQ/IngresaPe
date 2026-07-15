@@ -11,11 +11,17 @@ interface BackendUser {
   career?: { id: string; name: string; area: string } | null;
   energy?: number;
   coins?: number;
+  gems?: number;
   inventory?: string[];
   totalXp?: number;
   streak?: number;
   lastInteraction?: Date | string | null;
   isPremium?: boolean;
+  rating?: number;
+  score?: number;
+  division?: string;
+  highestScore?: number;
+  highestDivision?: string;
 }
 
 interface BackendCourse {
@@ -39,15 +45,11 @@ export function useProfileData() {
     error: userError,
   } = trpc.profile.getMe.useQuery(undefined, { retry: false });
 
-  const {
-    data: rankData,
-    isLoading: isRankLoading,
-  } = trpc.ranking.getMyLeagueStatus.useQuery(undefined, { retry: false });
+  const { data: rankData, isLoading: isRankLoading } =
+    trpc.ranking.getMyStats.useQuery(undefined, { retry: false });
 
-  const {
-    data: courses,
-    isLoading: isCoursesLoading,
-  } = trpc.content.getCourses.useQuery(undefined, { retry: false });
+  const { data: courses, isLoading: isCoursesLoading } =
+    trpc.content.getCourses.useQuery(undefined, { retry: false });
 
   const profile = user as BackendUser | undefined;
   const rank = (rankData as RankingPosition | undefined)?.rank ?? null;
@@ -60,6 +62,10 @@ export function useProfileData() {
     rank,
     level,
     xpProgress,
+    score: profile?.score ?? 0,
+    division: profile?.division ?? 'HUEVITO',
+    highestScore: profile?.highestScore ?? 0,
+    gems: profile?.gems ?? 0,
     courses: (courses as BackendCourse[] | undefined) ?? [],
     isLoading: isUserLoading || isRankLoading || isCoursesLoading,
     error: userError,

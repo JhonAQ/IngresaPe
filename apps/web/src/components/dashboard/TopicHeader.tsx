@@ -2,13 +2,21 @@ import React from 'react';
 
 interface TopicHeaderProps {
   /**
-   * Texto superior (ej: "ETAPA 2, SECCIÓN 19")
+   * Texto superior (ej: "TEMA 1")
    */
   subtitle: string;
   /**
-   * Texto principal (ej: "Compra ropa")
+   * Texto principal (ej: "Planteo de Ecuaciones")
    */
   title: string;
+  /**
+   * Color de fondo del header. Por defecto rojo para mantener compatibilidad.
+   */
+  bgColor?: string;
+  /**
+   * Color de la sombra/borde inferior 3D.
+   */
+  shadowColor?: string;
   /**
    * Evento al dar click en el botón de la libreta (guía)
    */
@@ -18,13 +26,16 @@ interface TopicHeaderProps {
 export const TopicHeader: React.FC<TopicHeaderProps> = ({
   subtitle,
   title,
+  bgColor = '#ea2b2b',
+  shadowColor = '#b91c1c',
   onGuideClick,
 }) => {
   return (
     <div
-      className="relative flex w-full max-w-2xl select-none overflow-hidden rounded-2xl bg-red-600 text-white"
+      className="relative flex w-full max-w-2xl select-none overflow-hidden rounded-2xl text-white"
       style={{
-        boxShadow: '0 4px 0 #CC7800', // Efecto 3D de Duolingo
+        backgroundColor: bgColor,
+        boxShadow: `0 4px 0 ${shadowColor}`,
       }}
     >
       {/* Sección principal de texto */}
@@ -57,9 +68,9 @@ export const TopicHeader: React.FC<TopicHeaderProps> = ({
           <rect x="6" y="3" width="14" height="18" rx="2" fill="white" />
 
           {/* Líneas de texto simuladas en la libreta */}
-          <rect x="9" y="8" width="8" height="2" rx="1" fill="#FF9600" />
-          <rect x="9" y="12" width="8" height="2" rx="1" fill="#FF9600" />
-          <rect x="9" y="16" width="5" height="2" rx="1" fill="#FF9600" />
+          <rect x="9" y="8" width="8" height="2" rx="1" fill={bgColor} />
+          <rect x="9" y="12" width="8" height="2" rx="1" fill={bgColor} />
+          <rect x="9" y="16" width="5" height="2" rx="1" fill={bgColor} />
 
           {/* Anillos de la libreta (espiral) */}
           <path

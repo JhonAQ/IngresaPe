@@ -15,6 +15,7 @@ import {
   PenTool,
 } from 'lucide-react';
 import { trpc } from '../../../utils/trpc';
+import { CourseListSkeleton } from '../../../components/ui/skeleton';
 
 type CourseStatus = 'completed' | 'available' | 'locked';
 
@@ -40,7 +41,7 @@ const coursePalette: Record<
   { color: string; bg: string; icon: typeof BookOpen }
 > = {
   Biología: { color: '#58cc02', bg: '#f1fcdb', icon: Dna },
-  'Álgebra': { color: '#1cb0f6', bg: '#ddf4ff', icon: Calculator },
+  Álgebra: { color: '#1cb0f6', bg: '#ddf4ff', icon: Calculator },
   'Razonamiento Matemático': { color: '#ce82ff', bg: '#f8eaff', icon: PenTool },
   Geometría: { color: '#ff9600', bg: '#fff2e0', icon: PenTool },
   Física: { color: '#ff9600', bg: '#fff2e0', icon: Zap },
@@ -50,7 +51,9 @@ const coursePalette: Record<
 };
 
 function getCourseStyle(name: string) {
-  return coursePalette[name] ?? { color: '#1cb0f6', bg: '#ddf4ff', icon: BookOpen };
+  return (
+    coursePalette[name] ?? { color: '#1cb0f6', bg: '#ddf4ff', icon: BookOpen }
+  );
 }
 
 export default function CursosPage() {
@@ -85,11 +88,7 @@ export default function CursosPage() {
     coursesData.find((c) => c.id === activeCourseId) ?? coursesData[0];
 
   if (isLoading) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="font-black text-[#58cc02]">Cargando cursos…</div>
-      </div>
-    );
+    return <CourseListSkeleton />;
   }
 
   if (coursesData.length === 0) {
@@ -140,7 +139,9 @@ export default function CursosPage() {
                       style={{ backgroundColor: course.bgTint }}
                     >
                       <div className="pt-6 px-5 pb-2 relative min-h-[145px] flex items-start">
-                        <div className="duo-bubble w-[75%] relative z-10">{course.message}</div>
+                        <div className="duo-bubble w-[75%] relative z-10">
+                          {course.message}
+                        </div>
                         <div className="absolute -bottom-3 -right-2 w-28 h-28 flex items-center justify-center rotate-[-5deg]">
                           <Icon
                             size={100}
@@ -170,7 +171,9 @@ export default function CursosPage() {
                       </h3>
                       <span
                         className="font-extrabold text-[11px] uppercase tracking-widest"
-                        style={{ color: isSelected ? course.colorHex : '#1cb0f6' }}
+                        style={{
+                          color: isSelected ? course.colorHex : '#1cb0f6',
+                        }}
                       >
                         {course.area} • {isSelected ? 'SELECCIONADO' : 'ELEGIR'}
                       </span>
@@ -196,8 +199,14 @@ export default function CursosPage() {
                       <div className="shrink-0 flex items-center justify-center w-8">
                         <Trophy
                           size={32}
-                          color={course.progress === 100 ? course.colorHex : '#e5e5e5'}
-                          fill={course.progress === 100 ? course.colorHex : 'none'}
+                          color={
+                            course.progress === 100
+                              ? course.colorHex
+                              : '#e5e5e5'
+                          }
+                          fill={
+                            course.progress === 100 ? course.colorHex : 'none'
+                          }
                           strokeWidth={course.progress === 100 ? 1 : 2.5}
                         />
                       </div>

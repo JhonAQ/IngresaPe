@@ -70,7 +70,7 @@ export const RankRow: React.FC<RankRowProps> = ({ user, index }) => {
 
       <div className="text-right shrink-0">
         <p className="font-black text-[14px] text-slate-800">
-          {user.weeklyPtje.toFixed(1)}
+          {user.score.toFixed(1)}
         </p>
         <p className="text-slate-400 font-bold text-[9px] uppercase">Ptje</p>
       </div>

@@ -2,19 +2,51 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import type { RankingUserDto } from '@ingresa-pe/domain';
+import { leagueConfig } from '@ingresa-pe/domain';
 
 interface RankingTableRowProps {
   user: RankingUserDto;
   index: number;
-  targetRef?: React.RefObject<HTMLDivElement | null>;
+  showDelta?: boolean;
+  targetRef?: React.Ref<HTMLDivElement>;
 }
 
 function formatScore(score: number): string {
-  return score.toFixed(4);
+  return score.toFixed(1);
 }
 
-export const RankingTableRow: React.FC<RankingTableRowProps> = ({ user, index, targetRef }) => {
+function DeltaPill({ delta }: { delta: number | null | undefined }) {
+  if (delta === null || delta === undefined || delta === 0) {
+    return (
+      <span className="inline-flex items-center gap-0.5 text-slate-400 text-[10px] font-bold">
+        <Minus size={10} /> 0
+      </span>
+    );
+  }
+  const isPositive = delta > 0;
+  return (
+    <span
+      className={`inline-flex items-center gap-0.5 text-[10px] font-black ${
+        isPositive ? 'text-emerald-600' : 'text-rose-500'
+      }`}
+    >
+      {isPositive ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+      {isPositive ? '+' : ''}
+      {delta}
+    </span>
+  );
+}
+
+export const RankingTableRow: React.FC<RankingTableRowProps> = ({
+  user,
+  index,
+  showDelta = false,
+  targetRef,
+}) => {
+  const divisionCfg = leagueConfig[user.division];
+
   return (
     <motion.div
       ref={targetRef}
@@ -30,8 +62,8 @@ export const RankingTableRow: React.FC<RankingTableRowProps> = ({ user, index, t
     >
       <div className="w-[12%] text-center text-slate-800">{user.rank}</div>
 
-      <div className="w-[20%] text-center text-[10px] sm:text-[11px] uppercase tracking-wider text-slate-600">
-        {user.league}
+      <div className="w-[20%] text-center text-[10px] sm:text-[11px] uppercase tracking-wider">
+        <span style={{ color: divisionCfg.hex }}>{divisionCfg.label}</span>
       </div>
 
       <div className="flex-1 pl-3 flex items-center gap-1.5 truncate text-slate-800">
@@ -43,9 +75,19 @@ export const RankingTableRow: React.FC<RankingTableRowProps> = ({ user, index, t
         )}
       </div>
 
-      <div className="w-[22%] text-right pr-2 text-[11px] sm:text-[12px] text-slate-900">
-        {formatScore(user.weeklyPtje)}
+      <div
+        className={`text-right pr-2 text-[11px] sm:text-[12px] text-slate-900 ${
+          showDelta ? 'w-[16%]' : 'w-[22%]'
+        }`}
+      >
+        {formatScore(user.score)}
       </div>
+
+      {showDelta && (
+        <div className="w-[14%] text-right pr-2">
+          <DeltaPill delta={user.delta} />
+        </div>
+      )}
     </motion.div>
   );
 };

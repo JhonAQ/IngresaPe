@@ -30,9 +30,6 @@ export * from './lib/icons/LightIcon';
 export * from './lib/icons/RatingIcon';
 export * from './lib/icons/TargetIcon';
 export * from './lib/icons/TimerIcon';
-
-
-
-
-
-
+export * from './lib/icons/DayDoneIcon';
+export * from './lib/icons/DayFreezedIcon';
+export * from './lib/icons/DayNotYetIcon';

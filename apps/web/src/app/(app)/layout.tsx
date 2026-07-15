@@ -1,21 +1,31 @@
 'use client';
 
 import React from 'react';
+import { usePathname } from 'next/navigation';
 import { DashboardHeader } from '../../components/dashboard/Header';
 import { BottomNav } from '../../components/dashboard/BottomNav';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { AuthGuard } from '../../components/auth/AuthGuard';
 import { DashboardSkeleton } from '../../components/ui/skeleton';
-import { ImmersiveOverlayProvider, useImmersiveOverlay } from '../../components/dashboard/ImmersiveOverlayContext';
-import { DashboardCourseProvider, useDashboardCourse } from '../../components/dashboard/DashboardCourseContext';
+import {
+  ImmersiveOverlayProvider,
+  useImmersiveOverlay,
+} from '../../components/dashboard/ImmersiveOverlayContext';
+import {
+  DashboardCourseProvider,
+  useDashboardCourse,
+} from '../../components/dashboard/DashboardCourseContext';
 import { AttemptsHistoryOverlay } from '../../components/simulacros/AttemptsHistoryOverlay';
 import { ArchiveOverlay } from '../../components/simulacros';
 import { PWAInstallManager } from '../../components/pwa/PWAInstallManager';
 
 function LayoutContent({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const { data, isLoading } = useDashboardData();
   const { isOpen, open } = useImmersiveOverlay();
   const selectedCourse = useDashboardCourse();
+
+  const hideAppHeader = pathname === '/perfil';
 
   return (
     <AuthGuard>
@@ -28,7 +38,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
         >
           <div className="absolute inset-0 bg-grid-pattern z-0 pointer-events-none opacity-50" />
 
-          {!isOpen && (
+          {!isOpen && !hideAppHeader && (
             <DashboardHeader
               stats={data.stats}
               selectedCourse={selectedCourse}

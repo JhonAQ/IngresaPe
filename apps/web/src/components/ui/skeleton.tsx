@@ -51,14 +51,7 @@ export function SkeletonCircle({
   className?: string;
   size?: number;
 }) {
-  return (
-    <Skeleton
-      circle
-      height={size}
-      width={size}
-      className={className}
-    />
-  );
+  return <Skeleton circle height={size} width={size} className={className} />;
 }
 
 /**
@@ -90,28 +83,20 @@ export function SkeletonCard({ className }: { className?: string }) {
 export function DashboardSkeleton() {
   return (
     <div className="flex-1 flex flex-col gap-4 p-5 pb-32 overflow-y-auto hide-scrollbar bg-slate-50/50">
-      <div className="rounded-2xl border-2 border-slate-100 bg-white p-4 shadow-sm h-24">
-        <Skeleton height="100%" className="w-full rounded-xl" />
-      </div>
+      <div className="h-24 rounded-2xl bg-slate-200 animate-pulse" />
 
-      <div className="rounded-2xl border-2 border-slate-100 bg-white p-4 shadow-sm h-20">
-        <Skeleton height="100%" className="w-full rounded-xl" />
-      </div>
+      <div className="h-20 rounded-2xl bg-slate-200 animate-pulse" />
 
       <div className="sticky top-0 z-40 -mx-1 px-1 pt-2 pb-3 bg-slate-50/95 backdrop-blur-sm">
-        <div className="rounded-2xl border-2 border-slate-100 bg-white p-4 shadow-sm h-20">
-          <Skeleton height="100%" className="w-full rounded-xl" />
-        </div>
+        <div className="h-20 rounded-2xl bg-slate-200 animate-pulse" />
       </div>
 
       <div className="space-y-8 py-4 flex flex-col items-center">
         {Array.from({ length: 3 }).map((_, i) => (
           <div
             key={i}
-            className="w-[300px] h-40 rounded-2xl border-2 border-slate-100 bg-white p-4 shadow-sm"
-          >
-            <Skeleton height="100%" className="w-full rounded-xl" />
-          </div>
+            className="w-[300px] h-40 rounded-2xl bg-slate-200 animate-pulse"
+          />
         ))}
       </div>
     </div>
@@ -145,5 +130,259 @@ export function EngineSkeleton() {
         <Skeleton className="h-14 w-full rounded-2xl" />
       </div>
     </div>
+  );
+}
+
+/**
+ * Layout de carga para el ranking.
+ */
+export function RankingSkeleton() {
+  return (
+    <main className="flex-1 overflow-hidden flex flex-col bg-white">
+      <div className="shrink-0 px-3 sm:px-4 pt-3 bg-white z-20 space-y-2">
+        <Skeleton className="h-10 w-full rounded-2xl" />
+        <Skeleton className="h-8 w-full rounded-xl" />
+      </div>
+
+      <div className="flex-1 overflow-y-auto hide-scrollbar relative z-10 px-3 sm:px-4 pb-24 pt-3 space-y-3">
+        {Array.from({ length: 3 }).map((_, groupIndex) => (
+          <div key={groupIndex} className="space-y-1">
+            <Skeleton className="h-10 w-full rounded-xl" />
+            {Array.from({ length: 4 }).map((_, rowIndex) => (
+              <Skeleton key={rowIndex} className="h-10 w-full rounded-lg" />
+            ))}
+          </div>
+        ))}
+      </div>
+    </main>
+  );
+}
+
+/**
+ * Layout de carga para el nuevo perfil.
+ */
+export function ProfileSkeleton() {
+  return (
+    <main className="flex-1 overflow-y-auto hide-scrollbar pb-32 bg-premium-pattern">
+      {/* Header */}
+      <header className="sticky top-0 z-50 flex items-center justify-between p-4 bg-white/70 backdrop-blur-xl border-b border-slate-200/60 shrink-0">
+        <Skeleton className="h-6 w-20 rounded-lg ml-2" />
+        <div className="flex gap-2">
+          <Skeleton className="w-10 h-10 rounded-2xl" />
+          <Skeleton className="w-10 h-10 rounded-2xl" />
+        </div>
+      </header>
+
+      {/* Perfil intro */}
+      <div className="px-5 pt-8 pb-6 flex items-center gap-5">
+        <SkeletonCircle size={80} />
+        <div className="flex flex-col gap-2 min-w-0">
+          <Skeleton className="h-7 w-40 rounded-xl" />
+          <Skeleton className="h-4 w-24 rounded-lg" />
+          <Skeleton className="h-8 w-32 rounded-xl" />
+        </div>
+      </div>
+
+      {/* Tarjetas de liga */}
+      <div className="px-5 mb-6">
+        <div className="flex gap-3">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div
+              key={i}
+              className="flex-1 bg-slate-100 border-2 border-slate-200 border-b-[4px] rounded-[1.5rem] p-4 space-y-3"
+            >
+              <div className="flex justify-between items-start">
+                <Skeleton className="h-3 w-16 rounded-md" />
+                <Skeleton className="w-8 h-8 rounded-full" />
+              </div>
+              <Skeleton className="h-9 w-20 rounded-lg" />
+              <Skeleton className="h-3 w-14 rounded-md" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Stats row */}
+      <div className="px-5 mb-8">
+        <div className="flex gap-3">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div
+              key={i}
+              className="flex-1 bg-white border-2 border-slate-200 border-b-[4px] rounded-[1.25rem] px-4 py-3.5 flex items-center gap-3.5"
+            >
+              <Skeleton className="w-11 h-11 rounded-xl" />
+              <div className="flex flex-col gap-2">
+                <Skeleton className="h-6 w-14 rounded-lg" />
+                <Skeleton className="h-3 w-16 rounded-md" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Chart + Heatmap */}
+      <div className="px-5 flex flex-col gap-6">
+        <div className="bg-white border-2 border-slate-200 border-b-[4px] rounded-[1.5rem] p-5 space-y-4">
+          <div className="flex justify-between">
+            <Skeleton className="h-5 w-28 rounded-lg" />
+            <Skeleton className="h-5 w-20 rounded-md" />
+          </div>
+          <Skeleton className="h-40 w-full rounded-xl" />
+        </div>
+        <div className="bg-white border-2 border-slate-200 border-b-[4px] rounded-[1.5rem] p-5 space-y-4">
+          <div className="flex justify-between">
+            <Skeleton className="h-5 w-24 rounded-lg" />
+            <Skeleton className="h-5 w-20 rounded-md" />
+          </div>
+          <Skeleton className="h-28 w-full rounded-xl" />
+        </div>
+      </div>
+
+      <div className="px-5 py-8">
+        <Skeleton className="h-14 w-full rounded-2xl" />
+      </div>
+    </main>
+  );
+}
+
+/**
+ * Layout de carga para la lista de cursos.
+ */
+export function CourseListSkeleton() {
+  return (
+    <div className="flex-1 overflow-y-auto hide-scrollbar flex flex-col">
+      <div className="flex-1 p-5 pb-bottom-nav space-y-6">
+        <Skeleton className="h-10 w-3/4 mx-auto rounded-2xl" />
+
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-44 w-full rounded-2xl" />
+        ))}
+      </div>
+
+      <div className="sticky bottom-0 bg-white border-t-2 border-slate-100 px-4 py-4 z-30">
+        <Skeleton className="h-14 w-full rounded-2xl" />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Layout de carga para la pantalla de simulacros.
+ */
+export function SimulacrosSkeleton() {
+  return (
+    <main className="flex-1 overflow-y-auto pt-6 pb-32 hide-scrollbar relative">
+      {/* GoalCard */}
+      <div className="px-5 mb-6">
+        <div className="bg-white rounded-[1.8rem] p-4 border-2 border-slate-200 border-b-[6px] border-b-slate-300 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-slate-200 rounded-xl animate-pulse" />
+              <div className="space-y-2">
+                <div className="h-4 w-32 bg-slate-200 rounded-lg animate-pulse" />
+                <div className="h-3 w-20 bg-slate-200 rounded-lg animate-pulse" />
+              </div>
+            </div>
+            <div className="h-6 w-16 bg-slate-200 rounded-lg animate-pulse" />
+          </div>
+          <div className="h-4 w-full bg-slate-200 rounded-full animate-pulse mb-2" />
+          <div className="flex justify-between">
+            <div className="h-3 w-24 bg-slate-200 rounded-lg animate-pulse" />
+            <div className="h-3 w-20 bg-slate-200 rounded-lg animate-pulse" />
+          </div>
+        </div>
+      </div>
+
+      {/* AIExamCard */}
+      <div className="px-5 mb-8">
+        <div className="bg-[#020617] rounded-[2rem] p-5 border-2 border-slate-800 border-b-[8px] border-b-black">
+          <div className="flex justify-between items-center mb-4">
+            <div className="h-6 w-28 bg-slate-800 rounded-xl animate-pulse" />
+            <div className="w-6 h-6 bg-slate-800 rounded-full animate-pulse" />
+          </div>
+          <div className="h-6 w-40 bg-slate-800 rounded-lg animate-pulse mb-2" />
+          <div className="h-3 w-48 bg-slate-800 rounded-lg animate-pulse mb-5" />
+
+          <div className="space-y-3 mb-6">
+            {Array.from({ length: 2 }).map((_, row) => (
+              <div key={row} className="flex items-center justify-between">
+                <div className="h-3 w-20 bg-slate-800 rounded animate-pulse" />
+                <div className="flex gap-1.5">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="w-9 h-7 bg-slate-800 rounded-lg animate-pulse"
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="h-4 w-44 bg-slate-800 rounded animate-pulse mb-4" />
+          <div className="h-12 w-full bg-slate-800 rounded-2xl animate-pulse" />
+        </div>
+      </div>
+
+      {/* HistoryArchive */}
+      <div className="mb-8">
+        <div className="flex justify-between items-end px-7 mb-3">
+          <div className="h-3 w-36 bg-slate-200 rounded animate-pulse" />
+          <div className="h-3 w-14 bg-slate-200 rounded animate-pulse" />
+        </div>
+        <div className="mx-5 overflow-hidden">
+          <div className="flex overflow-x-auto hide-scrollbar gap-4 px-1 pb-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="snap-start shrink-0 w-[135px] h-[180px] bg-white rounded-[1.5rem] border-2 border-slate-200 border-b-[6px] border-b-slate-300 p-3.5 flex flex-col shadow-sm"
+              >
+                <div className="w-8 h-8 bg-slate-200 rounded-xl animate-pulse mb-2" />
+                <div className="h-3 w-16 bg-slate-200 rounded animate-pulse mb-1" />
+                <div className="h-4 w-14 bg-slate-200 rounded animate-pulse mb-auto" />
+                <div className="h-3 w-20 bg-slate-200 rounded animate-pulse mb-2" />
+                <div className="h-8 w-full bg-slate-200 rounded-lg animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* RecentAttempts */}
+      <div className="px-5 pb-12">
+        <div className="flex justify-between items-end mb-4">
+          <div className="h-3 w-40 bg-slate-200 rounded animate-pulse" />
+          <div className="h-3 w-16 bg-slate-200 rounded animate-pulse" />
+        </div>
+        <div className="space-y-4">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div
+              key={i}
+              className="bg-white rounded-[2rem] border-2 border-slate-100 border-b-[6px] border-b-slate-200 shadow-sm overflow-hidden"
+            >
+              <div className="px-5 pt-5 pb-3 flex justify-between items-start">
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <div className="h-5 w-20 bg-slate-200 rounded-lg animate-pulse" />
+                    <div className="h-5 w-16 bg-slate-200 rounded-lg animate-pulse" />
+                  </div>
+                  <div className="h-5 w-32 bg-slate-200 rounded-lg animate-pulse" />
+                </div>
+                <div className="h-14 w-16 bg-slate-200 rounded-2xl animate-pulse" />
+              </div>
+              <div className="px-5 py-3 flex items-center gap-6 border-y border-slate-50 bg-slate-50/50">
+                <div className="h-4 w-16 bg-slate-200 rounded animate-pulse" />
+                <div className="h-4 w-16 bg-slate-200 rounded animate-pulse" />
+                <div className="h-4 w-16 bg-slate-200 rounded animate-pulse" />
+              </div>
+              <div className="p-4 flex gap-3">
+                <div className="flex-1 h-11 bg-slate-200 rounded-2xl animate-pulse" />
+                <div className="w-12 h-12 bg-slate-200 rounded-2xl animate-pulse" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </main>
   );
 }

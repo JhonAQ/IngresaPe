@@ -8,6 +8,7 @@ export const NodeBaseCompleted: React.FC<NodeBaseProps> = ({
   ...props
 }) => {
   const maskId = useId();
+  const clipId = useId();
   const colors = PATH_NODE_THEMES[theme];
 
   return (
@@ -20,22 +21,70 @@ export const NodeBaseCompleted: React.FC<NodeBaseProps> = ({
       className={`shrink-0 ${className}`}
       {...props}
     >
+      <defs>
+        <mask
+          id={maskId}
+          style={{ maskType: 'alpha' }}
+          maskUnits="userSpaceOnUse"
+          x="6"
+          y="5"
+          width="58"
+          height="48"
+        >
+          <ellipse cx="35" cy="29" rx="29" ry="24" fill="#D9D9D9" />
+        </mask>
+        <clipPath id={clipId}>
+          <ellipse cx="35.5" cy="29" rx="35.5" ry="29" />
+        </clipPath>
+      </defs>
+
       <ellipse cx="35.5" cy="36" rx="35.5" ry="29" fill={colors.medium} />
       <ellipse cx="35.5" cy="29" rx="35.5" ry="29" fill={colors.base} />
-      <mask
-        id={maskId}
-        style={{ maskType: 'alpha' }}
-        maskUnits="userSpaceOnUse"
-        x="6"
-        y="5"
-        width="58"
-        height="48"
-      >
-        <ellipse cx="35" cy="29" rx="29" ry="24" fill="#D9D9D9" />
-      </mask>
+
       <g mask={`url(#${maskId})`}>
         <path d="M44 3L8 41.5L-9.5 21L15 -2L44 3Z" fill={colors.light} />
         <path d="M58 3L15 50L29.5 59L67.5 18L58 3Z" fill={colors.light} />
+      </g>
+
+      {/* Brillo diagonal animado: dos haces a 45° que barren todo el nodo */}
+      <g clipPath={`url(#${clipId})`} transform="rotate(45 35 29)">
+        {/* Primer haz */}
+        <rect
+          x="-60"
+          y="-30"
+          width="22"
+          height="120"
+          fill="white"
+          opacity="0.4"
+        >
+          <animateTransform
+            attributeName="transform"
+            type="translate"
+            values="-110 0; 170 0; 170 0; -110 0; -110 0"
+            keyTimes="0; 0.35; 0.55; 0.56; 1"
+            dur="2.8s"
+            repeatCount="indefinite"
+          />
+        </rect>
+
+        {/* Segundo haz, ligeramente más delgado y retrasado */}
+        <rect
+          x="-60"
+          y="-30"
+          width="14"
+          height="120"
+          fill="white"
+          opacity="0.55"
+        >
+          <animateTransform
+            attributeName="transform"
+            type="translate"
+            values="-110 0; -110 0; 170 0; 170 0; -110 0; -110 0"
+            keyTimes="0; 0.125; 0.475; 0.6; 0.61; 1"
+            dur="2.8s"
+            repeatCount="indefinite"
+          />
+        </rect>
       </g>
     </svg>
   );

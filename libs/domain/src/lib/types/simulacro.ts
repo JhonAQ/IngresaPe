@@ -22,6 +22,22 @@ export const simulacroStatsSchema = z.object({
   freeAttemptsRemaining: z.number(),
   freeAttemptsResetAt: z.date().nullable(),
   isPremium: z.boolean(),
+  rating: z.number(),
+  score: z.number(),
+  division: z.enum(['HUEVITO', 'POLLITO', 'DINOSAURIO', 'FOSIL', 'CACHIMBO']),
+  highestRating: z.number(),
+  gems: z.number(),
+  season: z.object({
+    id: z.string(),
+    isEventOpen: z.boolean(),
+    eventStartsAt: z.date(),
+    eventEndsAt: z.date(),
+    isRevealed: z.boolean(),
+    hasOfficialAttempt: z.boolean(),
+    officialAttemptStatus: z
+      .enum(['IN_PROGRESS', 'COMPLETED', 'ABANDONED'])
+      .nullable(),
+  }),
 });
 export type SimulacroStatsDto = z.infer<typeof simulacroStatsSchema>;
 
@@ -80,10 +96,16 @@ export const examAttemptSummarySchema = z.object({
   timeUsedSeconds: z.number().nullable(),
   startedAt: z.date(),
   submittedAt: z.date().nullable(),
+  isOfficial: z.boolean().default(false),
+  isRevealed: z.boolean().default(false),
+  calculatedRatingDelta: z.number().nullable().optional(),
 });
 export type ExamAttemptSummaryDto = z.infer<typeof examAttemptSummarySchema>;
 
 export const examAttemptDetailSchema = examAttemptSummarySchema.extend({
+  timerStartedAt: z.date().nullable(),
+  serverTimeLimitSec: z.number(),
+  serverNow: z.date(),
   questions: z.array(examQuestionViewSchema),
 });
 export type ExamAttemptDetailDto = z.infer<typeof examAttemptDetailSchema>;
@@ -98,9 +120,10 @@ export const examAnswerSubmissionSchema = z.record(
 );
 export type ExamAnswerSubmission = z.infer<typeof examAnswerSubmissionSchema>;
 
-// Resultado de entregar un simulacro
+// Resultado de entregar un simulacro de práctica
 export const examResultSchema = z.object({
   attemptId: z.string(),
+  status: z.literal('COMPLETED'),
   score: z.number(),
   correctCount: z.number(),
   incorrectCount: z.number(),
@@ -110,3 +133,17 @@ export const examResultSchema = z.object({
   coinsEarned: z.number(),
 });
 export type ExamResultDto = z.infer<typeof examResultSchema>;
+
+// Respuesta al entregar un simulacro oficial (anti-copia)
+export const examReceivedSchema = z.object({
+  attemptId: z.string(),
+  status: z.literal('RECEIVED'),
+  message: z.string(),
+});
+export type ExamReceivedDto = z.infer<typeof examReceivedSchema>;
+
+export const examSubmitResponseSchema = z.union([
+  examResultSchema,
+  examReceivedSchema,
+]);
+export type ExamSubmitResponseDto = z.infer<typeof examSubmitResponseSchema>;

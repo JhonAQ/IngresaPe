@@ -10,6 +10,7 @@ import { LevelStarIcon } from './icons/LevelStarIcon';
 import { LevelVideoIcon } from './icons/LevelVideoIcon';
 import { LevelWeightsIcon } from './icons/LevelWeightsIcon';
 import type { PathNodeTheme } from './path-node/tokens';
+import { PATH_NODE_THEMES } from './path-node/tokens';
 
 export type { PathNodeTheme } from './path-node/tokens';
 export type PathNodeStatus = 'locked' | 'current' | 'completed' | 'gold';
@@ -62,8 +63,7 @@ export const PathNode = forwardRef<HTMLButtonElement, PathNodeProps>(
     const isGold = status === 'gold';
 
     const renderBase = (): ReactNode => {
-      if (isLocked)
-        return <NodeBaseUnavailable className="w-full h-full" />;
+      if (isLocked) return <NodeBaseUnavailable className="w-full h-full" />;
       if (isCompleted)
         return (
           <NodeBaseCompleted
@@ -110,26 +110,68 @@ export const PathNode = forwardRef<HTMLButtonElement, PathNodeProps>(
 
     const isInteractive = !isLocked;
 
+    const haloSize = Math.round(size * 1.22);
+    const haloOffset = Math.round((size - haloSize) / 2);
+    const colors = isCurrent ? PATH_NODE_THEMES[theme] : null;
+
     return (
       <div
         className={`relative flex items-center justify-center ${className}`}
         style={nodeStyle}
       >
-        {/* Ripple Duolingo para el nodo actual */}
-        {isCurrent && (
+        <style>{`
+          @keyframes halo-pulse {
+            0%, 100% { transform: scale(1); opacity: 0.45; }
+            50% { transform: scale(1.25); opacity: 0.85; }
+          }
+          @keyframes halo-ring {
+            0% { transform: scale(1); opacity: 0.6; }
+            100% { transform: scale(1.75); opacity: 0; }
+          }
+          @keyframes halo-core {
+            0%, 100% { transform: scale(0.92); opacity: 0.7; }
+            50% { transform: scale(1.08); opacity: 1; }
+          }
+        `}</style>
+
+        {/* Indicador de nodo activo con color del tema */}
+        {isCurrent && colors && (
           <>
             <div
-              className="absolute rounded-full bg-white z-0 shadow-[0_2px_8px_rgba(0,0,0,0.08)] border-2 border-slate-100"
+              className="absolute rounded-full z-0 border-[6px]"
               style={{
-                width: Math.round(size * 1.22),
-                height: Math.round(size * 1.22),
+                top: haloOffset,
+                left: haloOffset,
+                width: haloSize,
+                height: haloSize,
+                borderColor: colors.base,
+                backgroundColor: 'transparent',
+                boxShadow: `0 0 18px 6px ${colors.light}66, inset 0 0 12px 2px ${colors.light}44`,
+                animation: 'halo-pulse 1.4s ease-in-out infinite',
               }}
             />
             <div
-              className="absolute rounded-full border-[4px] border-slate-200 animate-ripple-pro z-0"
+              className="absolute rounded-full z-0 border-[5px]"
               style={{
-                width: Math.round(size * 1.22),
-                height: Math.round(size * 1.22),
+                top: haloOffset,
+                left: haloOffset,
+                width: haloSize,
+                height: haloSize,
+                borderColor: colors.light,
+                backgroundColor: 'transparent',
+                animation: 'halo-ring 1.4s ease-out infinite',
+              }}
+            />
+            <div
+              className="absolute rounded-full z-0"
+              style={{
+                top: Math.round((size - Math.round(size * 0.35)) / 2),
+                left: Math.round((size - Math.round(size * 0.35)) / 2),
+                width: Math.round(size * 0.35),
+                height: Math.round(size * 0.35),
+                backgroundColor: colors.ice,
+                opacity: 0.9,
+                animation: 'halo-core 1.4s ease-in-out infinite',
               }}
             />
           </>
@@ -143,7 +185,11 @@ export const PathNode = forwardRef<HTMLButtonElement, PathNodeProps>(
             flex items-center justify-center
             transition-all duration-100 outline-none
             drop-shadow-[0px_6px_5px_rgba(0,0,0,0.16)]
-            ${isInteractive ? 'cursor-pointer hover:brightness-110 active:translate-y-[6px] active:drop-shadow-none' : 'cursor-not-allowed opacity-90'}
+            ${
+              isInteractive
+                ? 'cursor-pointer hover:brightness-110 active:translate-y-[6px] active:drop-shadow-none'
+                : 'cursor-not-allowed opacity-90'
+            }
           `}
           {...props}
         >
