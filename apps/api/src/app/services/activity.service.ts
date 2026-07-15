@@ -82,8 +82,12 @@ export class ActivityService {
 
   /**
    * Devuelve el estado de la racha para los últimos 7 días (incluyendo hoy)
-   * basándose únicamente en los ActivityLog. El día de hoy se marca como
-   * 'freezed' si ya tuvo actividad; los demás días usan 'done' o 'not_yet'.
+   * basándose únicamente en los ActivityLog.
+   *
+   * Estados:
+   * - done: día con actividad (pasado o hoy).
+   * - missed: día pasado sin actividad.
+   * - not_yet: día futuro o hoy sin actividad aún.
    */
   async getWeeklyStreak(userId: string) {
     const today = this.toDate(new Date());
@@ -119,11 +123,11 @@ export class ActivityService {
           log.nodesCompleted > 0 ||
           log.simulacrosCompleted > 0);
 
-      let status: 'done' | 'freezed' | 'not_yet' = 'not_yet';
-      if (d.isToday) {
-        status = hasActivity ? 'freezed' : 'not_yet';
-      } else if (hasActivity) {
+      let status: 'done' | 'missed' | 'not_yet' = 'not_yet';
+      if (hasActivity) {
         status = 'done';
+      } else if (!d.isToday) {
+        status = 'missed';
       }
 
       return {

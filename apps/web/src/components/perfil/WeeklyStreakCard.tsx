@@ -1,8 +1,13 @@
 import { Flame } from 'lucide-react';
 import { trpc } from '../../utils/trpc';
-import { DayDoneIcon, DayFreezedIcon, DayNotYetIcon } from '@ingresa-pe/ui';
+import {
+  DayDoneIcon,
+  DayFreezedIcon,
+  DayMissedIcon,
+  DayNotYetIcon,
+} from '@ingresa-pe/ui';
 
-type StreakStatus = 'done' | 'freezed' | 'not_yet';
+type StreakStatus = 'done' | 'freezed' | 'missed' | 'not_yet';
 
 interface StreakDay {
   date: string;
@@ -16,6 +21,8 @@ function DayIcon({ status }: { status: StreakStatus }) {
     return <DayDoneIcon className="w-9 h-9 sm:w-10 sm:h-10" />;
   if (status === 'freezed')
     return <DayFreezedIcon className="w-9 h-9 sm:w-10 sm:h-10" />;
+  if (status === 'missed')
+    return <DayMissedIcon className="w-9 h-9 sm:w-10 sm:h-10" />;
   return <DayNotYetIcon className="w-9 h-9 sm:w-10 sm:h-10" />;
 }
 
@@ -48,7 +55,13 @@ export function WeeklyStreakCard() {
             <div key={day.date} className="flex flex-col items-center gap-1.5">
               <span
                 className={`text-[10px] font-black uppercase tracking-wider ${
-                  day.status === 'not_yet' ? 'text-slate-300' : 'text-[#FF9600]'
+                  day.status === 'done'
+                    ? 'text-[#FF9600]'
+                    : day.status === 'missed'
+                    ? 'text-slate-400'
+                    : day.isToday
+                    ? 'text-slate-700'
+                    : 'text-slate-300'
                 }`}
               >
                 {day.label}

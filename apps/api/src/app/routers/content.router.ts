@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { Difficulty, Prisma, QuestionType } from '@prisma/client';
 import { QuestionViewService } from '../services/question-view.service';
+import { ActivityService } from '../services/activity.service';
 import { parseSummaryBlocks } from '@ingresa-pe/domain';
 
 @Injectable()
@@ -12,7 +13,8 @@ export class ContentRouter {
   constructor(
     private readonly trpc: TrpcService,
     private readonly prisma: PrismaService,
-    private readonly viewService: QuestionViewService
+    private readonly viewService: QuestionViewService,
+    private readonly activityService: ActivityService
   ) {}
 
   router = this.trpc.router({
@@ -253,6 +255,11 @@ export class ContentRouter {
           where: { userId_topicId_nodeIndex: { userId, topicId, nodeIndex } },
           update: {},
           create: { userId, topicId, nodeIndex },
+        });
+
+        await this.activityService.log({
+          userId,
+          nodesCompleted: 1,
         });
 
         return { success: true, completedNodeIndex: nodeIndex };
