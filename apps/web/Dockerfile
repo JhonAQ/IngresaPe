@@ -4,7 +4,12 @@ WORKDIR /app
 
 # Instalar dependencias del monorepo
 COPY package*.json ./
-RUN npm install --no-audit --no-fund
+# Aumentar la tolerancia a cortes de red transitorios durante la instalación
+RUN npm config set fetch-retries 5 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    npm config set maxsockets 1 && \
+    npm install --no-audit --no-fund
 
 # Instalar OpenSSL para que Prisma generate funcione en Alpine
 RUN apk add --no-cache openssl
