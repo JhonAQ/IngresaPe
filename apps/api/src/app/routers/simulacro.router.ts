@@ -61,12 +61,19 @@ export class SimulacroRouter {
       });
 
       if (!user) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Usuario no encontrado' });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Usuario no encontrado',
+        });
       }
 
       const season = await this.seasonService.getOrCreateCurrentSeason();
-      const hasOfficialAttempt = await this.seasonService.hasOfficialAttempt(user.id, season.id);
-      const officialAttempt = await this.seasonService.getCurrentOfficialAttempt(user.id, season.id);
+      const hasOfficialAttempt = await this.seasonService.hasOfficialAttempt(
+        user.id,
+        season.id
+      );
+      const officialAttempt =
+        await this.seasonService.getCurrentOfficialAttempt(user.id, season.id);
 
       const completedAttempts = await this.prisma.examAttempt.findMany({
         where: {
@@ -84,7 +91,9 @@ export class SimulacroRouter {
       const bestScore = scores.length > 0 ? Math.max(...scores) : null;
       const averageScore =
         scores.length > 0
-          ? Number((scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1))
+          ? Number(
+              (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1)
+            )
           : null;
 
       const { remaining, resetAt } = this.computeFreeAttemptState(user);
@@ -96,7 +105,9 @@ export class SimulacroRouter {
         totalAttempts: completedAttempts.length,
         freeAttemptsUsed: user.isPremium ? 0 : user.freeSimAttemptsUsed,
         freeAttemptsLimit: FREE_WEEKLY_ATTEMPTS,
-        freeAttemptsRemaining: user.isPremium ? FREE_WEEKLY_ATTEMPTS : remaining,
+        freeAttemptsRemaining: user.isPremium
+          ? FREE_WEEKLY_ATTEMPTS
+          : remaining,
         freeAttemptsResetAt: resetAt ?? null,
         isPremium: user.isPremium,
         rating: user.rating,
@@ -185,7 +196,10 @@ export class SimulacroRouter {
         });
 
         if (!user) {
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'Usuario no encontrado' });
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Usuario no encontrado',
+          });
         }
 
         if (!user.isPremium) {
@@ -197,11 +211,15 @@ export class SimulacroRouter {
 
         const season = await this.seasonService.getOrCreateCurrentSeason();
         if (this.seasonService.isEventOpen(season)) {
-          const hasOfficial = await this.seasonService.hasOfficialAttempt(user.id, season.id);
+          const hasOfficial = await this.seasonService.hasOfficialAttempt(
+            user.id,
+            season.id
+          );
           if (hasOfficial) {
             throw new TRPCError({
               code: 'FORBIDDEN',
-              message: 'Ya iniciaste tu simulacro oficial de este fin de semana.',
+              message:
+                'Ya iniciaste tu simulacro oficial de este fin de semana.',
             });
           }
         }
@@ -217,7 +235,10 @@ export class SimulacroRouter {
         });
 
         if (!exam) {
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'Examen no encontrado' });
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Examen no encontrado',
+          });
         }
 
         const questionIds = exam.questions.map((q) => q.id);
@@ -256,18 +277,26 @@ export class SimulacroRouter {
         });
 
         if (!user) {
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'Usuario no encontrado' });
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Usuario no encontrado',
+          });
         }
 
         const season = await this.seasonService.getOrCreateCurrentSeason();
-        const isOfficial = input.isOfficial && this.seasonService.isEventOpen(season);
+        const isOfficial =
+          input.isOfficial && this.seasonService.isEventOpen(season);
 
         if (isOfficial) {
-          const hasOfficial = await this.seasonService.hasOfficialAttempt(user.id, season.id);
+          const hasOfficial = await this.seasonService.hasOfficialAttempt(
+            user.id,
+            season.id
+          );
           if (hasOfficial) {
             throw new TRPCError({
               code: 'FORBIDDEN',
-              message: 'Ya iniciaste tu simulacro oficial de este fin de semana.',
+              message:
+                'Ya iniciaste tu simulacro oficial de este fin de semana.',
             });
           }
         } else {
@@ -275,7 +304,8 @@ export class SimulacroRouter {
           if (!user.isPremium && remaining <= 0) {
             throw new TRPCError({
               code: 'FORBIDDEN',
-              message: 'Has usado tu simulacro gratuito de esta semana. Sube a premium para intentos ilimitados.',
+              message:
+                'Has usado tu simulacro gratuito de esta semana. Sube a premium para intentos ilimitados.',
             });
           }
 
@@ -284,7 +314,9 @@ export class SimulacroRouter {
               where: { id: user.id },
               data: {
                 freeSimAttemptsUsed: { increment: 1 },
-                ...(resetAt && (!user.freeSimAttemptsResetAt || resetAt > user.freeSimAttemptsResetAt)
+                ...(resetAt &&
+                (!user.freeSimAttemptsResetAt ||
+                  resetAt > user.freeSimAttemptsResetAt)
                   ? { freeSimAttemptsResetAt: resetAt }
                   : {}),
               },
@@ -294,13 +326,19 @@ export class SimulacroRouter {
 
         const questionIds =
           input.strategy === 'AI'
-            ? (await this.analyzer.selectQuestions(user.id, input.questionCount)).questionIds
+            ? (
+                await this.analyzer.selectQuestions(
+                  user.id,
+                  input.questionCount
+                )
+              ).questionIds
             : await this.analyzer.selectRandomQuestions(input.questionCount);
 
         if (questionIds.length === 0) {
           throw new TRPCError({
             code: 'NOT_FOUND',
-            message: 'No hay suficientes preguntas disponibles para generar el simulacro.',
+            message:
+              'No hay suficientes preguntas disponibles para generar el simulacro.',
           });
         }
 
@@ -335,7 +373,10 @@ export class SimulacroRouter {
         });
 
         if (!attempt || attempt.userId !== ctx.user.userId) {
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'Intento no encontrado' });
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Intento no encontrado',
+          });
         }
 
         const questions = await this.prisma.examQuestion.findMany({
@@ -357,7 +398,11 @@ export class SimulacroRouter {
           examTitle: attempt.exam?.title ?? null,
           mode: attempt.mode,
           status: attempt.status,
-          score: attempt.isOfficial ? (attempt.isRevealed ? attempt.score : null) : attempt.score,
+          score: attempt.isOfficial
+            ? attempt.isRevealed
+              ? attempt.score
+              : null
+            : attempt.score,
           correctCount: attempt.correctCount,
           incorrectCount: attempt.incorrectCount,
           blankCount: attempt.blankCount,
@@ -378,7 +423,14 @@ export class SimulacroRouter {
             statement: q.statement,
             passage: q.passage,
             imageUrl: q.imageUrl,
-            options: (q.options as Array<{ id: string; text: string; isCorrect: boolean; imageUrl?: string | null }>).map((o) => ({
+            options: (
+              q.options as Array<{
+                id: string;
+                text: string;
+                isCorrect: boolean;
+                imageUrl?: string | null;
+              }>
+            ).map((o) => ({
               id: o.id,
               text: o.text,
               imageUrl: o.imageUrl,
@@ -400,11 +452,17 @@ export class SimulacroRouter {
         });
 
         if (!attempt || attempt.userId !== ctx.user.userId) {
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'Intento no encontrado' });
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Intento no encontrado',
+          });
         }
 
         if (attempt.status !== 'IN_PROGRESS') {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Este intento ya fue entregado' });
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Este intento ya fue entregado',
+          });
         }
 
         const questions = await this.prisma.examQuestion.findMany({
@@ -418,7 +476,10 @@ export class SimulacroRouter {
         let incorrectCount = 0;
         let blankCount = 0;
 
-        const gradedAnswers: Record<string, { selectedOptionId: string; timeTaken?: number; isCorrect: boolean }> = {};
+        const gradedAnswers: Record<
+          string,
+          { selectedOptionId: string; timeTaken?: number; isCorrect: boolean }
+        > = {};
         const answerLogs: Array<{
           userId: string;
           examQuestionId: string;
@@ -430,12 +491,20 @@ export class SimulacroRouter {
         for (const questionId of attempt.questionIds) {
           const question = questionMap.get(questionId);
           const submitted = input.answers[questionId];
-          const options = (question?.options ?? []) as Array<{ id: string; text: string; isCorrect: boolean }>;
+          const options = (question?.options ?? []) as Array<{
+            id: string;
+            text: string;
+            isCorrect: boolean;
+          }>;
           const correctOption = options.find((o) => o.isCorrect);
 
           if (!submitted || !submitted.selectedOptionId) {
             blankCount++;
-            gradedAnswers[questionId] = { selectedOptionId: '', timeTaken: 0, isCorrect: false };
+            gradedAnswers[questionId] = {
+              selectedOptionId: '',
+              timeTaken: 0,
+              isCorrect: false,
+            };
             continue;
           }
 
@@ -453,19 +522,29 @@ export class SimulacroRouter {
             userId: ctx.user.userId,
             examQuestionId: questionId,
             isCorrect,
-            answer: { selectedOptionId: submitted.selectedOptionId, timeTaken: submitted.timeTaken },
+            answer: {
+              selectedOptionId: submitted.selectedOptionId,
+              timeTaken: submitted.timeTaken,
+            },
             timeTaken: submitted.timeTaken,
           });
         }
 
         const totalAnswered = correctCount + incorrectCount;
-        const score = attempt.questionCount > 0
-          ? Number(((correctCount / attempt.questionCount) * 100).toFixed(1))
-          : 0;
+        const score =
+          attempt.questionCount > 0
+            ? Number(((correctCount / attempt.questionCount) * 100).toFixed(1))
+            : 0;
 
         const timeUsedSeconds = attempt.timerStartedAt
-          ? Math.max(0, Math.floor((Date.now() - attempt.timerStartedAt.getTime()) / 1000))
-          : Math.max(0, Math.floor((Date.now() - attempt.startedAt.getTime()) / 1000));
+          ? Math.max(
+              0,
+              Math.floor((Date.now() - attempt.timerStartedAt.getTime()) / 1000)
+            )
+          : Math.max(
+              0,
+              Math.floor((Date.now() - attempt.startedAt.getTime()) / 1000)
+            );
 
         const xpEarned = correctCount * XP_PER_CORRECT;
         const coinsEarned = correctCount * COINS_PER_CORRECT;
@@ -539,7 +618,11 @@ export class SimulacroRouter {
     freeSimAttemptsResetAt: Date | null;
   }) {
     if (user.isPremium) {
-      return { used: 0, remaining: FREE_WEEKLY_ATTEMPTS, resetAt: this.getNextMonday() };
+      return {
+        used: 0,
+        remaining: FREE_WEEKLY_ATTEMPTS,
+        resetAt: this.getNextMonday(),
+      };
     }
 
     const now = new Date();
@@ -557,7 +640,9 @@ export class SimulacroRouter {
 
   private getNextMonday(): Date {
     const now = new Date();
-    const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const next = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+    );
     next.setUTCDate(next.getUTCDate() + ((8 - next.getUTCDay()) % 7 || 7));
     return next;
   }

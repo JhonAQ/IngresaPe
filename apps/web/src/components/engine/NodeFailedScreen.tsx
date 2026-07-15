@@ -150,8 +150,8 @@ export function NodeFailedScreen({ onClose, onRetry }: NodeFailedScreenProps) {
             animate={{ opacity: 1, y: 0 }}
             className="text-[#3c3c3c] font-bold text-[15px] max-w-[280px] mb-6 leading-snug"
           >
-            Perdiste todas las vidas de este nodo. No se marcará como completado,
-            pero puedes intentarlo de nuevo cuando quieras.
+            Perdiste todas las vidas de este nodo. No se marcará como
+            completado, pero puedes intentarlo de nuevo cuando quieras.
           </motion.p>
         )}
       </AnimatePresence>

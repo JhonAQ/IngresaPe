@@ -23,7 +23,11 @@ export class RankingCronService {
   async ensureWeekendSeason() {
     this.logger.log('Creando/verificando temporada de fin de semana');
     const season = await this.seasonService.getOrCreateCurrentSeason();
-    this.logger.log(`Temporada activa: ${season.id} (${season.eventStartsAt.toISOString()} - ${season.eventEndsAt.toISOString()})`);
+    this.logger.log(
+      `Temporada activa: ${
+        season.id
+      } (${season.eventStartsAt.toISOString()} - ${season.eventEndsAt.toISOString()})`
+    );
   }
 
   /**

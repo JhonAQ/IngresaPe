@@ -63,8 +63,7 @@ export const PathNode = forwardRef<HTMLButtonElement, PathNodeProps>(
     const isGold = status === 'gold';
 
     const renderBase = (): ReactNode => {
-      if (isLocked)
-        return <NodeBaseUnavailable className="w-full h-full" />;
+      if (isLocked) return <NodeBaseUnavailable className="w-full h-full" />;
       if (isCompleted)
         return (
           <NodeBaseCompleted
@@ -186,7 +185,11 @@ export const PathNode = forwardRef<HTMLButtonElement, PathNodeProps>(
             flex items-center justify-center
             transition-all duration-100 outline-none
             drop-shadow-[0px_6px_5px_rgba(0,0,0,0.16)]
-            ${isInteractive ? 'cursor-pointer hover:brightness-110 active:translate-y-[6px] active:drop-shadow-none' : 'cursor-not-allowed opacity-90'}
+            ${
+              isInteractive
+                ? 'cursor-pointer hover:brightness-110 active:translate-y-[6px] active:drop-shadow-none'
+                : 'cursor-not-allowed opacity-90'
+            }
           `}
           {...props}
         >

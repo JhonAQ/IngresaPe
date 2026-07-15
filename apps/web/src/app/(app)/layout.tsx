@@ -7,8 +7,14 @@ import { BottomNav } from '../../components/dashboard/BottomNav';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { AuthGuard } from '../../components/auth/AuthGuard';
 import { DashboardSkeleton } from '../../components/ui/skeleton';
-import { ImmersiveOverlayProvider, useImmersiveOverlay } from '../../components/dashboard/ImmersiveOverlayContext';
-import { DashboardCourseProvider, useDashboardCourse } from '../../components/dashboard/DashboardCourseContext';
+import {
+  ImmersiveOverlayProvider,
+  useImmersiveOverlay,
+} from '../../components/dashboard/ImmersiveOverlayContext';
+import {
+  DashboardCourseProvider,
+  useDashboardCourse,
+} from '../../components/dashboard/DashboardCourseContext';
 import { AttemptsHistoryOverlay } from '../../components/simulacros/AttemptsHistoryOverlay';
 import { ArchiveOverlay } from '../../components/simulacros';
 import { PWAInstallManager } from '../../components/pwa/PWAInstallManager';

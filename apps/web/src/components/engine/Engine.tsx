@@ -6,7 +6,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useEngine } from './useEngine';
 import { useExitConfirm } from './useExitConfirm';
 import { getQuestionRenderer } from './registry';
-import { EngineHeader, FeedbackDrawer, DinoMaxModal, ExitConfirmModal } from './SharedEngineUI';
+import {
+  EngineHeader,
+  FeedbackDrawer,
+  DinoMaxModal,
+  ExitConfirmModal,
+} from './SharedEngineUI';
 import { LatexText } from '../ui/LatexText';
 import { EngineSkeleton } from '../ui/skeleton';
 import { CompletionScreen } from './CompletionScreen';
@@ -67,7 +72,11 @@ export function Engine() {
   const isTrueFalseSwipe = currentQuestion?.type === 'TRUE_FALSE_SWIPE';
   const isFillInBlank = currentQuestion?.type === 'FILL_IN_BLANK';
   const fillBlankSlotCount = isFillInBlank
-    ? ((currentQuestion.content as FillInBlankView).sentence.match(/\[slot\]/g) ?? []).length
+    ? (
+        (currentQuestion.content as FillInBlankView).sentence.match(
+          /\[slot\]/g
+        ) ?? []
+      ).length
     : 0;
 
   useEffect(() => {
@@ -90,7 +99,9 @@ export function Engine() {
     return (
       <div className="w-full max-w-md mx-auto h-[100dvh] flex items-center justify-center px-6 text-center">
         <div>
-          <h1 className="font-black text-[22px] text-[#3c3c3c] mb-2">Falta el tema</h1>
+          <h1 className="font-black text-[22px] text-[#3c3c3c] mb-2">
+            Falta el tema
+          </h1>
           <p className="text-[#777777] mb-6">
             Selecciona un tema desde el dashboard para empezar a practicar.
           </p>
@@ -113,8 +124,12 @@ export function Engine() {
     return (
       <div className="w-full max-w-md mx-auto h-[100dvh] flex items-center justify-center px-6 text-center">
         <div>
-          <h1 className="font-black text-[22px] text-[#ea2b2b] mb-2">Ups, algo salió mal</h1>
-          <p className="text-[#777777] mb-6">{error ?? 'No se pudieron cargar las preguntas'}</p>
+          <h1 className="font-black text-[22px] text-[#ea2b2b] mb-2">
+            Ups, algo salió mal
+          </h1>
+          <p className="text-[#777777] mb-6">
+            {error ?? 'No se pudieron cargar las preguntas'}
+          </p>
           <button
             onClick={handleConfirmExit}
             className="bg-[#ff4b4b] text-white font-black text-[16px] uppercase tracking-widest py-3.5 px-6 rounded-2xl border-b-[4px] border-[#df2b2b] active:border-b-0 active:translate-y-[4px] transition-all"
@@ -149,7 +164,9 @@ export function Engine() {
     );
   }
 
-  const Renderer = getQuestionRenderer(currentQuestion.type) as ComponentType<any>;
+  const Renderer = getQuestionRenderer(
+    currentQuestion.type
+  ) as ComponentType<any>;
 
   const isAnswerComplete =
     !!answer &&
@@ -162,7 +179,11 @@ export function Engine() {
 
   return (
     <div className="w-full max-w-md mx-auto relative bg-[#ffffff] h-[100dvh] flex flex-col font-sans border-x border-[#e5e5e5] overflow-hidden">
-      <EngineHeader progress={progress} lives={lives} onClose={handleCloseRequest} />
+      <EngineHeader
+        progress={progress}
+        lives={lives}
+        onClose={handleCloseRequest}
+      />
 
       <main className="flex-1 overflow-y-auto hide-scrollbar px-5 pt-6 pb-40 flex flex-col relative z-10">
         <AnimatePresence mode="wait">
@@ -181,7 +202,13 @@ export function Engine() {
             <Renderer
               view={currentQuestion.content}
               answer={answer}
-              status={status === 'submitting' ? 'submitting' : status === 'feedback' ? 'feedback' : 'idle'}
+              status={
+                status === 'submitting'
+                  ? 'submitting'
+                  : status === 'feedback'
+                  ? 'feedback'
+                  : 'idle'
+              }
               feedback={feedback}
               onAnswer={setAnswer}
             />
@@ -205,7 +232,11 @@ export function Engine() {
         isOpen={isAiModalOpen}
         onClose={() => setIsAiModalOpen(false)}
         trick="Explicación paso a paso"
-        explanation={feedback?.explanation ?? currentQuestion.explanation ?? 'Sigue practicando para dominar este tema.'}
+        explanation={
+          feedback?.explanation ??
+          currentQuestion.explanation ??
+          'Sigue practicando para dominar este tema.'
+        }
       />
 
       <ExitConfirmModal

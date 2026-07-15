@@ -1,9 +1,20 @@
 import { useRouter } from 'next/navigation';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { BookOpen, Target, Star, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { TemaData, SummaryBlock } from '@ingresa-pe/domain';
-import { MapNodeColor, PathNode, PathNodeIcon, PathNodeTheme } from '@ingresa-pe/ui';
+import {
+  MapNodeColor,
+  PathNode,
+  PathNodeIcon,
+  PathNodeTheme,
+} from '@ingresa-pe/ui';
 import { TopicDivider } from './TopicDivider';
 import { trpc } from '../../utils/trpc';
 import { getTopicTheme } from '../../lib/topicMeta';
@@ -96,6 +107,8 @@ function buildActivities(
     Math.max(1, Math.ceil(totalQuestions / nodeSize));
   const completedNodes = topic.userProgress?.completedNodes ?? 0;
   const isCompleted = topic.userProgress?.isCompleted ?? false;
+  const isGold = topic.userProgress?.isGold ?? false;
+  const isTopicCompleted = isCompleted || isGold;
 
   // Si el tema está bloqueado, todo bloqueado.
   if (isLocked) {
@@ -109,8 +122,8 @@ function buildActivities(
     }));
   }
 
-  // Si el tema ya fue completado, todos los nodos completados.
-  if (isCompleted) {
+  // Si el tema ya fue completado (o alcanzó dorado), todos los nodos completados.
+  if (isTopicCompleted) {
     return Array.from({ length: nodeCount }, (_, i) => ({
       id: `${topicIndex}-${i}`,
       name: getNodeName(i),
@@ -183,20 +196,28 @@ export function TopicList({
 
   const router = useRouter();
   const utils = trpc.useUtils();
-  const [pendingNode, setPendingNode] = useState<{ topicId: string; nodeIndex: number; nodeSize: number } | null>(null);
+  const [pendingNode, setPendingNode] = useState<{
+    topicId: string;
+    nodeIndex: number;
+    nodeSize: number;
+  } | null>(null);
 
   const spendEnergy = trpc.profile.spendNodeEnergy.useMutation({
     onSuccess: () => {
       void utils.profile.getMe.invalidate();
       if (pendingNode) {
         const { topicId, nodeIndex, nodeSize } = pendingNode;
-        router.push(`/engine?topicId=${topicId}&courseId=${courseId}&nodeIndex=${nodeIndex}&nodeSize=${nodeSize}`);
+        router.push(
+          `/engine?topicId=${topicId}&courseId=${courseId}&nodeIndex=${nodeIndex}&nodeSize=${nodeSize}`
+        );
         setPendingNode(null);
       }
     },
     onError: (err) => {
       setPendingNode(null);
-      alert(err.message ?? 'No tienes suficiente energía para iniciar este nodo.');
+      alert(
+        err.message ?? 'No tienes suficiente energía para iniciar este nodo.'
+      );
     },
   });
 
@@ -240,7 +261,9 @@ export function TopicList({
     // Llamada inicial para sincronizar al montar.
     determineActiveTopic();
 
-    container.addEventListener('scroll', determineActiveTopic, { passive: true });
+    container.addEventListener('scroll', determineActiveTopic, {
+      passive: true,
+    });
     window.addEventListener('resize', determineActiveTopic);
 
     return () => {
@@ -268,12 +291,18 @@ export function TopicList({
     for (let ti = 0; ti < mergedUnits.length; ti++) {
       const acts = mergedUnits[ti].actividades;
       const idx = acts.findIndex((a) => a.state === 'current');
-      if (idx !== -1) return { topicIndex: ti, actIndex: idx, key: `${ti}-${idx}` };
+      if (idx !== -1)
+        return { topicIndex: ti, actIndex: idx, key: `${ti}-${idx}` };
     }
     if (mergedUnits.length > 0) {
       const lastTi = mergedUnits.length - 1;
       const lastAi = mergedUnits[lastTi].actividades.length - 1;
-      if (lastAi >= 0) return { topicIndex: lastTi, actIndex: lastAi, key: `${lastTi}-${lastAi}` };
+      if (lastAi >= 0)
+        return {
+          topicIndex: lastTi,
+          actIndex: lastAi,
+          key: `${lastTi}-${lastAi}`,
+        };
     }
     return null;
   }, [mergedUnits]);
@@ -289,7 +318,8 @@ export function TopicList({
     const containerRect = container.getBoundingClientRect();
     const nodeRect = el.getBoundingClientRect();
     const nodeTop = nodeRect.top - containerRect.top + container.scrollTop;
-    const visibleCenter = stickyHeight + (container.clientHeight - stickyHeight) / 2;
+    const visibleCenter =
+      stickyHeight + (container.clientHeight - stickyHeight) / 2;
 
     let target = nodeTop - visibleCenter + nodeRect.height / 2;
     const maxScroll = container.scrollHeight - container.clientHeight;
@@ -314,7 +344,13 @@ export function TopicList({
     lastScrolledKeyRef.current = scrollKey;
 
     return () => cancelAnimationFrame(raf);
-  }, [mergedUnits, scrollContainerRef, courseId, activeNodeInfo, scrollToActiveNode]);
+  }, [
+    mergedUnits,
+    scrollContainerRef,
+    courseId,
+    activeNodeInfo,
+    scrollToActiveNode,
+  ]);
 
   // Mostrar botón flotante cuando el nodo activo sale de la vista.
   useEffect(() => {
@@ -359,120 +395,134 @@ export function TopicList({
   return (
     <>
       <div className="space-y-12 py-6 relative z-10">
-      {mergedUnits.map((unidad, index) => {
-        const pathPositions = generatePathPositions(unidad.actividades.length);
-        const pathD = buildPathD(pathPositions);
-        const svgHeight =
-          pathPositions.length > 1
-            ? pathPositions[pathPositions.length - 1].y + BOTTOM_MARGIN
-            : 400;
+        {mergedUnits.map((unidad, index) => {
+          const pathPositions = generatePathPositions(
+            unidad.actividades.length
+          );
+          const pathD = buildPathD(pathPositions);
+          const svgHeight =
+            pathPositions.length > 1
+              ? pathPositions[pathPositions.length - 1].y + BOTTOM_MARGIN
+              : 400;
 
-        return (
-          <div
-            key={unidad.id}
-            ref={setTopicRef(String(unidad.id))}
-            data-topic-id={String(unidad.id)}
-            className="relative z-20 flex flex-col items-center"
-          >
-            {index > 0 && (
-              <TopicDivider label={unidad.descripcion || 'Siguiente tema'} />
-            )}
-
+          return (
             <div
-              className="relative w-[300px] mx-auto"
-              style={{ height: svgHeight }}
+              key={unidad.id}
+              ref={setTopicRef(String(unidad.id))}
+              data-topic-id={String(unidad.id)}
+              className="relative z-20 flex flex-col items-center"
             >
-              <svg
-                width={SVG_WIDTH}
-                height={svgHeight}
-                className="absolute top-0 left-0 pointer-events-none"
-                style={{
-                  zIndex: 0,
-                  filter: 'drop-shadow(0px 10px 15px rgba(0, 0, 0, 0.2))',
-                }}
+              {index > 0 && (
+                <TopicDivider label={unidad.descripcion || 'Siguiente tema'} />
+              )}
+
+              <div
+                className="relative w-[300px] mx-auto"
+                style={{ height: svgHeight }}
               >
-                <path
-                  d={pathD}
-                  fill="none"
-                  stroke="#e2e8f0"
-                  strokeWidth="22"
-                  strokeLinecap="round"
-                  transform="translate(0, 4)"
-                />
-                <path
-                  d={pathD}
-                  fill="none"
-                  stroke="#f8fafc"
-                  strokeWidth="22"
-                  strokeLinecap="round"
-                />
-              </svg>
+                <svg
+                  width={SVG_WIDTH}
+                  height={svgHeight}
+                  className="absolute top-0 left-0 pointer-events-none"
+                  style={{
+                    zIndex: 0,
+                    filter: 'drop-shadow(0px 10px 15px rgba(0, 0, 0, 0.2))',
+                  }}
+                >
+                  <path
+                    d={pathD}
+                    fill="none"
+                    stroke="#e2e8f0"
+                    strokeWidth="22"
+                    strokeLinecap="round"
+                    transform="translate(0, 4)"
+                  />
+                  <path
+                    d={pathD}
+                    fill="none"
+                    stroke="#f8fafc"
+                    strokeWidth="22"
+                    strokeLinecap="round"
+                  />
+                </svg>
 
-              {unidad.actividades.map((act, actIndex) => {
-                const pos = pathPositions[actIndex];
-                if (!pos) return null;
+                {unidad.actividades.map((act, actIndex) => {
+                  const pos = pathPositions[actIndex];
+                  if (!pos) return null;
 
-                const isLoadingNode =
-                  spendEnergy.isPending &&
-                  pendingNode?.topicId === String(unidad.id) &&
-                  pendingNode?.nodeIndex === actIndex;
+                  const isLoadingNode =
+                    spendEnergy.isPending &&
+                    pendingNode?.topicId === String(unidad.id) &&
+                    pendingNode?.nodeIndex === actIndex;
 
-                const nodeStatus = act.state;
+                  const nodeStatus = act.state;
 
-                return (
-                  <div
-                    key={act.id}
-                    ref={setNodeRef(`${index}-${actIndex}`)}
-                    className="absolute transform -translate-x-1/2 -translate-y-1/2"
-                    style={{ left: pos.x, top: pos.y, zIndex: 10 }}
-                  >
-                    <PathNode
-                      status={nodeStatus}
-                      icon={
-                        ['book', 'headphones', 'microphone', 'star', 'video', 'weights'][
-                          actIndex % 6
-                        ] as PathNodeIcon
-                      }
-                      theme={getTopicTheme(index).nodeTheme}
-                      onClick={
-                        act.state === 'locked'
-                          ? undefined
-                          : () => startNode(String(unidad.id), actIndex, act.nodeSize ?? 7)
-                      }
-                      disabled={act.state === 'locked' || isLoadingNode}
-                      className={isLoadingNode ? 'opacity-60 cursor-wait' : ''}
-                    />
-                  </div>
-                );
-              })}
+                  return (
+                    <div
+                      key={act.id}
+                      ref={setNodeRef(`${index}-${actIndex}`)}
+                      className="absolute transform -translate-x-1/2 -translate-y-1/2"
+                      style={{ left: pos.x, top: pos.y, zIndex: 10 }}
+                    >
+                      <PathNode
+                        status={nodeStatus}
+                        icon={
+                          [
+                            'book',
+                            'headphones',
+                            'microphone',
+                            'star',
+                            'video',
+                            'weights',
+                          ][actIndex % 6] as PathNodeIcon
+                        }
+                        theme={getTopicTheme(index).nodeTheme}
+                        onClick={
+                          act.state === 'locked'
+                            ? undefined
+                            : () =>
+                                startNode(
+                                  String(unidad.id),
+                                  actIndex,
+                                  act.nodeSize ?? 7
+                                )
+                        }
+                        disabled={act.state === 'locked' || isLoadingNode}
+                        className={
+                          isLoadingNode ? 'opacity-60 cursor-wait' : ''
+                        }
+                      />
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
 
-    {showReturnButton && activeNodeInfo && (
-      <motion.button
-        onClick={scrollToActiveNode}
-        initial={{ x: '-50%', scale: 0, opacity: 0 }}
-        animate={{ x: '-50%', scale: [1, 1.08, 1], opacity: 1 }}
-        transition={{
-          opacity: { duration: 0.2 },
-          x: { duration: 0 },
-          scale: { repeat: Infinity, duration: 1.4, ease: 'easeInOut' },
-        }}
-        whileHover={{ scale: 1.12 }}
-        whileTap={{ scale: 0.9, y: 3 }}
-        className="fixed bottom-24 left-1/2 z-50 w-12 h-12 rounded-full bg-white text-[#1cb0f6] shadow-[0_6px_0_#e5e7eb] border-2 border-slate-100 flex items-center justify-center"
-        aria-label="Volver al nodo activo"
-      >
-        {returnDirection === 'up' ? (
-          <ChevronUp size={28} strokeWidth={3} />
-        ) : (
-          <ChevronDown size={28} strokeWidth={3} />
-        )}
-      </motion.button>
-    )}
-  </>
+      {showReturnButton && activeNodeInfo && (
+        <motion.button
+          onClick={scrollToActiveNode}
+          initial={{ x: '-50%', scale: 0, opacity: 0 }}
+          animate={{ x: '-50%', scale: [1, 1.08, 1], opacity: 1 }}
+          transition={{
+            opacity: { duration: 0.2 },
+            x: { duration: 0 },
+            scale: { repeat: Infinity, duration: 1.4, ease: 'easeInOut' },
+          }}
+          whileHover={{ scale: 1.12 }}
+          whileTap={{ scale: 0.9, y: 3 }}
+          className="fixed bottom-24 left-1/2 z-50 w-12 h-12 rounded-full bg-white text-[#1cb0f6] shadow-[0_6px_0_#e5e7eb] border-2 border-slate-100 flex items-center justify-center"
+          aria-label="Volver al nodo activo"
+        >
+          {returnDirection === 'up' ? (
+            <ChevronUp size={28} strokeWidth={3} />
+          ) : (
+            <ChevronDown size={28} strokeWidth={3} />
+          )}
+        </motion.button>
+      )}
+    </>
   );
 }

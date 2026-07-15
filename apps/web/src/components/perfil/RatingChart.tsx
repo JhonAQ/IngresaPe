@@ -31,7 +31,9 @@ export function RatingChart({ history, dates, currentMax }: RatingChartProps) {
     const maxValue = 100;
     const count = history.length;
     return history.map((val, idx) => ({
-      x: PADDING.left + (count === 1 ? graphWidth / 2 : idx * (graphWidth / (count - 1))),
+      x:
+        PADDING.left +
+        (count === 1 ? graphWidth / 2 : idx * (graphWidth / (count - 1))),
       y: bottomY - (val / maxValue) * graphHeight,
       val,
     }));
@@ -41,11 +43,6 @@ export function RatingChart({ history, dates, currentMax }: RatingChartProps) {
     if (points.length === 0) return '';
     return `M ${points.map((p) => `${p.x},${p.y}`).join(' L ')}`;
   }, [points]);
-
-  const areaPathD = useMemo(() => {
-    if (points.length === 0) return '';
-    return `${pathD} L ${points[points.length - 1].x},${bottomY} L ${points[0].x},${bottomY} Z`;
-  }, [pathD, points, bottomY]);
 
   const yLabels = [0, 20, 40, 60, 80, 100];
 
@@ -69,7 +66,7 @@ export function RatingChart({ history, dates, currentMax }: RatingChartProps) {
       const idx = points.indexOf(nearest);
       setTooltip({
         x: e.clientX - rect.left,
-        y: nearest.y / HEIGHT * rect.height,
+        y: (nearest.y / HEIGHT) * rect.height,
         date: dates[idx] ?? '',
         score: nearest.val,
       });
@@ -85,7 +82,8 @@ export function RatingChart({ history, dates, currentMax }: RatingChartProps) {
       <div className="w-full bg-white border-2 border-slate-200 border-b-[4px] rounded-[1.5rem] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-black text-slate-800 text-[15px] flex items-center gap-2">
-            <TrendingUp size={18} className="text-[#1cb0f6]" strokeWidth={3} /> Desempeño
+            <TrendingUp size={18} className="text-[#1cb0f6]" strokeWidth={3} />{' '}
+            Desempeño
           </h3>
           <span className="font-bold bg-blue-50 text-blue-500 px-2 py-0.5 rounded-md text-[10px] uppercase tracking-widest">
             Ranked Solo
@@ -102,7 +100,8 @@ export function RatingChart({ history, dates, currentMax }: RatingChartProps) {
     <div className="relative w-full bg-white border-2 border-slate-200 border-b-[4px] rounded-[1.5rem] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
       <div className="flex justify-between items-center mb-4">
         <h3 className="font-black text-slate-800 text-[15px] flex items-center gap-2">
-          <TrendingUp size={18} className="text-[#1cb0f6]" strokeWidth={3} /> Desempeño
+          <TrendingUp size={18} className="text-[#1cb0f6]" strokeWidth={3} />{' '}
+          Desempeño
         </h3>
         <span className="font-bold bg-blue-50 text-blue-500 px-2 py-0.5 rounded-md text-[10px] uppercase tracking-widest">
           Ranked Solo
@@ -118,13 +117,15 @@ export function RatingChart({ history, dates, currentMax }: RatingChartProps) {
           onMouseLeave={handleMouseLeave}
         >
           <defs>
-            <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#1cb0f6" stopOpacity="0.2" />
-              <stop offset="100%" stopColor="#1cb0f6" stopOpacity="0" />
-            </linearGradient>
-
             {RANKS.map((r) => (
-              <linearGradient key={`grad-${r.id}`} id={`grad-${r.id}`} x1="0" x2="0" y1="0" y2="1">
+              <linearGradient
+                key={`grad-${r.id}`}
+                id={`grad-${r.id}`}
+                x1="0"
+                x2="0"
+                y1="0"
+                y2="1"
+              >
                 <stop offset="0%" stopColor={r.bg} stopOpacity="0.7" />
                 <stop offset="100%" stopColor={r.bg} stopOpacity="0.2" />
               </linearGradient>
@@ -194,17 +195,6 @@ export function RatingChart({ history, dates, currentMax }: RatingChartProps) {
             );
           })}
 
-          {/* Área bajo la línea */}
-          {points.length > 1 && (
-            <motion.path
-              d={areaPathD}
-              fill="url(#chartGradient)"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, ease: 'easeOut' }}
-            />
-          )}
-
           {/* Línea principal */}
           {points.length > 1 && (
             <motion.path
@@ -214,7 +204,6 @@ export function RatingChart({ history, dates, currentMax }: RatingChartProps) {
               strokeWidth="3.5"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="drop-shadow-[0_4px_4px_rgba(0,0,0,0.1)]"
               initial={{ pathLength: 0 }}
               animate={{ pathLength: 1 }}
               transition={{ duration: 1, ease: 'easeOut' }}
@@ -231,7 +220,12 @@ export function RatingChart({ history, dates, currentMax }: RatingChartProps) {
                 data-testid="rating-point"
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.5 + idx * 0.08, type: 'spring', stiffness: 400, damping: 15 }}
+                transition={{
+                  delay: 0.5 + idx * 0.08,
+                  type: 'spring',
+                  stiffness: 400,
+                  damping: 15,
+                }}
                 style={{ transformOrigin: `${p.x}px ${p.y}px` }}
               >
                 {isMax && (

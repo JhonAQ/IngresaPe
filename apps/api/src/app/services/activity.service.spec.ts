@@ -13,7 +13,9 @@ describe('ActivityService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new ActivityService(mockPrisma as unknown as Parameters<typeof ActivityService>[0]);
+    service = new ActivityService(
+      mockPrisma as unknown as ConstructorParameters<typeof ActivityService>[0]
+    );
   });
 
   describe('log', () => {
@@ -37,24 +39,75 @@ describe('ActivityService', () => {
   });
 
   describe('getHeatmap', () => {
-    it('calcula intensidad considerando preguntas, nodos, simulacros, XP y gemas', async () => {
+    it('calcula intensidad basada en nodos completados', async () => {
       mockPrisma.activityLog.findMany.mockResolvedValue([
         {
           date: new Date('2026-07-14T00:00:00.000Z'),
-          questionsAnswered: 2,
-          nodesCompleted: 1,
-          simulacrosCompleted: 1,
-          xpEarned: 40,
-          gemsEarned: 5,
+          questionsAnswered: 20,
+          nodesCompleted: 2,
+          simulacrosCompleted: 0,
+          xpEarned: 200,
+          gemsEarned: 15,
         },
       ]);
 
       const result = await service.getHeatmap('user-ficticio-2', 7);
 
       expect(result).toHaveLength(1);
-      expect(result[0].intensity).toBeGreaterThan(0);
+      expect(result[0].intensity).toBe(2);
+      expect(result[0].nodesCompleted).toBe(2);
+    });
+
+    it('calcula intensidad basada en simulacros completados', async () => {
+      mockPrisma.activityLog.findMany.mockResolvedValue([
+        {
+          date: new Date('2026-07-14T00:00:00.000Z'),
+          questionsAnswered: 0,
+          nodesCompleted: 0,
+          simulacrosCompleted: 1,
+          xpEarned: 0,
+          gemsEarned: 0,
+        },
+      ]);
+
+      const result = await service.getHeatmap('user-ficticio-sim', 7);
+
+      expect(result[0].intensity).toBe(2);
       expect(result[0].simulacrosCompleted).toBe(1);
-      expect(result[0].xpEarned).toBe(40);
+    });
+
+    it('ignora preguntas, XP y gemas para la intensidad', async () => {
+      mockPrisma.activityLog.findMany.mockResolvedValue([
+        {
+          date: new Date('2026-07-14T00:00:00.000Z'),
+          questionsAnswered: 50,
+          nodesCompleted: 0,
+          simulacrosCompleted: 0,
+          xpEarned: 500,
+          gemsEarned: 100,
+        },
+      ]);
+
+      const result = await service.getHeatmap('user-ficticio-xp', 7);
+
+      expect(result[0].intensity).toBe(0);
+    });
+
+    it('devuelve intensidad máxima cuando hay mucha actividad de nodos y simulacros', async () => {
+      mockPrisma.activityLog.findMany.mockResolvedValue([
+        {
+          date: new Date('2026-07-14T00:00:00.000Z'),
+          questionsAnswered: 10,
+          nodesCompleted: 2,
+          simulacrosCompleted: 1,
+          xpEarned: 80,
+          gemsEarned: 5,
+        },
+      ]);
+
+      const result = await service.getHeatmap('user-ficticio-3', 7);
+
+      expect(result[0].intensity).toBe(4);
     });
 
     it('devuelve intensidad 0 para días sin actividad', async () => {
@@ -69,7 +122,7 @@ describe('ActivityService', () => {
         },
       ]);
 
-      const result = await service.getHeatmap('user-ficticio-3', 7);
+      const result = await service.getHeatmap('user-ficticio-4', 7);
 
       expect(result[0].intensity).toBe(0);
     });

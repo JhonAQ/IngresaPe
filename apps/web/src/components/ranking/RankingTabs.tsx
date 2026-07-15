@@ -17,7 +17,10 @@ const tabs: { key: RankingTab; label: string }[] = [
   { key: 'global', label: 'Global' },
 ];
 
-export const RankingTabs: React.FC<RankingTabsProps> = ({ active, onChange }) => {
+export const RankingTabs: React.FC<RankingTabsProps> = ({
+  active,
+  onChange,
+}) => {
   return (
     <div className="flex gap-1.5 mb-4 border-b-2 border-slate-100 pb-4">
       {tabs.map((tab) => {

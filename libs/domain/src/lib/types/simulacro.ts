@@ -34,7 +34,9 @@ export const simulacroStatsSchema = z.object({
     eventEndsAt: z.date(),
     isRevealed: z.boolean(),
     hasOfficialAttempt: z.boolean(),
-    officialAttemptStatus: z.enum(['IN_PROGRESS', 'COMPLETED', 'ABANDONED']).nullable(),
+    officialAttemptStatus: z
+      .enum(['IN_PROGRESS', 'COMPLETED', 'ABANDONED'])
+      .nullable(),
   }),
 });
 export type SimulacroStatsDto = z.infer<typeof simulacroStatsSchema>;
@@ -140,5 +142,8 @@ export const examReceivedSchema = z.object({
 });
 export type ExamReceivedDto = z.infer<typeof examReceivedSchema>;
 
-export const examSubmitResponseSchema = z.union([examResultSchema, examReceivedSchema]);
+export const examSubmitResponseSchema = z.union([
+  examResultSchema,
+  examReceivedSchema,
+]);
 export type ExamSubmitResponseDto = z.infer<typeof examSubmitResponseSchema>;

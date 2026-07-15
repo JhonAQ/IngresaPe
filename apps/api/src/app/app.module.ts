@@ -47,9 +47,7 @@ import { RankingCronService } from './ranking-cron.service';
     // Tareas programadas
     ScheduleModule.forRoot(),
   ],
-  controllers: [
-    AuthController,
-  ],
+  controllers: [AuthController],
   providers: [
     // Infraestructura
     TrpcService,

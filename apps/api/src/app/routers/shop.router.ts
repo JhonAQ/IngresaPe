@@ -16,9 +16,18 @@ export class ShopRouter {
     }),
 
     buyItem: this.trpc.protectedProcedure
-      .input(z.object({ itemKey: z.string(), quantity: z.number().int().min(1).default(1) }))
+      .input(
+        z.object({
+          itemKey: z.string(),
+          quantity: z.number().int().min(1).default(1),
+        })
+      )
       .mutation(async ({ ctx, input }) => {
-        return await this.shopService.buyItem(ctx.user.userId, input.itemKey, input.quantity);
+        return await this.shopService.buyItem(
+          ctx.user.userId,
+          input.itemKey,
+          input.quantity
+        );
       }),
 
     getInventory: this.trpc.protectedProcedure.query(async ({ ctx }) => {

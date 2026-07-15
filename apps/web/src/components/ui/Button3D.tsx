@@ -1,7 +1,14 @@
 import React from 'react';
 import { motion, HTMLMotionProps } from 'framer-motion';
 
-type ButtonVariant = 'primary' | 'gold' | 'secondary' | 'locked' | 'neon' | 'brand' | 'danger';
+type ButtonVariant =
+  | 'primary'
+  | 'gold'
+  | 'secondary'
+  | 'locked'
+  | 'neon'
+  | 'brand'
+  | 'danger';
 
 interface Button3DProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
   children: React.ReactNode;

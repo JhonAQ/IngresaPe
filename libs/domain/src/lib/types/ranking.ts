@@ -50,7 +50,9 @@ export const allCareersLeaderboardSchema = z.object({
     })
   ),
 });
-export type AllCareersLeaderboardDto = z.infer<typeof allCareersLeaderboardSchema>;
+export type AllCareersLeaderboardDto = z.infer<
+  typeof allCareersLeaderboardSchema
+>;
 
 export const allAreasLeaderboardSchema = z.object({
   groups: z.array(

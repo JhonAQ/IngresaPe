@@ -30,7 +30,10 @@ export class GameService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
 
     if (!user) {
-      throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Usuario no encontrado' });
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'Usuario no encontrado',
+      });
     }
 
     // 2. Obtener Pregunta
@@ -39,22 +42,24 @@ export class GameService {
     });
 
     if (!question) {
-      throw new TRPCError({ code: 'NOT_FOUND', message: 'Pregunta no encontrada' });
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Pregunta no encontrada',
+      });
     }
 
     // 3. Calificar respuesta (type-aware)
     const gradeResult = this.grader.grade(question, answer);
-    const { isCorrect, correctAnswerText, correctOrder, explanation } = gradeResult;
+    const { isCorrect, correctAnswerText, correctOrder, explanation } =
+      gradeResult;
 
     // 4. Calcular Recompensas
     const rewards = this.grader.computeRewards(question.difficulty, isCorrect);
     const { xp: xpEarned, coins: coinsEarned } = rewards;
 
     // 5. Calcular Nueva Racha (Streak)
-    const { newStreak, shouldUpdateDate, streakIncremented } = calculateNewStreak(
-      user.streak,
-      user.lastInteraction
-    );
+    const { newStreak, shouldUpdateDate, streakIncremented } =
+      calculateNewStreak(user.streak, user.lastInteraction);
 
     // 6. Transacción Atómica: Guardar Intento y Actualizar User
     return await this.prisma.$transaction(async (tx) => {
@@ -110,5 +115,4 @@ export class GameService {
       };
     });
   }
-
 }

@@ -13,11 +13,46 @@ export const DIVISION_THRESHOLDS: {
   maxRating: number;
   kFactor: number;
 }[] = [
-  { division: 'HUEVITO', minScore: 0, maxScore: 20, minRating: 400, maxRating: 920, kFactor: 80 },
-  { division: 'POLLITO', minScore: 20, maxScore: 40, minRating: 920, maxRating: 1440, kFactor: 64 },
-  { division: 'DINOSAURIO', minScore: 40, maxScore: 60, minRating: 1440, maxRating: 1960, kFactor: 48 },
-  { division: 'FOSIL', minScore: 60, maxScore: 80, minRating: 1960, maxRating: 2480, kFactor: 36 },
-  { division: 'CACHIMBO', minScore: 80, maxScore: 100, minRating: 2480, maxRating: 3000, kFactor: 24 },
+  {
+    division: 'HUEVITO',
+    minScore: 0,
+    maxScore: 20,
+    minRating: 400,
+    maxRating: 920,
+    kFactor: 80,
+  },
+  {
+    division: 'POLLITO',
+    minScore: 20,
+    maxScore: 40,
+    minRating: 920,
+    maxRating: 1440,
+    kFactor: 64,
+  },
+  {
+    division: 'DINOSAURIO',
+    minScore: 40,
+    maxScore: 60,
+    minRating: 1440,
+    maxRating: 1960,
+    kFactor: 48,
+  },
+  {
+    division: 'FOSIL',
+    minScore: 60,
+    maxScore: 80,
+    minRating: 1960,
+    maxRating: 2480,
+    kFactor: 36,
+  },
+  {
+    division: 'CACHIMBO',
+    minScore: 80,
+    maxScore: 100,
+    minRating: 2480,
+    maxRating: 3000,
+    kFactor: 24,
+  },
 ];
 
 export function clamp(min: number, value: number, max: number): number {
@@ -45,7 +80,9 @@ export function getDivisionByRating(rating: number): Division {
 
 export function getKFactorByRating(rating: number): number {
   const division = getDivisionByRating(rating);
-  return DIVISION_THRESHOLDS.find((t) => t.division === division)?.kFactor ?? 80;
+  return (
+    DIVISION_THRESHOLDS.find((t) => t.division === division)?.kFactor ?? 80
+  );
 }
 
 export function expectedScore(myRating: number, avgRating: number): number {
@@ -61,7 +98,9 @@ export function ratingChange(
 ): number {
   const actual = clamp(0, scorePercent / 100, 1);
   const expected = expectedScore(myRating, avgOpponentRating);
-  const rawDelta = Math.round(kFactor * (actual - expected) * newUserMultiplier);
+  const rawDelta = Math.round(
+    kFactor * (actual - expected) * newUserMultiplier
+  );
   return clamp(-200, rawDelta, 200);
 }
 
@@ -79,7 +118,10 @@ export function applyProtectors(delta: number, protectors: string[]): number {
   return clamp(-200, result, 200);
 }
 
-export function examWeight(questionCount: number, timeLimitMinutes: number): number {
+export function examWeight(
+  questionCount: number,
+  timeLimitMinutes: number
+): number {
   return clamp(0.5, questionCount / 100 + timeLimitMinutes / 180, 1.5);
 }
 
@@ -102,8 +144,15 @@ export class RatingService {
   async calculateDelta(
     attempt: ExamAttempt & { user?: User; season?: Season | null },
     protectors: string[] = []
-  ): Promise<{ delta: number; score: number; avgOpponentRating: number; kFactor: number }> {
-    const user = attempt.user ?? (await this.prisma.user.findUnique({ where: { id: attempt.userId } }));
+  ): Promise<{
+    delta: number;
+    score: number;
+    avgOpponentRating: number;
+    kFactor: number;
+  }> {
+    const user =
+      attempt.user ??
+      (await this.prisma.user.findUnique({ where: { id: attempt.userId } }));
     if (!user) {
       throw new Error('Usuario no encontrado');
     }
@@ -119,7 +168,10 @@ export class RatingService {
     });
     const newUserMultiplier = Math.max(1, 2 - completedOfficials / 10);
     const kFactor = getKFactorByRating(user.rating);
-    const weight = examWeight(attempt.questionCount, attempt.timeLimitSeconds / 60);
+    const weight = examWeight(
+      attempt.questionCount,
+      attempt.timeLimitSeconds / 60
+    );
 
     let delta = ratingChange(
       user.rating,
@@ -133,7 +185,8 @@ export class RatingService {
     if (attempt.status === 'ABANDONED') {
       const answeredRatio =
         attempt.questionCount > 0
-          ? ((attempt.correctCount ?? 0) + (attempt.incorrectCount ?? 0)) / attempt.questionCount
+          ? ((attempt.correctCount ?? 0) + (attempt.incorrectCount ?? 0)) /
+            attempt.questionCount
           : 0;
       delta = answeredRatio > 0.5 ? -10 : 0;
     }
@@ -151,7 +204,8 @@ export class RatingService {
     attempt: ExamAttempt,
     protectors: string[] = []
   ): Promise<RevealedAttempt> {
-    const { delta, score, avgOpponentRating, kFactor } = await this.calculateDelta(attempt, protectors);
+    const { delta, score, avgOpponentRating, kFactor } =
+      await this.calculateDelta(attempt, protectors);
 
     return await this.prisma.$transaction(async (tx) => {
       const user = await tx.user.findUnique({ where: { id: attempt.userId } });
@@ -167,7 +221,10 @@ export class RatingService {
           rating: newRating,
           highestRating: Math.max(user.highestRating, newRating),
           division: newDivision,
-          highestDivision: this.higherDivision(user.highestDivision, newDivision),
+          highestDivision: this.higherDivision(
+            user.highestDivision,
+            newDivision
+          ),
           lastExamScore: score,
         },
       });
@@ -215,7 +272,9 @@ export class RatingService {
    * y revela los deltas el lunes.
    */
   async revealSeason(seasonId: string): Promise<RevealedAttempt[]> {
-    const season = await this.prisma.season.findUnique({ where: { id: seasonId } });
+    const season = await this.prisma.season.findUnique({
+      where: { id: seasonId },
+    });
     if (!season) throw new Error('Temporada no encontrada');
     if (season.isRevealed) throw new Error('Temporada ya revelada');
 
@@ -228,7 +287,10 @@ export class RatingService {
         isRevealed: false,
         timerStartedAt: { gte: season.eventStartsAt, lt: season.eventEndsAt },
         user: {
-          OR: [{ ratingFrozenUntil: null }, { ratingFrozenUntil: { lt: new Date() } }],
+          OR: [
+            { ratingFrozenUntil: null },
+            { ratingFrozenUntil: { lt: new Date() } },
+          ],
         },
       },
       include: { user: true },
@@ -236,7 +298,7 @@ export class RatingService {
     });
 
     // Tomar solo el mejor intento oficial por usuario en esta temporada.
-    const bestByUser = new Map<string, typeof attempts[0]>();
+    const bestByUser = new Map<string, (typeof attempts)[0]>();
     for (const attempt of attempts) {
       const existing = bestByUser.get(attempt.userId);
       if (!existing || (attempt.score ?? 0) > (existing.score ?? 0)) {
@@ -276,17 +338,20 @@ export class RatingService {
    * Verifica que un intento cumpla las reglas anti-gaming.
    */
   isValidForRating(attempt: ExamAttempt): boolean {
-    if (attempt.status !== 'COMPLETED' && attempt.status !== 'ABANDONED') return false;
+    if (attempt.status !== 'COMPLETED' && attempt.status !== 'ABANDONED')
+      return false;
     if (!attempt.timerStartedAt) return false;
     if (!attempt.timeUsedSeconds) return false;
 
     const minTime = attempt.questionCount * 10;
     const maxTime = attempt.serverTimeLimitSec * 1.1;
-    if (attempt.timeUsedSeconds < minTime || attempt.timeUsedSeconds > maxTime) return false;
+    if (attempt.timeUsedSeconds < minTime || attempt.timeUsedSeconds > maxTime)
+      return false;
 
-    const blankRatio = attempt.questionCount > 0
-      ? (attempt.blankCount ?? 0) / attempt.questionCount
-      : 0;
+    const blankRatio =
+      attempt.questionCount > 0
+        ? (attempt.blankCount ?? 0) / attempt.questionCount
+        : 0;
     if (blankRatio > 0.8) return false;
 
     return true;
@@ -314,7 +379,9 @@ export class RatingService {
     }
 
     // Fallback: mediana de rating de usuarios activos de la misma división.
-    const user = await this.prisma.user.findUnique({ where: { id: attempt.userId } });
+    const user = await this.prisma.user.findUnique({
+      where: { id: attempt.userId },
+    });
     if (!user) return 1500;
 
     const peers = await this.prisma.user.findMany({
@@ -336,7 +403,13 @@ export class RatingService {
   }
 
   private higherDivision(a: Division, b: Division): Division {
-    const order: Division[] = ['HUEVITO', 'POLLITO', 'DINOSAURIO', 'FOSIL', 'CACHIMBO'];
+    const order: Division[] = [
+      'HUEVITO',
+      'POLLITO',
+      'DINOSAURIO',
+      'FOSIL',
+      'CACHIMBO',
+    ];
     return order[Math.max(order.indexOf(a), order.indexOf(b))];
   }
 
@@ -350,7 +423,9 @@ export class RatingService {
     });
     const protectors = items
       .filter((i) =>
-        ['RATING_SHIELD_50', 'RATING_FREEZE', 'RATING_BOOSTER'].includes(i.itemKey)
+        ['RATING_SHIELD_50', 'RATING_FREEZE', 'RATING_BOOSTER'].includes(
+          i.itemKey
+        )
       )
       .map((i) => i.itemKey);
     // Defensivos primero

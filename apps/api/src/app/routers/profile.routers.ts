@@ -91,7 +91,11 @@ export class ProfileRouter {
         },
       });
 
-      if (!user) throw new TRPCError({ code: 'NOT_FOUND', message: 'Usuario no encontrado' });
+      if (!user)
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Usuario no encontrado',
+        });
 
       return {
         ...user,
@@ -110,7 +114,10 @@ export class ProfileRouter {
         });
 
         if (!career) {
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'Carrera no encontrada' });
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Carrera no encontrada',
+          });
         }
 
         const updatedUser = await this.prisma.user.update({
@@ -151,7 +158,8 @@ export class ProfileRouter {
             if (!user || !user.inventory.includes(input.image)) {
               throw new TRPCError({
                 code: 'FORBIDDEN',
-                message: '⛔ No posees este avatar. Debes comprarlo en la tienda primero.'
+                message:
+                  '⛔ No posees este avatar. Debes comprarlo en la tienda primero.',
               });
             }
           }
@@ -170,7 +178,7 @@ export class ProfileRouter {
             name: true,
             image: true,
             role: true,
-            coins: true,     // Retornamos saldo actualizado
+            coins: true, // Retornamos saldo actualizado
             inventory: true, // Retornamos inventario
           },
         });
@@ -209,7 +217,13 @@ export class ProfileRouter {
 
       const courseStats = new Map<
         string,
-        { id: string; name: string; slug: string; total: number; correct: number }
+        {
+          id: string;
+          name: string;
+          slug: string;
+          total: number;
+          correct: number;
+        }
       >();
 
       for (const log of logs) {
@@ -232,7 +246,10 @@ export class ProfileRouter {
       }
 
       const MIN_ANSWERS_FOR_INSIGHT = 3;
-      const axisMap = new Map<AcademicAxisId, { total: number; correct: number }>();
+      const axisMap = new Map<
+        AcademicAxisId,
+        { total: number; correct: number }
+      >();
 
       for (const def of ACADEMIC_AXIS_DEFINITIONS) {
         axisMap.set(def.id, { total: 0, correct: 0 });
@@ -258,7 +275,10 @@ export class ProfileRouter {
           label: def.label,
           total: agg.total,
           correct: agg.correct,
-          accuracy: agg.total > 0 ? Number(((agg.correct / agg.total) * 100).toFixed(1)) : 0,
+          accuracy:
+            agg.total > 0
+              ? Number(((agg.correct / agg.total) * 100).toFixed(1))
+              : 0,
           hasData: agg.total > 0,
           courses: axisCourses.map((c) => ({
             id: c.id,
@@ -266,18 +286,25 @@ export class ProfileRouter {
             slug: c.slug,
             total: c.total,
             correct: c.correct,
-            accuracy: c.total > 0 ? Number(((c.correct / c.total) * 100).toFixed(1)) : 0,
+            accuracy:
+              c.total > 0
+                ? Number(((c.correct / c.total) * 100).toFixed(1))
+                : 0,
           })),
         };
       });
 
-      const eligibleAxes = axes.filter((a) => a.total >= MIN_ANSWERS_FOR_INSIGHT);
+      const eligibleAxes = axes.filter(
+        (a) => a.total >= MIN_ANSWERS_FOR_INSIGHT
+      );
 
       let strongAxisId: string | null = null;
       let weakAxisId: string | null = null;
 
       if (eligibleAxes.length > 0) {
-        const sorted = [...eligibleAxes].sort((a, b) => a.accuracy - b.accuracy);
+        const sorted = [...eligibleAxes].sort(
+          (a, b) => a.accuracy - b.accuracy
+        );
         weakAxisId = sorted[0].id;
         strongAxisId = sorted[sorted.length - 1].id;
       }
@@ -290,48 +317,54 @@ export class ProfileRouter {
       };
     }),
 
-    spendNodeEnergy: this.trpc.protectedProcedure
-      .mutation(async ({ ctx }) => {
-        const user = await this.prisma.user.findUnique({
-          where: { id: ctx.user.userId },
-          select: {
-            energy: true,
-            lastRefill: true,
-            isPremium: true,
-          },
+    spendNodeEnergy: this.trpc.protectedProcedure.mutation(async ({ ctx }) => {
+      const user = await this.prisma.user.findUnique({
+        where: { id: ctx.user.userId },
+        select: {
+          energy: true,
+          lastRefill: true,
+          isPremium: true,
+        },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Usuario no encontrado',
         });
+      }
 
-        if (!user) {
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'Usuario no encontrado' });
-        }
+      if (user.isPremium) {
+        return { success: true, energy: ENERGY_MAX };
+      }
 
-        if (user.isPremium) {
-          return { success: true, energy: ENERGY_MAX };
-        }
+      const currentEnergy = calculateEnergy(
+        user.energy,
+        user.lastRefill,
+        false
+      );
 
-        const currentEnergy = calculateEnergy(user.energy, user.lastRefill, false);
-
-        if (currentEnergy < NODE_ENERGY_COST) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: `Necesitas ${NODE_ENERGY_COST} de energía para iniciar un nodo.`,
-          });
-        }
-
-        const now = new Date();
-        const newEnergy = currentEnergy - NODE_ENERGY_COST;
-
-        await this.prisma.user.update({
-          where: { id: ctx.user.userId },
-          data: {
-            energy: newEnergy,
-            lastRefill: now,
-            lastInteraction: now,
-          },
+      if (currentEnergy < NODE_ENERGY_COST) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: `Necesitas ${NODE_ENERGY_COST} de energía para iniciar un nodo.`,
         });
+      }
 
-        return { success: true, energy: newEnergy };
-      }),
+      const now = new Date();
+      const newEnergy = currentEnergy - NODE_ENERGY_COST;
+
+      await this.prisma.user.update({
+        where: { id: ctx.user.userId },
+        data: {
+          energy: newEnergy,
+          lastRefill: now,
+          lastInteraction: now,
+        },
+      });
+
+      return { success: true, energy: newEnergy };
+    }),
 
     getStats: this.trpc.protectedProcedure.query(async ({ ctx }) => {
       const user = await this.prisma.user.findUnique({
@@ -343,9 +376,15 @@ export class ProfileRouter {
           highestDivision: true,
         },
       });
-      if (!user) throw new TRPCError({ code: 'NOT_FOUND', message: 'Usuario no encontrado' });
+      if (!user)
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Usuario no encontrado',
+        });
 
-      const activityStats = await this.activityService.getStats(ctx.user.userId);
+      const activityStats = await this.activityService.getStats(
+        ctx.user.userId
+      );
       return {
         ...activityStats,
         rating: user.rating,
@@ -360,8 +399,15 @@ export class ProfileRouter {
     getActivityHeatmap: this.trpc.protectedProcedure
       .input(z.object({ days: z.number().int().min(7).max(365).default(84) }))
       .query(async ({ ctx, input }) => {
-        return await this.activityService.getHeatmap(ctx.user.userId, input.days);
+        return await this.activityService.getHeatmap(
+          ctx.user.userId,
+          input.days
+        );
       }),
+
+    getWeeklyStreak: this.trpc.protectedProcedure.query(async ({ ctx }) => {
+      return await this.activityService.getWeeklyStreak(ctx.user.userId);
+    }),
 
     getRatingGraph: this.trpc.protectedProcedure
       .input(z.object({ weeks: z.number().int().min(2).max(52).default(12) }))
@@ -379,6 +425,7 @@ export class ProfileRouter {
           rating: h.newRating,
           delta: h.delta,
           division: h.divisionAtTime,
+          appliedAt: h.appliedAt?.toISOString() ?? null,
         }));
       }),
 

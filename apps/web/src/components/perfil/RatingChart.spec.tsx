@@ -4,7 +4,9 @@ import { RatingChart } from './RatingChart';
 describe('RatingChart', () => {
   it('muestra el estado vacío cuando no hay historial', () => {
     render(<RatingChart history={[]} dates={[]} />);
-    expect(screen.getByText(/Aún no hay historial de simulacros/i)).toBeTruthy();
+    expect(
+      screen.getByText(/Aún no hay historial de simulacros/i)
+    ).toBeTruthy();
   });
 
   it('renderiza un punto por cada entrada del historial', () => {

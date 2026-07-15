@@ -69,7 +69,10 @@ export function getRankInfo(score: number): RankMeta {
 export function getRankInfoByDivision(division?: string | null): RankMeta {
   if (!division) return RANKS[0];
   return (
-    RANKS.find((r) => r.id === division.toLowerCase() || r.name.toLowerCase() === division.toLowerCase()
+    RANKS.find(
+      (r) =>
+        r.id === division.toLowerCase() ||
+        r.name.toLowerCase() === division.toLowerCase()
     ) || RANKS[0]
   );
 }

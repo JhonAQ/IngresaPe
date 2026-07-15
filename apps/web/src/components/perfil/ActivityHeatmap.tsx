@@ -41,7 +41,9 @@ export function ActivityHeatmap({ data }: ActivityHeatmapProps) {
         {padded.map((day, idx) => (
           <div
             key={idx}
-            className={`w-3 h-3 rounded-sm ${intensityColors[day.intensity] ?? intensityColors[0]}`}
+            className={`w-3 h-3 rounded-sm ${
+              intensityColors[day.intensity] ?? intensityColors[0]
+            }`}
             title={day.date || 'Sin actividad'}
           />
         ))}

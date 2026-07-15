@@ -81,6 +81,61 @@ export class ActivityService {
   }
 
   /**
+   * Devuelve el estado de la racha para los últimos 7 días (incluyendo hoy)
+   * basándose únicamente en los ActivityLog. El día de hoy se marca como
+   * 'freezed' si ya tuvo actividad; los demás días usan 'done' o 'not_yet'.
+   */
+  async getWeeklyStreak(userId: string) {
+    const today = this.toDate(new Date());
+    const labels = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
+    const days: { date: Date; label: string; isToday: boolean }[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today.getTime() - i * 86_400_000);
+      days.push({
+        date,
+        label: labels[date.getDay()],
+        isToday: i === 0,
+      });
+    }
+
+    const logs = await this.prisma.activityLog.findMany({
+      where: {
+        userId,
+        date: { in: days.map((d) => d.date) },
+      },
+    });
+
+    const logByDate = new Map(
+      logs.map((l) => [l.date.toISOString().split('T')[0], l])
+    );
+
+    return days.map((d) => {
+      const key = d.date.toISOString().split('T')[0];
+      const log = logByDate.get(key);
+      const hasActivity =
+        !!log &&
+        (log.questionsAnswered > 0 ||
+          log.nodesCompleted > 0 ||
+          log.simulacrosCompleted > 0);
+
+      let status: 'done' | 'freezed' | 'not_yet' = 'not_yet';
+      if (d.isToday) {
+        status = hasActivity ? 'freezed' : 'not_yet';
+      } else if (hasActivity) {
+        status = 'done';
+      }
+
+      return {
+        date: key,
+        label: d.label,
+        isToday: d.isToday,
+        status,
+      };
+    });
+  }
+
+  /**
    * Estadísticas agregadas para el perfil.
    */
   async getStats(userId: string) {
@@ -103,7 +158,11 @@ export class ActivityService {
   }
 
   private toDate(date: Date): Date {
-    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+    // Usamos la fecha local del servidor/PC para que el día de hoy en Perú
+    // no se guarde como mañana por el desfase UTC.
+    return new Date(
+      Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+    );
   }
 
   private intensity(log: {
@@ -113,16 +172,13 @@ export class ActivityService {
     xpEarned: number;
     gemsEarned: number;
   }): number {
-    const value =
-      log.questionsAnswered +
-      log.nodesCompleted * 3 +
-      log.simulacrosCompleted * 20 +
-      Math.floor(log.xpEarned / 10) +
-      log.gemsEarned;
+    // La intensidad refleja unidades de contenido completadas, no volumen de
+    // preguntas/XP/gemas. Un simulacro cuenta el doble que un nodo del path.
+    const value = log.nodesCompleted + log.simulacrosCompleted * 2;
     if (value === 0) return 0;
-    if (value < 5) return 1;
-    if (value < 15) return 2;
-    if (value < 30) return 3;
+    if (value === 1) return 1;
+    if (value === 2) return 2;
+    if (value === 3) return 3;
     return 4;
   }
 }

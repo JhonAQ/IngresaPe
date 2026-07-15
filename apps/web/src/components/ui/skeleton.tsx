@@ -51,14 +51,7 @@ export function SkeletonCircle({
   className?: string;
   size?: number;
 }) {
-  return (
-    <Skeleton
-      circle
-      height={size}
-      width={size}
-      className={className}
-    />
-  );
+  return <Skeleton circle height={size} width={size} className={className} />;
 }
 
 /**
@@ -316,7 +309,10 @@ export function SimulacrosSkeleton() {
                 <div className="h-3 w-20 bg-slate-800 rounded animate-pulse" />
                 <div className="flex gap-1.5">
                   {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="w-9 h-7 bg-slate-800 rounded-lg animate-pulse" />
+                    <div
+                      key={i}
+                      className="w-9 h-7 bg-slate-800 rounded-lg animate-pulse"
+                    />
                   ))}
                 </div>
               </div>

@@ -23,9 +23,6 @@ export * from './lib/icons/LevelStarIcon';
 export * from './lib/icons/LevelVideoIcon';
 export * from './lib/icons/LevelWeightsIcon';
 export * from './lib/icons/NewsIcon';
-
-
-
-
-
-
+export * from './lib/icons/DayDoneIcon';
+export * from './lib/icons/DayFreezedIcon';
+export * from './lib/icons/DayNotYetIcon';

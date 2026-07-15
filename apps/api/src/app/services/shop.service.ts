@@ -36,21 +36,34 @@ export class ShopService {
     }));
   }
 
-  async buyItem(userId: string, itemKey: string, quantity = 1): Promise<{ remainingGems: number; owned: number }> {
+  async buyItem(
+    userId: string,
+    itemKey: string,
+    quantity = 1
+  ): Promise<{ remainingGems: number; owned: number }> {
     return await this.prisma.$transaction(async (tx) => {
       const item = await tx.shopItem.findUnique({ where: { key: itemKey } });
       if (!item || !item.isActive) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Protector no encontrado' });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Protector no encontrado',
+        });
       }
 
       const user = await tx.user.findUnique({ where: { id: userId } });
       if (!user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Usuario no encontrado' });
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'Usuario no encontrado',
+        });
       }
 
       const totalPrice = item.priceGems * quantity;
       if (user.gems < totalPrice) {
-        throw new TRPCError({ code: 'BAD_REQUEST', message: 'No tienes suficientes gemas' });
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'No tienes suficientes gemas',
+        });
       }
 
       const existing = await tx.userItem.findUnique({
@@ -58,7 +71,10 @@ export class ShopService {
       });
       const currentOwned = existing?.quantity ?? 0;
 
-      if (item.maxQuantity != null && currentOwned + quantity > item.maxQuantity) {
+      if (
+        item.maxQuantity != null &&
+        currentOwned + quantity > item.maxQuantity
+      ) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: `Límite de ${item.maxQuantity} unidades por usuario`,
@@ -76,7 +92,10 @@ export class ShopService {
         create: { userId, itemKey, quantity },
       });
 
-      const updatedUser = await tx.user.findUnique({ where: { id: userId }, select: { gems: true } });
+      const updatedUser = await tx.user.findUnique({
+        where: { id: userId },
+        select: { gems: true },
+      });
       const updatedItem = await tx.userItem.findUnique({
         where: { userId_itemKey: { userId, itemKey } },
         select: { quantity: true },
@@ -105,14 +124,16 @@ export class ShopService {
       {
         key: 'RATING_SHIELD_50',
         name: 'Escudo de Rating',
-        description: 'Absorbe el 50% de la bajada de rating en tu próximo simulacro oficial.',
+        description:
+          'Absorbe el 50% de la bajada de rating en tu próximo simulacro oficial.',
         priceGems: 100,
         maxQuantity: 3,
       },
       {
         key: 'RATING_FREEZE',
         name: 'Congelador de Rating',
-        description: 'Evita que bajes de rating en tu próximo simulacro oficial.',
+        description:
+          'Evita que bajes de rating en tu próximo simulacro oficial.',
         priceGems: 250,
         maxQuantity: 1,
       },

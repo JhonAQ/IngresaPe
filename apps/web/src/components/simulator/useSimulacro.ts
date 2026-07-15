@@ -92,7 +92,9 @@ export function useSimulacro(attemptId: string): UseSimulacroResult {
         if (timerStartedAt != null) {
           const serverMs = Date.now() - serverOffsetRef.current;
           const elapsedSec = Math.max(0, serverMs - timerStartedAt) / 1000;
-          setTimeRemaining(Math.max(0, attempt.serverTimeLimitSec - elapsedSec));
+          setTimeRemaining(
+            Math.max(0, attempt.serverTimeLimitSec - elapsedSec)
+          );
         } else {
           setTimeRemaining(attempt.timeLimitSeconds);
         }
@@ -185,7 +187,14 @@ export function useSimulacro(attemptId: string): UseSimulacroResult {
         setTimeout(() => setCurrentIndex((i) => i + 1), 250);
       }
     },
-    [status, currentQuestion, answers, currentIndex, questions.length, questionStartTime]
+    [
+      status,
+      currentQuestion,
+      answers,
+      currentIndex,
+      questions.length,
+      questionStartTime,
+    ]
   );
 
   const toggleMark = useCallback(() => {

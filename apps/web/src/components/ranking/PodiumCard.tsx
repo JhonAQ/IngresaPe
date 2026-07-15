@@ -42,7 +42,11 @@ const config = {
   },
 };
 
-export const PodiumCard: React.FC<PodiumCardProps> = ({ user, position, delay = 0 }) => {
+export const PodiumCard: React.FC<PodiumCardProps> = ({
+  user,
+  position,
+  delay = 0,
+}) => {
   const c = config[position];
 
   return (
@@ -76,12 +80,16 @@ export const PodiumCard: React.FC<PodiumCardProps> = ({ user, position, delay = 
       <p className="font-black text-slate-800 text-[13px] leading-tight text-center max-w-[90px] truncate">
         {user.name ?? 'Anónimo'}
       </p>
-      <p className="text-slate-400 font-bold text-[10px] mb-2">{user.score.toFixed(1)} Ptje</p>
+      <p className="text-slate-400 font-bold text-[10px] mb-2">
+        {user.score.toFixed(1)} Ptje
+      </p>
 
       <div
         className={`${c.height} w-[90px] ${c.medal} rounded-t-2xl border-2 ${c.border} border-b-[6px] ${c.shadow} flex items-start justify-center pt-3 mt-auto`}
       >
-        <span className={`font-black text-white ${c.rankSize}`}>#{position}</span>
+        <span className={`font-black text-white ${c.rankSize}`}>
+          #{position}
+        </span>
       </div>
     </motion.div>
   );

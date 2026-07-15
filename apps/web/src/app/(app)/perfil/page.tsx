@@ -1,6 +1,14 @@
 'use client';
 
-import { Share2, Settings, Target, Crown, Shield, Award, LogOut } from 'lucide-react';
+import {
+  Share2,
+  Settings,
+  Target,
+  Crown,
+  Shield,
+  Award,
+  LogOut,
+} from 'lucide-react';
 import { EntrenarIcon, FlameIcon } from '@ingresa-pe/ui';
 import { useAuth } from '../../../hooks/useAuth';
 import { useProfileData } from '../../../hooks/useProfileData';
@@ -8,11 +16,11 @@ import { useCountUp } from '../../../hooks/useCountUp';
 import { getRankInfo, getRankInfoByDivision } from '../../../lib/rankMeta';
 import { RatingChart } from '../../../components/perfil/RatingChart';
 import { ContributionGraph } from '../../../components/perfil/ContributionGraph';
+import { WeeklyStreakCard } from '../../../components/perfil/WeeklyStreakCard';
 import { ProfileSkeleton } from '../../../components/ui/skeleton';
 import { InstallTag } from '../../../components/pwa/InstallTag';
 import { ChunkyButton } from '../../../components/ui/ChunkyButton';
 import { trpc } from '../../../utils/trpc';
-
 
 export default function PerfilPage() {
   const { logout } = useAuth();
@@ -21,12 +29,18 @@ export default function PerfilPage() {
   const { data: stats } = trpc.profile.getStats.useQuery(undefined, {
     retry: false,
   });
-  const { data: graph } = trpc.profile.getRatingGraph.useQuery({}, {
-    retry: false,
-  });
-  const { data: heatmap } = trpc.profile.getActivityHeatmap.useQuery({}, {
-    retry: false,
-  });
+  const { data: graph } = trpc.profile.getRatingGraph.useQuery(
+    {},
+    {
+      retry: false,
+    }
+  );
+  const { data: heatmap } = trpc.profile.getActivityHeatmap.useQuery(
+    {},
+    {
+      retry: false,
+    }
+  );
 
   // Datos reales del backend (sin fallback de demo en campos disponibles).
   const displayName = user?.name ?? 'Usuario';
@@ -44,7 +58,14 @@ export default function PerfilPage() {
   const animatedStreak = useCountUp(streak, 1200, 0);
 
   const simHistory = graph?.map((g) => g.score) ?? [];
-  const simDates = graph?.map((g) => `S${g.weekIndex}`) ?? [];
+  const simDates =
+    graph?.map((g) => {
+      if (!g.appliedAt) return `S${g.weekIndex}`;
+      const d = new Date(g.appliedAt);
+      return `${String(d.getDate()).padStart(2, '0')}/${String(
+        d.getMonth() + 1
+      ).padStart(2, '0')}`;
+    }) ?? [];
 
   const currentRank = division
     ? getRankInfoByDivision(division)
@@ -60,7 +81,9 @@ export default function PerfilPage() {
       {/* Header propio del perfil */}
       <header className="sticky top-0 z-50 flex items-center justify-between p-4 bg-white/70 backdrop-blur-xl border-b border-slate-200/60 shrink-0">
         <div className="flex items-center gap-2 animate-cascade-1">
-          <span className="font-black text-slate-800 text-[18px] tracking-tight ml-2">Perfil</span>
+          <span className="font-black text-slate-800 text-[18px] tracking-tight ml-2">
+            Perfil
+          </span>
         </div>
         <div className="flex gap-2 animate-cascade-1">
           <button className="w-10 h-10 rounded-2xl border border-slate-200 border-b-[3px] bg-gradient-to-b from-white to-slate-50 flex items-center justify-center text-slate-400 active:text-slate-600 active:translate-y-[2px] active:border-b transition-all">
@@ -81,12 +104,19 @@ export default function PerfilPage() {
           />
           <div
             className="relative w-20 h-20 rounded-full flex items-center justify-center font-black text-[32px] text-white shadow-[inset_0_-4px_8px_rgba(0,0,0,0.15)] shrink-0 border-4 z-10"
-            style={{ backgroundColor: currentRank.color, borderColor: currentRank.bg }}
+            style={{
+              backgroundColor: currentRank.color,
+              borderColor: currentRank.bg,
+            }}
           >
             {displayName.charAt(0)}
           </div>
           <div className="absolute -bottom-2 -right-1 bg-white p-1 rounded-full border-2 border-slate-100 shadow-sm z-20">
-            <Award size={16} color={currentRank.color} fill={currentRank.color} />
+            <Award
+              size={16}
+              color={currentRank.color}
+              fill={currentRank.color}
+            />
           </div>
         </div>
 
@@ -94,11 +124,15 @@ export default function PerfilPage() {
           <h2 className="font-black text-[22px] text-slate-800 leading-tight truncate mb-0.5">
             {displayName}
           </h2>
-          <p className="font-bold text-slate-400 text-[13px] mb-2 truncate">@{username}</p>
+          <p className="font-bold text-slate-400 text-[13px] mb-2 truncate">
+            @{username}
+          </p>
 
           <div className="inline-flex items-center gap-1.5 bg-white border border-slate-200 border-b-2 px-3 py-1.5 rounded-xl w-max shadow-sm">
             <Target size={14} className="text-slate-400" strokeWidth={3} />
-            <span className="font-black text-slate-600 text-[11px] uppercase tracking-widest">{career}</span>
+            <span className="font-black text-slate-600 text-[11px] uppercase tracking-widest">
+              {career}
+            </span>
           </div>
         </div>
       </div>
@@ -111,9 +145,15 @@ export default function PerfilPage() {
             className={`flex-1 border-2 border-slate-200 border-b-[4px] rounded-[1.5rem] p-4 flex flex-col relative overflow-hidden shadow-sm bg-gradient-to-br ${currentRank.gradient}`}
           >
             <div className="flex justify-between items-start mb-2 relative z-10">
-              <span className="font-black text-slate-500/80 text-[10px] uppercase tracking-widest">Liga Actual</span>
+              <span className="font-black text-slate-500/80 text-[10px] uppercase tracking-widest">
+                Liga Actual
+              </span>
               <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white/60 backdrop-blur-sm shadow-sm border border-white/50">
-                <Shield size={16} color={currentRank.color} fill={currentRank.color} />
+                <Shield
+                  size={16}
+                  color={currentRank.color}
+                  fill={currentRank.color}
+                />
               </div>
             </div>
             <div className="font-black text-[34px] leading-none mb-1 text-slate-800 relative z-10 tracking-tight">
@@ -137,7 +177,9 @@ export default function PerfilPage() {
             />
 
             <div className="flex justify-between items-start mb-2 relative z-10">
-              <span className="font-black text-slate-500/80 text-[10px] uppercase tracking-widest">Pico Histórico</span>
+              <span className="font-black text-slate-500/80 text-[10px] uppercase tracking-widest">
+                Pico Histórico
+              </span>
               <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white/60 backdrop-blur-sm shadow-sm border border-white/50 animate-float">
                 <Crown size={16} color={maxRank.color} fill={maxRank.color} />
               </div>
@@ -163,8 +205,12 @@ export default function PerfilPage() {
               <EntrenarIcon className="w-7 h-7" />
             </div>
             <div className="flex flex-col">
-              <span className="font-black text-[20px] text-slate-800 leading-tight tracking-tight">{Math.floor(animatedQuestions)}</span>
-              <span className="font-black text-slate-400 text-[10px] uppercase tracking-widest mt-0.5">Resueltas</span>
+              <span className="font-black text-[20px] text-slate-800 leading-tight tracking-tight">
+                {Math.floor(animatedQuestions)}
+              </span>
+              <span className="font-black text-slate-400 text-[10px] uppercase tracking-widest mt-0.5">
+                Resueltas
+              </span>
             </div>
           </div>
 
@@ -174,9 +220,12 @@ export default function PerfilPage() {
             </div>
             <div className="flex flex-col">
               <span className="font-black text-[20px] text-slate-800 leading-tight tracking-tight">
-                {Math.floor(animatedStreak)} <span className="text-[14px] text-slate-500">d</span>
+                {Math.floor(animatedStreak)}{' '}
+                <span className="text-[14px] text-slate-500">d</span>
               </span>
-              <span className="font-black text-slate-400 text-[10px] uppercase tracking-widest mt-0.5">Racha</span>
+              <span className="font-black text-slate-400 text-[10px] uppercase tracking-widest mt-0.5">
+                Racha
+              </span>
             </div>
           </div>
         </div>
@@ -184,6 +233,7 @@ export default function PerfilPage() {
 
       {/* Chart + Heatmap */}
       <div className="px-5 flex flex-col gap-6 animate-cascade-4">
+        <WeeklyStreakCard />
         <RatingChart
           history={simHistory}
           dates={simDates}

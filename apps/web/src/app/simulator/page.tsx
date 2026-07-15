@@ -109,8 +109,12 @@ function SimulatorPage() {
     return (
       <div className="w-full max-w-md mx-auto h-[100dvh] flex items-center justify-center px-6 text-center bg-[#f8f9fc]">
         <div>
-          <h1 className="font-black text-[22px] text-[#ea2b2b] mb-2">Ups, algo salió mal</h1>
-          <p className="text-[#777777] mb-6">{error ?? 'No se pudo cargar el examen'}</p>
+          <h1 className="font-black text-[22px] text-[#ea2b2b] mb-2">
+            Ups, algo salió mal
+          </h1>
+          <p className="text-[#777777] mb-6">
+            {error ?? 'No se pudo cargar el examen'}
+          </p>
           <button
             onClick={() => router.push('/simulacros')}
             className="bg-[#ff4b4b] text-white font-black text-[16px] uppercase tracking-widest py-3.5 px-6 rounded-2xl border-b-[4px] border-[#df2b2b] active:border-b-0 active:translate-y-[4px] transition-all"
@@ -142,7 +146,9 @@ function SimulatorPage() {
     );
   }
 
-  const selectedOptionId = currentQuestion ? answers[currentQuestion.id]?.selectedOptionId : undefined;
+  const selectedOptionId = currentQuestion
+    ? answers[currentQuestion.id]?.selectedOptionId
+    : undefined;
 
   return (
     <div className="w-full max-w-md mx-auto relative bg-[#f8f9fc] h-[100dvh] flex flex-col shadow-2xl overflow-hidden border-x border-slate-200">
@@ -152,7 +158,9 @@ function SimulatorPage() {
       />
 
       <ProgressBar
-        respondidas={Object.keys(answers).filter((k) => answers[k].selectedOptionId).length}
+        respondidas={
+          Object.keys(answers).filter((k) => answers[k].selectedOptionId).length
+        }
         total={questions.length}
       />
 
@@ -253,7 +261,8 @@ function PostExamLockedScreen({
           {message ?? 'Calculando percentiles...'}
         </p>
         <p className="text-slate-400 font-bold text-[12px] mb-6">
-          Los resultados se revelarán el lunes. Mientras tanto, no compartas las preguntas.
+          Los resultados se revelarán el lunes. Mientras tanto, no compartas las
+          preguntas.
         </p>
         <button
           onClick={onHome}
@@ -276,7 +285,9 @@ function ExitConfirmModal({
   return (
     <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center px-5">
       <div className="bg-white rounded-[2rem] p-6 w-full max-w-sm text-center">
-        <h3 className="font-black text-slate-800 text-[20px] mb-2">¿Abandonar examen?</h3>
+        <h3 className="font-black text-slate-800 text-[20px] mb-2">
+          ¿Abandonar examen?
+        </h3>
         <p className="text-slate-500 font-bold text-[13px] mb-6">
           Tu progreso no se guardará y perderás el intento.
         </p>

@@ -222,9 +222,7 @@ export default function RankingPage() {
                   onToggle={() => toggleSection(group.careerName)}
                 >
                   {renderStudents(group.top)}
-                  <MoreRow
-                    count={group.totalInLeague - group.top.length}
-                  />
+                  <MoreRow count={group.totalInLeague - group.top.length} />
                   {group.me && !isMeInTop && renderUserRow(group.me)}
                 </RankingAccordion>
               );
@@ -245,9 +243,7 @@ export default function RankingPage() {
                   onToggle={() => toggleSection(title)}
                 >
                   {renderStudents(group.top)}
-                  <MoreRow
-                    count={group.totalInLeague - group.top.length}
-                  />
+                  <MoreRow count={group.totalInLeague - group.top.length} />
                   {group.me && !isMeInTop && renderUserRow(group.me)}
                 </RankingAccordion>
               );

@@ -20,8 +20,10 @@ export default function SimulacroDashboardPage() {
   const [timeLimit, setTimeLimit] = useState(60);
   const [startError, setStartError] = useState<string | null>(null);
 
-  const { data: profile, isLoading: isProfileLoading } = trpc.profile.getMe.useQuery();
-  const { data: stats, isLoading: isStatsLoading } = trpc.simulacro.getStats.useQuery();
+  const { data: profile, isLoading: isProfileLoading } =
+    trpc.profile.getMe.useQuery();
+  const { data: stats, isLoading: isStatsLoading } =
+    trpc.simulacro.getStats.useQuery();
   const { data: archiveExams, isLoading: isArchiveLoading } =
     trpc.simulacro.getArchiveExams.useQuery();
   const { data: recentAttempts, isLoading: isAttemptsLoading } =
@@ -59,7 +61,10 @@ export default function SimulacroDashboardPage() {
   const isLoading =
     isProfileLoading || isStatsLoading || isArchiveLoading || isAttemptsLoading;
 
-  const handleStartGenerated = (params: { mode: 'AI' | 'RANDOM'; isOfficial?: boolean }) => {
+  const handleStartGenerated = (params: {
+    mode: 'AI' | 'RANDOM';
+    isOfficial?: boolean;
+  }) => {
     setStartError(null);
     startGenerated.mutate({
       questionCount: numQuestions,
@@ -155,7 +160,9 @@ export default function SimulacroDashboardPage() {
                 disabled={startGenerated.isPending}
                 className="w-full py-3.5 rounded-2xl bg-slate-900 text-white font-black text-[14px] uppercase tracking-widest border-b-[5px] border-black active:border-b-0 active:translate-y-[5px] transition-all disabled:opacity-60"
               >
-                {startGenerated.isPending ? 'Generando...' : 'INICIAR SIMULACRO OFICIAL'}
+                {startGenerated.isPending
+                  ? 'Generando...'
+                  : 'INICIAR SIMULACRO OFICIAL'}
               </button>
             )}
 
@@ -172,8 +179,14 @@ export default function SimulacroDashboardPage() {
       {startError && (
         <div className="px-5 mb-4">
           <div className="bg-rose-50 border-2 border-rose-200 rounded-[1.5rem] p-4 flex items-start gap-3">
-            <AlertCircle className="shrink-0 text-rose-500 mt-0.5" size={18} strokeWidth={2.5} />
-            <p className="text-rose-700 font-bold text-[13px] leading-snug">{startError}</p>
+            <AlertCircle
+              className="shrink-0 text-rose-500 mt-0.5"
+              size={18}
+              strokeWidth={2.5}
+            />
+            <p className="text-rose-700 font-bold text-[13px] leading-snug">
+              {startError}
+            </p>
           </div>
         </div>
       )}

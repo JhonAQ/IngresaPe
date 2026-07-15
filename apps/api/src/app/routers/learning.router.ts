@@ -23,11 +23,17 @@ export class LearningRouter {
     getRandomQuestion: this.trpc.protectedProcedure
       .input(z.object({ topicId: z.string() }))
       .query(async ({ input }) => {
-        const count = await this.prisma.question.count({ where: { topicId: input.topicId } });
-        if (count === 0) throw new TRPCError({ code: 'NOT_FOUND', message: 'No hay preguntas en este tema' });
-        
+        const count = await this.prisma.question.count({
+          where: { topicId: input.topicId },
+        });
+        if (count === 0)
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'No hay preguntas en este tema',
+          });
+
         const skip = Math.floor(Math.random() * count);
-        
+
         const question = await this.prisma.question.findFirst({
           where: { topicId: input.topicId },
           skip: skip,
@@ -36,17 +42,19 @@ export class LearningRouter {
             statement: true,
             options: true,
             imageUrl: true,
-            difficulty: true
-          }
+            difficulty: true,
+          },
         });
         return question;
       }),
 
     submitAnswer: this.trpc.protectedProcedure
-      .input(z.object({
-        questionId: z.string(),
-        answer: z.any(),
-      }))
+      .input(
+        z.object({
+          questionId: z.string(),
+          answer: z.any(),
+        })
+      )
       .mutation(async ({ ctx, input }) => {
         const answerParse = answerSubmissionSchema.safeParse(input.answer);
         if (!answerParse.success) {
@@ -61,7 +69,11 @@ export class LearningRouter {
           where: { id: input.questionId },
         });
 
-        if (!question) throw new TRPCError({ code: 'NOT_FOUND', message: 'Pregunta no encontrada' });
+        if (!question)
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Pregunta no encontrada',
+          });
 
         const gradeResult = this.grader.grade(question, answer);
         const { isCorrect, correctAnswerText, explanation } = gradeResult;
@@ -72,16 +84,19 @@ export class LearningRouter {
         const gemsEarned = isCorrect ? GEMS_PER_CORRECT : 0;
 
         const now = new Date();
-        const user = await this.prisma.user.findUnique({ where: { id: ctx.user.userId } });
+        const user = await this.prisma.user.findUnique({
+          where: { id: ctx.user.userId },
+        });
 
         if (!user) {
-          throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Usuario no encontrado' });
+          throw new TRPCError({
+            code: 'UNAUTHORIZED',
+            message: 'Usuario no encontrado',
+          });
         }
 
-        const { newStreak, shouldUpdateDate, streakIncremented } = calculateNewStreak(
-          user.streak,
-          user.lastInteraction
-        );
+        const { newStreak, shouldUpdateDate, streakIncremented } =
+          calculateNewStreak(user.streak, user.lastInteraction);
 
         await this.prisma.user.update({
           where: { id: ctx.user.userId },
@@ -91,7 +106,7 @@ export class LearningRouter {
             gems: { increment: gemsEarned },
             streak: newStreak,
             lastInteraction: shouldUpdateDate ? now : undefined,
-          }
+          },
         });
 
         await this.prisma.answerLog.create({
@@ -100,7 +115,7 @@ export class LearningRouter {
             questionId: question.id,
             isCorrect: isCorrect,
             answer: answer as any,
-          }
+          },
         });
 
         await this.activityService.log({

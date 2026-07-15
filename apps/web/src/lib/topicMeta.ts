@@ -16,7 +16,12 @@ const TOPIC_THEMES: TopicTheme[] = [
   { nodeTheme: 'green', base: '#58cc02', medium: '#58a700', ice: '#ecffde' },
   { nodeTheme: 'purple', base: '#ce82ff', medium: '#a568cc', ice: '#f8eaff' },
   { nodeTheme: 'gold', base: '#ffc800', medium: '#cd7900', ice: '#fffbea' },
-  { nodeTheme: 'trip-green', base: '#00b68a', medium: '#007055', ice: '#d0fff4' },
+  {
+    nodeTheme: 'trip-green',
+    base: '#00b68a',
+    medium: '#007055',
+    ice: '#d0fff4',
+  },
   { nodeTheme: 'coral', base: '#ff4b4b', medium: '#d93838', ice: '#ffe0e0' },
   { nodeTheme: 'orange', base: '#ff9600', medium: '#cd7900', ice: '#fff0d9' },
   { nodeTheme: 'pink', base: '#ff7eb9', medium: '#cc4d9a', ice: '#ffe6f2' },

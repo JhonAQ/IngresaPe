@@ -15,7 +15,9 @@ export class SeasonService {
     const { startsAt, endsAt } = this.getWeekendBounds(now);
     const weekIndex = this.getWeekIndex(startsAt);
 
-    const existing = await this.prisma.season.findUnique({ where: { weekIndex } });
+    const existing = await this.prisma.season.findUnique({
+      where: { weekIndex },
+    });
     if (existing) return existing;
 
     return await this.prisma.season.create({
@@ -94,10 +96,14 @@ export class SeasonService {
    * Calcula los límites del fin de semana de ranking para una fecha dada.
    */
   getWeekendBounds(date: Date): { startsAt: Date; endsAt: Date } {
-    const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+    const d = new Date(
+      Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+    );
     const day = d.getUTCDay(); // 0 = domingo, 6 = sábado
     const diffToSaturday = (day + 1) % 7; // días hacia atrás hasta el sábado
-    const startsAt = new Date(d.getTime() - diffToSaturday * 24 * 60 * 60 * 1000);
+    const startsAt = new Date(
+      d.getTime() - diffToSaturday * 24 * 60 * 60 * 1000
+    );
     const endsAt = new Date(startsAt.getTime() + 2 * 24 * 60 * 60 * 1000 - 1);
     return { startsAt, endsAt };
   }

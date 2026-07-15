@@ -45,15 +45,11 @@ export function useProfileData() {
     error: userError,
   } = trpc.profile.getMe.useQuery(undefined, { retry: false });
 
-  const {
-    data: rankData,
-    isLoading: isRankLoading,
-  } = trpc.ranking.getMyStats.useQuery(undefined, { retry: false });
+  const { data: rankData, isLoading: isRankLoading } =
+    trpc.ranking.getMyStats.useQuery(undefined, { retry: false });
 
-  const {
-    data: courses,
-    isLoading: isCoursesLoading,
-  } = trpc.content.getCourses.useQuery(undefined, { retry: false });
+  const { data: courses, isLoading: isCoursesLoading } =
+    trpc.content.getCourses.useQuery(undefined, { retry: false });
 
   const profile = user as BackendUser | undefined;
   const rank = (rankData as RankingPosition | undefined)?.rank ?? null;
