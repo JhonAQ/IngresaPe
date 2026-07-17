@@ -7,14 +7,18 @@ import {
   Gem,
   Crown,
   Zap,
-  Heart,
   Sparkles,
   ShoppingBag,
   Flame,
   Star,
+  Shield,
+  Snowflake,
+  TrendingUp,
+  Check,
 } from 'lucide-react';
 import { Card3D, Button3D, GemIcon } from '@ingresa-pe/ui';
 import { useAuth } from '../../hooks/useAuth';
+import { trpc } from '../../utils/trpc';
 
 const gemPacks = [
   { amount: 500, price: 'S/ 4.90', popular: false, discount: null },
@@ -22,40 +26,10 @@ const gemPacks = [
   { amount: 3000, price: 'S/ 19.90', popular: false, discount: '35% OFF' },
 ];
 
-const powerUps = [
-  {
-    id: 'lives',
-    name: '+5 Vidas',
-    description: 'Recupera todas tus vidas al instante.',
-    price: '150 gemas',
-    icon: Heart,
-    color: '#ff4b4b',
-    bg: 'bg-red-50',
-  },
-  {
-    id: 'energy',
-    name: 'Energía x2',
-    description: 'Duplica la energía ganada por 1 hora.',
-    price: '300 gemas',
-    icon: Zap,
-    color: '#ffc800',
-    bg: 'bg-yellow-50',
-  },
-  {
-    id: 'streak',
-    name: 'Escudo de racha',
-    description: 'Protege tu racha si pierdes un día.',
-    price: '500 gemas',
-    icon: Flame,
-    color: '#ff9600',
-    bg: 'bg-orange-50',
-  },
-];
-
 const premiumBenefits = [
   { icon: Zap, text: 'Energía ilimitada' },
   { icon: Sparkles, text: 'Explicaciones con IA sin límites' },
-  { icon: Star, text: 'Doble de monedas en cada lección' },
+  { icon: Star, text: 'Doble de gemas en cada lección' },
 ];
 
 const containerVariants = {
@@ -71,10 +45,83 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
+function getItemMeta(key: string, category: string) {
+  switch (category) {
+    case 'CONSUMABLE':
+      if (key === 'STREAK_FREEZE_1D')
+        return {
+          icon: Flame,
+          color: '#ff9600',
+          bg: 'bg-orange-50',
+          action: 'Comprar',
+        };
+      return {
+        icon: Zap,
+        color: '#ffc800',
+        bg: 'bg-yellow-50',
+        action: 'Comprar',
+      };
+    case 'BOOST':
+      return {
+        icon: Sparkles,
+        color: '#ce82ff',
+        bg: 'bg-purple-50',
+        action: 'Comprar',
+      };
+    case 'RATING':
+      if (key === 'RATING_FREEZE')
+        return {
+          icon: Snowflake,
+          color: '#1cb0f6',
+          bg: 'bg-blue-50',
+          action: 'Comprar',
+        };
+      if (key === 'RATING_BOOSTER')
+        return {
+          icon: TrendingUp,
+          color: '#58cc02',
+          bg: 'bg-green-50',
+          action: 'Comprar',
+        };
+      return {
+        icon: Shield,
+        color: '#ff4b4b',
+        bg: 'bg-red-50',
+        action: 'Comprar',
+      };
+    case 'COSMETIC':
+    default:
+      return {
+        icon: Star,
+        color: '#ffc800',
+        bg: 'bg-amber-50',
+        action: 'Comprar',
+      };
+  }
+}
+
 export default function ShopPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const gemBalance = user?.coins ?? 0;
+  const gemBalance = user?.gems ?? 0;
+
+  const utils = trpc.useUtils();
+  const { data: catalog = [], isLoading: isCatalogLoading } =
+    trpc.shop.getCatalog.useQuery();
+  const buyMutation = trpc.shop.buyItem.useMutation({
+    onSuccess: () => {
+      void utils.shop.getCatalog.invalidate();
+      void utils.profile.getMe.invalidate();
+    },
+  });
+  const useMutation = trpc.shop.useItem.useMutation({
+    onSuccess: () => {
+      void utils.shop.getCatalog.invalidate();
+      void utils.profile.getMe.invalidate();
+    },
+  });
+
+  const canAfford = (price: number) => gemBalance >= price;
 
   return (
     <div className="w-full max-w-md mx-auto min-h-[100dvh] flex flex-col bg-[#f7f7f7] border-x border-slate-100">
@@ -147,7 +194,7 @@ export default function ShopPage() {
               size="md"
               fullWidth
               className="font-black uppercase tracking-widest text-[15px]"
-              onClick={() => alert('Planes premium próximamente 🚀')}
+              onClick={() => router.push('/subscription')}
             >
               Ver planes
             </Button3D>
@@ -223,36 +270,76 @@ export default function ShopPage() {
             Potenciadores
           </h3>
 
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-1 gap-3"
-          >
-            {powerUps.map((item) => (
-              <motion.div key={item.id} variants={itemVariants}>
-                <Card3D variant="surface" padding="sm" className="flex items-center gap-4">
-                  <div
-                    className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${item.bg}`}
-                  >
-                    <item.icon size={28} style={{ color: item.color }} strokeWidth={2.5} />
-                  </div>
+          {isCatalogLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="h-24 bg-slate-200 rounded-2xl animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 gap-3"
+            >
+              {catalog.map((item) => {
+                const meta = getItemMeta(item.key, item.category);
+                const Icon = meta.icon;
+                const isOwned = item.owned > 0;
+                const usable =
+                  item.category === 'CONSUMABLE' || item.category === 'BOOST';
 
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-black text-slate-700 text-[16px]">{item.name}</h4>
-                    <p className="font-bold text-slate-400 text-[13px] leading-snug">{item.description}</p>
-                  </div>
+                return (
+                  <motion.div key={item.key} variants={itemVariants}>
+                    <Card3D variant="surface" padding="sm" className="flex items-center gap-4">
+                      <div
+                        className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${meta.bg}`}
+                      >
+                        <Icon size={28} style={{ color: meta.color }} strokeWidth={2.5} />
+                      </div>
 
-                  <button
-                    onClick={() => alert(`${item.name} - próximamente ⚡`)}
-                    className="shrink-0 font-black text-[13px] px-4 py-2 rounded-xl bg-slate-100 text-slate-600 border-b-[4px] border-slate-200 active:border-b-0 active:translate-y-[4px] transition-all"
-                  >
-                    {item.price}
-                  </button>
-                </Card3D>
-              </motion.div>
-            ))}
-          </motion.div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-black text-slate-700 text-[16px]">{item.name}</h4>
+                        <p className="font-bold text-slate-400 text-[13px] leading-snug">{item.description}</p>
+                        {isOwned && (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-black text-emerald-500 mt-1">
+                            <Check size={12} strokeWidth={3} /> Tienes {item.owned}
+                          </span>
+                        )}
+                      </div>
+
+                      <button
+                        disabled={
+                          buyMutation.isPending ||
+                          useMutation.isPending ||
+                          (!isOwned && !canAfford(item.priceGems))
+                        }
+                        onClick={() => {
+                          if (isOwned && usable) {
+                            useMutation.mutate({ itemKey: item.key });
+                          } else {
+                            buyMutation.mutate({ itemKey: item.key, quantity: 1 });
+                          }
+                        }}
+                        className={`shrink-0 font-black text-[13px] px-4 py-2 rounded-xl border-b-[4px] active:border-b-0 active:translate-y-[4px] transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                          isOwned && usable
+                            ? 'bg-emerald-500 text-white border-emerald-600'
+                            : canAfford(item.priceGems)
+                            ? 'bg-slate-100 text-slate-600 border-slate-200'
+                            : 'bg-slate-100 text-slate-400 border-slate-200'
+                        }`}
+                      >
+                        {isOwned && usable
+                          ? 'Usar'
+                          : `${item.priceGems} gemas`}
+                      </button>
+                    </Card3D>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          )}
         </section>
 
         {/* Footer info */}

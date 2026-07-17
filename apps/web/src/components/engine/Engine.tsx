@@ -156,7 +156,7 @@ export function Engine() {
         onClose={handleConfirmExit}
         correctCount={correctCount}
         totalQuestions={questions.length}
-        coinsGained={totalRewards.coins}
+        gemsGained={totalRewards.gems}
         durationSeconds={durationSeconds}
         streakIncremented={streakIncremented}
       />

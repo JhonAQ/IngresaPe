@@ -84,20 +84,20 @@ export class QuestionGraderService {
   computeRewards(
     difficulty: Difficulty,
     isCorrect: boolean
-  ): { coins: number } {
+  ): { gems: number } {
     if (!isCorrect) {
-      return { coins: 0 };
+      return { gems: 0 };
     }
 
     switch (difficulty) {
       case 'EASY':
-        return { coins: 5 };
+        return { gems: 1 };
       case 'MEDIUM':
-        return { coins: 10 };
+        return { gems: 1 };
       case 'HARD':
-        return { coins: 15 };
+        return { gems: 2 };
       default:
-        return { coins: 10 };
+        return { gems: 1 };
     }
   }
 

@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 
+const DAILY_GEMS_CAP = 200;
+const STREAK_FREEZE_KEY = 'STREAK_FREEZE_1D';
+
 export interface ActivityInput {
   userId: string;
   questionsAnswered?: number;
@@ -8,6 +11,14 @@ export interface ActivityInput {
   nodesCompleted?: number;
   gemsEarned?: number;
   simulacrosCompleted?: number;
+}
+
+export interface GemAwardResult {
+  base: number;
+  capped: number;
+  loginBonus: number;
+  streakMilestone: number;
+  total: number;
 }
 
 @Injectable()
@@ -43,6 +54,128 @@ export class ActivityService {
         simulacrosCompleted: input.simulacrosCompleted ?? 0,
       },
     });
+  }
+
+  /**
+   * Devuelve el registro de actividad de hoy, creándolo si no existe.
+   */
+  private async getOrCreateDailyLog(userId: string) {
+    const date = this.toDate(new Date());
+    const existing = await this.prisma.activityLog.findUnique({
+      where: { userId_date: { userId, date } },
+    });
+    if (existing) return { log: existing, created: false };
+    const created = await this.prisma.activityLog.create({
+      data: { userId, date },
+    });
+    return { log: created, created: true };
+  }
+
+  /**
+   * Otorga gemas a un usuario respetando el tope diario, login bonus y
+   * potenciadores activos. Devuelve el desglose de lo otorgado.
+   */
+  async awardGems(
+    userId: string,
+    baseGems: number
+  ): Promise<GemAwardResult> {
+    const { log, created } = await this.getOrCreateDailyLog(userId);
+
+    let loginBonus = 0;
+    if (created) {
+      loginBonus = Math.min(5, DAILY_GEMS_CAP);
+      if (loginBonus > 0) {
+        await this.prisma.activityLog.update({
+          where: { id: log.id },
+          data: { loginBonusGems: loginBonus },
+        });
+        await this.incrementUserGems(userId, loginBonus);
+      }
+    }
+
+    const activeBoost = await this.getActiveGemBoost(userId);
+    const boostedBase = activeBoost > 1 ? baseGems * activeBoost : baseGems;
+
+    const current = await this.prisma.activityLog.findUnique({
+      where: { id: log.id },
+    });
+    const earnedToday =
+      (current?.gemsEarned ?? 0) +
+      (current?.loginBonusGems ?? 0) +
+      (current?.streakMilestoneGems ?? 0);
+    const remaining = Math.max(0, DAILY_GEMS_CAP - earnedToday);
+    const capped = Math.min(boostedBase, remaining);
+
+    if (capped > 0) {
+      await this.prisma.activityLog.update({
+        where: { id: log.id },
+        data: { gemsEarned: { increment: capped } },
+      });
+      await this.incrementUserGems(userId, capped);
+    }
+
+    return {
+      base: baseGems,
+      capped,
+      loginBonus,
+      streakMilestone: 0,
+      total: loginBonus + capped,
+    };
+  }
+
+  /**
+   * Otorga gemas por completar un nodo (10 gemas).
+   */
+  async awardNodeCompletionGems(userId: string): Promise<GemAwardResult> {
+    return this.awardGems(userId, 10);
+  }
+
+  /**
+   * Revisa si la racha alcanzó un milestone y otorga gemas.
+   * Se llama después de recalcular la racha.
+   */
+  async awardStreakMilestone(userId: string, streak: number): Promise<number> {
+    if (streak <= 0) return 0;
+
+    const milestoneGems = streak === 30 ? 100 : streak % 7 === 0 ? 30 : 0;
+    if (!milestoneGems) return 0;
+
+    const { log } = await this.getOrCreateDailyLog(userId);
+    if (log.streakMilestoneGems > 0) return 0;
+
+    const earnedToday =
+      log.gemsEarned + log.loginBonusGems + log.streakMilestoneGems;
+    const remaining = Math.max(0, DAILY_GEMS_CAP - earnedToday);
+    const awarded = Math.min(milestoneGems, remaining);
+
+    if (awarded > 0) {
+      await this.prisma.activityLog.update({
+        where: { id: log.id },
+        data: { streakMilestoneGems: awarded },
+      });
+      await this.incrementUserGems(userId, awarded);
+    }
+
+    return awarded;
+  }
+
+  private async incrementUserGems(userId: string, amount: number) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { gems: { increment: amount } },
+    });
+  }
+
+  private async getActiveGemBoost(userId: string): Promise<number> {
+    const now = new Date();
+    const item = await this.prisma.userItem.findFirst({
+      where: {
+        userId,
+        itemKey: 'GEM_BOOST_30MIN',
+        expiresAt: { gt: now },
+      },
+    });
+    return item ? 2 : 1;
   }
 
   /**
@@ -137,6 +270,9 @@ export class ActivityService {
   /**
    * Recalcula la racha del usuario a partir de los ActivityLog y sincroniza
    * user.streak / user.lastInteraction. Devuelve la nueva racha.
+   *
+   * Si el usuario tiene Protectores de Racha (STREAK_FREEZE_1D), se consumen
+   * para saltar días sin actividad.
    */
   async recalculateStreak(userId: string): Promise<number> {
     const today = this.toDate(new Date());
@@ -155,10 +291,19 @@ export class ActivityService {
       select: { date: true },
     });
 
+    const freezeCount = await this.getStreakFreezeCount(userId);
+    let usedFreezes = 0;
     let streak = 0;
     let expectedTime = today.getTime();
+
     for (const log of logs) {
       const logTime = this.toDate(log.date).getTime();
+
+      while (logTime < expectedTime && usedFreezes < freezeCount) {
+        usedFreezes++;
+        expectedTime -= 86_400_000;
+      }
+
       if (logTime === expectedTime) {
         streak++;
         expectedTime -= 86_400_000;
@@ -167,12 +312,38 @@ export class ActivityService {
       }
     }
 
+    if (usedFreezes > 0) {
+      await this.consumeStreakFreezes(userId, usedFreezes);
+    }
+
     await this.prisma.user.update({
       where: { id: userId },
       data: { streak, lastInteraction: new Date() },
     });
 
+    await this.awardStreakMilestone(userId, streak);
+
     return streak;
+  }
+
+  private async getStreakFreezeCount(userId: string): Promise<number> {
+    const result = await this.prisma.userItem.aggregate({
+      where: { userId, itemKey: STREAK_FREEZE_KEY },
+      _sum: { quantity: true },
+    });
+    return result._sum.quantity ?? 0;
+  }
+
+  private async consumeStreakFreezes(userId: string, count: number) {
+    const item = await this.prisma.userItem.findUnique({
+      where: { userId_itemKey: { userId, itemKey: STREAK_FREEZE_KEY } },
+    });
+    if (!item) return;
+    const newQty = Math.max(0, item.quantity - count);
+    await this.prisma.userItem.update({
+      where: { id: item.id },
+      data: { quantity: newQty },
+    });
   }
 
   /**

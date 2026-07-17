@@ -257,6 +257,8 @@ export class ContentRouter {
           create: { userId, topicId, nodeIndex },
         });
 
+        const gemResult = await this.activityService.awardNodeCompletionGems(userId);
+
         await this.activityService.log({
           userId,
           nodesCompleted: 1,
@@ -264,7 +266,7 @@ export class ContentRouter {
 
         await this.activityService.recalculateStreak(userId);
 
-        return { success: true, completedNodeIndex: nodeIndex };
+        return { success: true, completedNodeIndex: nodeIndex, gemsEarned: gemResult.total };
       }),
   });
 

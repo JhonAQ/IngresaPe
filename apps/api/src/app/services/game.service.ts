@@ -11,8 +11,6 @@ interface SubmitAnswerInput {
   answer: AnswerSubmission;
 }
 
-const GEMS_PER_CORRECT = 1;
-
 @Injectable()
 export class GameService {
   constructor(
@@ -52,21 +50,19 @@ export class GameService {
     const { isCorrect, correctAnswerText, correctOrder, explanation } =
       gradeResult;
 
-    // 4. Calcular Recompensas (solo monedas/gemas, sin XP)
+    // 4. Calcular recompensas en gemas
     const rewards = this.grader.computeRewards(question.difficulty, isCorrect);
-    const { coins: coinsEarned } = rewards;
-    const gemsEarned = isCorrect ? GEMS_PER_CORRECT : 0;
+    const baseGems = rewards.gems;
 
     // Guardamos la racha previa para detectar si incrementó con esta acción
     const previousStreak = user.streak;
 
-    // 5. Transacción Atómica: Guardar Intento y Actualizar User
+    // 5. Guardar intento y registrar actividad
     const updatedUser = await this.prisma.$transaction(async (tx) => {
       const userRow = await tx.user.update({
         where: { id: userId },
         data: {
-          coins: { increment: coinsEarned },
-          gems: { increment: gemsEarned },
+          lastInteraction: new Date(),
         },
       });
 
@@ -82,13 +78,15 @@ export class GameService {
       return userRow;
     });
 
-    // 6. Registrar actividad diaria y sincronizar racha desde ActivityLog
+    // 6. Otorgar gemas con tope diario/login bonus, luego métricas y racha
+    const gemResult = await this.activityService.awardGems(userId, baseGems);
+
     await this.activityService.log({
       userId,
       questionsAnswered: 1,
       questionsCorrect: isCorrect ? 1 : 0,
-      gemsEarned,
     });
+
     const newStreak = await this.activityService.recalculateStreak(userId);
     const streakIncremented = newStreak > previousStreak;
 
@@ -98,13 +96,12 @@ export class GameService {
       correctAnswerText,
       correctOrder,
       explanation: explanation ?? question.explanation,
-      rewards: { coins: coinsEarned, gems: gemsEarned },
+      rewards: { gems: gemResult.capped },
       streakIncremented,
       userStats: {
         energy: updatedUser.energy,
         streak: newStreak,
-        coins: updatedUser.coins,
-        gems: updatedUser.gems,
+        gems: updatedUser.gems + gemResult.total,
       },
     };
   }

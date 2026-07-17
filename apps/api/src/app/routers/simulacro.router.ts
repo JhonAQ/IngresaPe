@@ -31,6 +31,10 @@ const submitSchema = z.object({
 });
 
 const COINS_PER_CORRECT = 5;
+const GEMS_PER_SIMULACRO_CORRECT = 2;
+const GEMS_PARTICIPATION_GENERATED = 20;
+const GEMS_PARTICIPATION_ARCHIVE = 30;
+const GEMS_PARTICIPATION_OFFICIAL = 100;
 
 @Injectable()
 export class SimulacroRouter {
@@ -549,6 +553,18 @@ export class SimulacroRouter {
 
         const xpEarned = 0;
         const coinsEarned = correctCount * COINS_PER_CORRECT;
+        const participationGems = attempt.isOfficial
+          ? GEMS_PARTICIPATION_OFFICIAL
+          : attempt.mode === 'ARCHIVE'
+            ? GEMS_PARTICIPATION_ARCHIVE
+            : GEMS_PARTICIPATION_GENERATED;
+        const correctGems = correctCount * GEMS_PER_SIMULACRO_CORRECT;
+        const baseGems = participationGems + correctGems;
+
+        const gemResult = await this.activityService.awardGems(
+          ctx.user.userId,
+          baseGems
+        );
 
         await this.prisma.$transaction(async (tx) => {
           await tx.examAttempt.update({
@@ -565,6 +581,7 @@ export class SimulacroRouter {
               answers: gradedAnswers as any,
               totalXpEarned: xpEarned,
               totalCoinsEarned: coinsEarned,
+              totalGemsEarned: gemResult.total,
             },
           });
 
@@ -606,6 +623,7 @@ export class SimulacroRouter {
           totalAnswered,
           timeUsedSeconds,
           coinsEarned,
+          gemsEarned: gemResult.total,
         };
       }),
   });

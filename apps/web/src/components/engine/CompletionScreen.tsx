@@ -18,7 +18,7 @@ interface CompletionScreenProps {
   onClose: () => void;
   correctCount: number;
   totalQuestions: number;
-  coinsGained: number;
+  gemsGained: number;
   durationSeconds: number;
   streakIncremented: boolean;
 }
@@ -170,10 +170,10 @@ function StreakCard({
 
 function GemsCard({
   show,
-  coinsGained,
+  gemsGained,
 }: {
   show: boolean;
-  coinsGained: number;
+  gemsGained: number;
 }) {
   const [claimed, setClaimed] = useState(false);
 
@@ -193,7 +193,7 @@ function GemsCard({
           <div className="flex-1 min-w-0">
             <h3 className="font-black text-[#1cb0f6] text-[20px] leading-tight">
               Ganaste{' '}
-              <AnimatedCounter targetValue={coinsGained} duration={1} prefix="+" />{' '}
+              <AnimatedCounter targetValue={gemsGained} duration={1} prefix="+" />{' '}
               gemas
             </h3>
             <p className="font-bold text-[#afafaf] text-[13px] leading-snug">
@@ -268,7 +268,7 @@ export function CompletionScreen({
   onClose,
   correctCount,
   totalQuestions,
-  coinsGained,
+  gemsGained,
   durationSeconds,
   streakIncremented,
 }: CompletionScreenProps) {
@@ -373,7 +373,7 @@ export function CompletionScreen({
             />
           ) : (
             <>
-              <GemsCard show={showSummary} coinsGained={coinsGained} />
+              <GemsCard show={showSummary} gemsGained={gemsGained} />
               <StreakProtectorCard show={showSummary} />
             </>
           )}

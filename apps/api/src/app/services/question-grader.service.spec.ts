@@ -269,14 +269,14 @@ describe('QuestionGraderService', () => {
   });
 
   describe('computeRewards', () => {
-    it('devuelve recompensas por dificultad cuando acierta', () => {
-      expect(grader.computeRewards(Difficulty.EASY, true)).toEqual({ coins: 5 });
-      expect(grader.computeRewards(Difficulty.MEDIUM, true)).toEqual({ coins: 10 });
-      expect(grader.computeRewards(Difficulty.HARD, true)).toEqual({ coins: 15 });
+    it('devuelve gemas por dificultad cuando acierta', () => {
+      expect(grader.computeRewards(Difficulty.EASY, true)).toEqual({ gems: 1 });
+      expect(grader.computeRewards(Difficulty.MEDIUM, true)).toEqual({ gems: 1 });
+      expect(grader.computeRewards(Difficulty.HARD, true)).toEqual({ gems: 2 });
     });
 
-    it('no otorga recompensas cuando falla', () => {
-      expect(grader.computeRewards(Difficulty.MEDIUM, false)).toEqual({ coins: 0 });
+    it('no otorga gemas cuando falla', () => {
+      expect(grader.computeRewards(Difficulty.MEDIUM, false)).toEqual({ gems: 0 });
     });
   });
 });

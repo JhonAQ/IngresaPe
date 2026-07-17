@@ -11,7 +11,7 @@ export interface FeedbackState {
   correctAnswerText: string;
   correctOrder?: string[];
   explanation: string | null;
-  rewards: { coins: number; gems?: number } | null;
+  rewards: { gems: number } | null;
 }
 
 export interface UseEngineResult {
@@ -25,7 +25,7 @@ export interface UseEngineResult {
   answer: AnswerSubmission | null;
   feedback: FeedbackState | null;
   correctCount: number;
-  totalRewards: { coins: number };
+  totalRewards: { gems: number };
   durationSeconds: number;
   streakIncremented: boolean;
   setAnswer: (answer: AnswerSubmission) => void;
@@ -51,7 +51,7 @@ export function useEngine(
   const [lives, setLives] = useState(5);
   const [error, setError] = useState<string | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
-  const [totalRewards, setTotalRewards] = useState({ coins: 0 });
+  const [totalRewards, setTotalRewards] = useState({ gems: 0 });
   const [streakIncremented, setStreakIncremented] = useState(false);
   const startTimeRef = useRef<number | null>(null);
 
@@ -122,7 +122,7 @@ export function useEngine(
       }
       if (result.rewards) {
         setTotalRewards((prev) => ({
-          coins: prev.coins + result.rewards.coins,
+          gems: prev.gems + (result.rewards.gems ?? 0),
         }));
       }
       if (result.streakIncremented) {

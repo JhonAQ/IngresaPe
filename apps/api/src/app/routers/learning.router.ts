@@ -7,8 +7,6 @@ import { QuestionGraderService } from '../services/question-grader.service';
 import { answerSubmissionSchema } from '@ingresa-pe/domain';
 import { ActivityService } from '../services/activity.service';
 
-const GEMS_PER_CORRECT = 1;
-
 @Injectable()
 export class LearningRouter {
   constructor(
@@ -76,11 +74,10 @@ export class LearningRouter {
 
         const gradeResult = this.grader.grade(question, answer);
         const { isCorrect, correctAnswerText, explanation } = gradeResult;
-        const { coins: coinsEarned } = this.grader.computeRewards(
+        const { gems: baseGems } = this.grader.computeRewards(
           question.difficulty,
           isCorrect
         );
-        const gemsEarned = isCorrect ? GEMS_PER_CORRECT : 0;
 
         const user = await this.prisma.user.findUnique({
           where: { id: ctx.user.userId },
@@ -97,10 +94,7 @@ export class LearningRouter {
 
         await this.prisma.user.update({
           where: { id: ctx.user.userId },
-          data: {
-            coins: { increment: coinsEarned },
-            gems: { increment: gemsEarned },
-          },
+          data: { lastInteraction: new Date() },
         });
 
         await this.prisma.answerLog.create({
@@ -112,11 +106,15 @@ export class LearningRouter {
           },
         });
 
+        const gemResult = await this.activityService.awardGems(
+          ctx.user.userId,
+          baseGems
+        );
+
         await this.activityService.log({
           userId: ctx.user.userId,
           questionsAnswered: 1,
           questionsCorrect: isCorrect ? 1 : 0,
-          gemsEarned,
         });
 
         const newStreak = await this.activityService.recalculateStreak(ctx.user.userId);
@@ -126,10 +124,9 @@ export class LearningRouter {
           correct: isCorrect,
           correctAnswerText,
           explanation: explanation ?? question.explanation,
-          rewards: { coins: coinsEarned, gems: gemsEarned },
+          rewards: { gems: gemResult.capped },
           streakIncremented,
-          newTotalCoins: (user?.coins || 0) + coinsEarned,
-          newTotalGems: (user?.gems || 0) + gemsEarned,
+          newTotalGems: user.gems + gemResult.total,
         };
       }),
   });

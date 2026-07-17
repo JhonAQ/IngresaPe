@@ -79,6 +79,14 @@ enum Division {
   CACHIMBO
 }
 
+// Categorías de items de la tienda
+enum ShopItemCategory {
+  CONSUMABLE
+  BOOST
+  RATING
+  COSMETIC
+}
+
 // =========================================================
 // 2. IDENTIDAD Y PERFIL DEL ESTUDIANTE
 // =========================================================
@@ -105,8 +113,8 @@ model User {
 
   // --- Gamificación (Stats rápidas para el Ranking) ---
   energy          Int       @default(25) // Moneda de juego (Max 25)
-  coins           Int       @default(100) // Monedas (Empieza con 100 de regalo)
-  gems            Int       @default(0) // Gemas para protectores de rating
+  coins           Int       @default(100) // DEPRECADO: migrar a gems
+  gems            Int       @default(150) // Gemas para tienda y protectores
   inventory       String[]  @default(["default"]) // Lista de IDs de items comprados (legacy)
   lastRefill      DateTime  @default(now()) // Hora de última recarga automática
   totalXp         Int       @default(0) // Puntaje total (Leaderboard)
@@ -342,6 +350,7 @@ model ExamAttempt {
 
   totalXpEarned    Int @default(0)
   totalCoinsEarned Int @default(0)
+  totalGemsEarned  Int @default(0)
 
   @@index([userId, status, startedAt])
   @@index([seasonId])
@@ -424,6 +433,9 @@ model ActivityLog {
   nodesCompleted      Int @default(0)
   xpEarned            Int @default(0)
   gemsEarned          Int @default(0)
+  loginBonusGems      Int @default(0)
+  streakMilestoneGems Int @default(0)
+  energyRefillsUsed   Int @default(0)
 
   @@unique([userId, date])
   @@index([userId, date])
@@ -442,13 +454,15 @@ model UserItem {
 }
 
 model ShopItem {
-  id          String  @id @default(uuid())
-  key         String  @unique
+  id          String           @id @default(uuid())
+  key         String           @unique
   name        String
   description String
   priceGems   Int
   maxQuantity Int? // límite por usuario (null = ilimitado)
-  isActive    Boolean @default(true)
+  isActive    Boolean          @default(true)
+  category    ShopItemCategory @default(CONSUMABLE)
+  effectData  Json?
 }
 
 // Registro de nodos completados por usuario/tema (progreso estable del mapa)

@@ -6,14 +6,14 @@ import { trpc } from '../utils/trpc';
 interface BackendUser {
   streak?: number;
   energy?: number;
-  coins?: number;
+  gems?: number;
 }
 
 function mapUserToStats(user: BackendUser): UserStats {
   return {
     racha: user.streak ?? 0,
     vidas: user.energy ?? 0,
-    gemas: user.coins ?? 0,
+    gemas: user.gems ?? 0,
   };
 }
 

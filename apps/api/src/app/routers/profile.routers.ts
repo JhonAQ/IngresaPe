@@ -149,16 +149,24 @@ export class ProfileRouter {
           const isShopItem = !input.image.startsWith('http');
 
           if (isShopItem) {
-            const user = await this.prisma.user.findUnique({
-              where: { id: ctx.user.userId },
-              select: { inventory: true },
-            });
+            const [userItem, shopItem] = await Promise.all([
+              this.prisma.userItem.findUnique({
+                where: {
+                  userId_itemKey: { userId: ctx.user.userId, itemKey: input.image },
+                },
+              }),
+              this.prisma.shopItem.findUnique({ where: { key: input.image } }),
+            ]);
 
-            if (!user || !user.inventory.includes(input.image)) {
+            if (
+              !userItem ||
+              userItem.quantity <= 0 ||
+              shopItem?.category !== 'COSMETIC'
+            ) {
               throw new TRPCError({
                 code: 'FORBIDDEN',
                 message:
-                  '⛔ No posees este avatar. Debes comprarlo en la tienda primero.',
+                  'No posees este item. Debes comprarlo en la tienda primero.',
               });
             }
           }
@@ -177,8 +185,9 @@ export class ProfileRouter {
             name: true,
             image: true,
             role: true,
-            coins: true, // Retornamos saldo actualizado
-            inventory: true, // Retornamos inventario
+            coins: true,
+            gems: true,
+            inventory: true,
           },
         });
 

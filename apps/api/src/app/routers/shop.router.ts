@@ -30,6 +30,12 @@ export class ShopRouter {
         );
       }),
 
+    useItem: this.trpc.protectedProcedure
+      .input(z.object({ itemKey: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        return await this.shopService.useItem(ctx.user.userId, input.itemKey);
+      }),
+
     getInventory: this.trpc.protectedProcedure.query(async ({ ctx }) => {
       return await this.shopService.getInventory(ctx.user.userId);
     }),
