@@ -8,7 +8,6 @@ import {
   Clock,
   RotateCcw,
   ChevronRight,
-  Play,
 } from 'lucide-react';
 import { Button3D } from '../ui/Button3D';
 import { useImmersiveOverlay } from '../dashboard/ImmersiveOverlayContext';
@@ -76,21 +75,13 @@ export const RecentAttempts: React.FC<RecentAttemptsProps> = ({
 
   const isStarting = startGenerated.isPending || startArchive.isPending;
 
-  const handleAction = (attempt: ExamAttemptSummaryDto) => {
-    if (attempt.status !== 'COMPLETED') {
-      router.push(`/simulator?attemptId=${attempt.id}`);
-      return;
-    }
-
+  const handleRetake = (attempt: ExamAttemptSummaryDto) => {
     if (attempt.mode === 'ARCHIVE' && attempt.examId) {
       startArchive.mutate({ examId: attempt.examId });
     } else {
       startGenerated.mutate({
         questionCount: attempt.questionCount,
-        timeLimitMinutes: Math.max(
-          1,
-          Math.round(attempt.timeLimitSeconds / 60)
-        ),
+        timeLimitMinutes: Math.max(1, Math.round(attempt.timeLimitSeconds / 60)),
         strategy: 'RANDOM',
       });
     }
@@ -180,15 +171,11 @@ export const RecentAttempts: React.FC<RecentAttemptsProps> = ({
                   Revisar Fallos
                 </Button3D>
                 <button
-                  onClick={() => handleAction(attempt)}
+                  onClick={() => handleRetake(attempt)}
                   disabled={isStarting}
                   className="w-12 h-12 bg-white border-2 border-slate-200 border-b-4 border-b-slate-300 rounded-2xl flex items-center justify-center text-slate-400 active:translate-y-[2px] active:border-b-0 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isCompleted ? (
-                    <RotateCcw size={20} strokeWidth={3} />
-                  ) : (
-                    <Play size={20} strokeWidth={3} />
-                  )}
+                  <RotateCcw size={20} strokeWidth={3} />
                 </button>
               </div>
             </div>

@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -48,7 +47,6 @@ function getAttemptTitle(attempt: ExamAttemptSummaryDto): string {
 
 export function AttemptsHistoryOverlay() {
   const { mode, close } = useImmersiveOverlay();
-  const router = useRouter();
   const { data: attempts = [], isLoading } =
     trpc.simulacro.getRecentAttempts.useQuery();
 
@@ -186,12 +184,7 @@ export function AttemptsHistoryOverlay() {
                         className="w-full py-1.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center gap-1 text-[9px] font-black text-slate-500 uppercase tracking-widest hover:bg-blue-50 hover:text-blue-500 hover:border-blue-100 transition-colors"
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (isCompleted) {
-                            // TODO: navegar a revisión del intento
-                            return;
-                          }
-                          close();
-                          router.push(`/simulator?attemptId=${attempt.id}`);
+                          // TODO: navegar a revisión del intento
                         }}
                       >
                         <RotateCcw size={10} strokeWidth={3} />
