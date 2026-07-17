@@ -1,34 +1,35 @@
-# 📊 CURRENT_STATE.md — Estado Actual del Proyecto Ingresa.pe
+# CURRENT_STATE.md — Estado Actual del Proyecto Ingresa.pe
 
-> **Última actualización:** 2026-07-08  
+> **Última actualización:** 2026-07-17  
 > **Auditor:** Claude Code  
 > **Versión del Stack:** Next.js 16 + NestJS 11 + Prisma 5 + tRPC 11 + PostgreSQL 15
 
 ---
 
-## 🔑 Resumen Ejecutivo
+## Resumen Ejecutivo
 
 | Métrica | Valor |
 |---------|-------|
-| **Archivos fuente (Front)** | ~75 archivos TSX/TS |
-| **Archivos fuente (Back)** | ~45 archivos TS |
-| **Endpoints tRPC** | ~28 procedures (5 públicos, ~23 protegidos) |
-| **Endpoints REST** | 2 (Google OAuth) |
-| **Modelos Prisma** | 8 (incluye `Exam`, `ExamAttempt`, `UserTopicNodeCompletion`) |
+| **Archivos fuente (Front)** | ~80 archivos TSX/TS |
+| **Archivos fuente (Back)** | ~55 archivos TS |
+| **Endpoints tRPC** | ~35 procedures |
+| **Endpoints REST** | 1 (Google OAuth callback) |
+| **Modelos Prisma** | 15+ (incluye ranking, actividad, exámenes) |
 | **Páginas Frontend** | 14+ rutas navegables |
-| **Conexión Front ↔ Back** | ~80% (auth, perfil, cursos, temas, engine, simulacros, simulador conectados) |
-| **Tests** | 44 tests pasando (5 web + 38 api + 1 ui) |
-| **Deuda técnica** | 🟡 Media-Alta (seguridad + funcionalidades decorativas) |
+| **Conexión Front ↔ Back** | ~90% (auth, perfil, cursos, engine, simulacros, ranking conectados) |
+| **Tests** | 60 tests pasando (46 api + 14 web) |
+| **Deuda técnica** | Media-Alta (admin + seguridad + funcionalidades decorativas) |
 
 ---
 
-## 📋 Mapa de Estado por Feature
+## Mapa de Estado por Feature
 
 ### Leyenda
-- ✅ **Terminado** — Funcional y listo para producción (puede tener polish pendiente)
+
+- ✅ **Terminado** — Funcional y listo para producción
 - ⚠️ **Parcial** — Existe código pero incompleto o desconectado
 - ❌ **Falta** — No implementado o placeholder
-- 🔴 **Roto** — Implementado pero con bugs críticos
+- 🔴 **Roto / Riesgo** — Implementado pero con problema crítico
 
 ---
 
@@ -38,11 +39,12 @@
 |------------|--------|---------|
 | Login con email/password (UI) | ✅ Terminado | Llama a `trpc.auth.login.useMutation()` y redirige a `/dashboard` |
 | Login con email/password (API) | ✅ Terminado | `auth.login` valida contraseña con bcrypt y devuelve JWT |
-| Login con Google OAuth (UI → API) | ✅ Terminado | Redirige a `/api/auth/google`; callback redirige a `/auth-callback?token=...` |
+| Login con Google OAuth | ✅ Terminado | Redirige a `/api/auth/google`; callback redirige a `/auth-callback?token=...` |
 | Página `/register` | ✅ Terminado | UI completa conectada a `auth.register` |
 | Página `/auth-callback` | ✅ Terminado | Extrae token de URL y lo guarda vía `useAuth().login(token)` |
-| Guardado del token | ✅ Terminado | `localStorage` como `auth_token` y se envía en header `Authorization: Bearer ...` |
-| Protección de rutas (Frontend) | ⚠️ Parcial | `AuthGuard` cliente envuelve el layout `(app)` y redirige a `/login`. No hay `middleware.ts` server-side |
+| Guardado del token | ✅ Terminado | `localStorage` como `auth_token` |
+| Envío del token en headers | ✅ Terminado | tRPC `httpBatchLink` incluye `Authorization: Bearer ...` |
+| Protección de rutas (Frontend) | ⚠️ Parcial | `AuthGuard` cliente envuelve el layout `(app)`. No hay `middleware.ts` server-side |
 | JWT Role en token | ✅ Terminado | `AuthService.generateToken()` incluye `userId`, `email` y `role` |
 | Logout | ✅ Terminado | `useAuth.logout()` limpia token y queryClient; botón en `/perfil` |
 | Recuperar contraseña | ❌ Falta | El botón "¿Olvidaste?" es decorativo |
@@ -53,15 +55,15 @@
 
 | Componente | Estado | Detalle |
 |------------|--------|---------|
-| Layout con Header + BottomNav | ✅ Terminado | `ImmersiveOverlayProvider`; header/nav se ocultan durante selector/resumen fullscreen |
-| Header con estadísticas | ⚠️ Parcial | Muestra racha, XP y monedas reales; mapea `energy` → `vidas`. Logo UNSA hardcoded |
-| `useDashboardData` hook | ⚠️ Parcial | `profile.getMe` es real; `temarioMock` sigue como fallback con retardo artificial de 400 ms |
+| Layout con Header + BottomNav | ✅ Terminado | `ImmersiveOverlayProvider`; header/nav se ocultan durante overlays fullscreen |
+| Header con estadísticas | ✅ Terminado | Muestra racha, monedas y gemas reales; mapea `energy` → `vidas` |
+| `useDashboardData` hook | ⚠️ Parcial | `profile.getMe` es real; `temarioMock` sigue como fallback con retardo artificial |
 | Lista de temas (`TopicList`) | ✅ Terminado | Carga topics reales vía `content.getTopics`. Nodos se desbloquean al completar sesiones. Consume energía real al iniciar nodo |
-| Modal de resumen | ✅ Terminado | Motor de bloques extensible (`SummaryBlocks`) con 13 tipos, fórmulas LaTeX y overlay fullscreen |
+| Modal de resumen | ✅ Terminado | Motor de bloques extensible (`SummaryBlocks`) con fórmulas LaTeX y overlay fullscreen |
 | `CourseProgress` | ✅ Terminado | Muestra curso seleccionado, progreso real por temas completados y abre selector inmersivo |
 | `CourseSelector` | ✅ Terminado | Selector fullscreen con animaciones, preview y progreso real por curso |
-| Stats API (`stats.getDashboard`) | ⚠️ Parcial | Endpoint existe y funciona, pero el front no lo consume directamente. Fecha de examen hardcoded a 2025-08-15 (ya pasó) |
-| Skeleton loaders | ✅ Terminado | `DashboardSkeleton` y `EngineSkeleton` con `react-loading-skeleton` animado |
+| Stats API (`stats.getDashboard`) | ⚠️ Parcial | Endpoint existe, pero el front no lo consume directamente. Fecha de examen hardcoded |
+| Skeleton loaders | ✅ Terminado | `DashboardSkeleton` y `EngineSkeleton` con `react-loading-skeleton` |
 | Selección de carrera | ✅ Terminado | `profile.selectCareer` + modal en `/simulacros` y perfil. Carreras reales de BD (47 seed) |
 
 ---
@@ -70,12 +72,12 @@
 
 | Componente | Estado | Detalle |
 |------------|--------|---------|
-| UI de selección de cursos | ⚠️ Parcial | Carga cursos reales vía `content.getCourses`. Paleta por nombre. **Progreso hardcoded a 0** en tarjeta de cursos |
-| Botón "Continuar" | ✅ Terminado | Navega a `/dashboard?courseId=<id>` del curso seleccionado |
+| UI de selección de cursos | ⚠️ Parcial | Carga cursos reales vía `content.getCourses`. Progreso en tarjeta de cursos aún hardcoded |
+| Botón "Continuar" | ✅ Terminado | Navega a `/dashboard?courseId=<id>` |
 | Content API (`content.getCourses`) | ✅ Terminado | Devuelve cursos reales de la BD con conteo de temas |
 | Content API (`content.getTopics`) | ✅ Terminado | Devuelve temas con progreso del usuario calculado desde `AnswerLog` y `UserTopicNodeCompletion` |
-| Content API (`content.getQuestions`) | ✅ Terminado | Devuelve preguntas determinísticas por nodo o aleatorias filtradas por tema/dificultad, excluyendo ya respondidas |
-| Content API (`content.completeNode`) | ✅ Terminado | Marca nodo como completado cuando se responden todas sus preguntas |
+| Content API (`content.getQuestions`) | ✅ Terminado | Devuelve preguntas determinísticas por nodo o aleatorias filtradas por tema/dificultad |
+| Content API (`content.completeNode`) | ✅ Terminado | Marca nodo como completado y recalcula racha desde `ActivityLog` |
 
 ---
 
@@ -83,24 +85,17 @@
 
 | Componente | Estado | Detalle |
 |------------|--------|---------|
-| `Engine` (orquestador) | ✅ Terminado | Lee `topicId`/`courseId`/`nodeIndex` de query params, carga preguntas reales con `useEngine` y selecciona renderer por tipo |
-| `useEngine` hook | ✅ Terminado | Maneja `content.getQuestions`, `game.submitAnswer`, feedback, vidas locales y pantalla de completado. Invalida queries |
-| Registry de renderers | ✅ Terminado | `questionRendererRegistry` mapea 6 tipos de `QuestionType` → componente |
-| `MultipleChoiceRenderer` | ✅ Terminado | Opciones con soporte LaTeX |
-| `TrueFalseSwipeRenderer` | ✅ Terminado | Modo arcade swipe con categorías y stamp correcto en feedback; modo legacy con botones V/F como fallback |
-| `FlashcardRenderer` | ✅ Terminado | UI de front/back lista |
-| `OrderingRenderer` | ✅ Terminado | Reordenamiento drag-and-drop con `framer-motion Reorder`. Feedback por posición con `correctOrder` |
-| `MatchingRenderer` | ✅ Terminado | Emparejamiento de columnas |
-| `FillInBlankRenderer` | ✅ Terminado | Completar oraciones arrastrando palabras del banco. Shuffle estable y sin placeholders "..." |
-| `SharedEngineUI` (UI) | ✅ Terminado | Feedback drawer, progress bar, IA modal. Botón de comprobar con padding corregido |
-| `DuoMaxModal` (Explicación IA) | ⚠️ Parcial | UI de typing animation con explicación real de la pregunta. No llama a API de IA generativa |
-| Ruta `/engine` | ✅ Terminado | Página funcional envuelta en `Suspense` con `EngineSkeleton`. Requiere `topicId` |
-| Game API (`game.submitAnswer`) | ✅ Terminado | `GameService` maneja energía, XP, racha, guardado en `AnswerLog`. Devuelve `rewards` |
-| Tipos de preguntas extensibles | ✅ Terminado | 6 tipos en `QuestionType` enum + unions en `@ingresa-pe/domain` |
-| Calificación genérica | ✅ Terminado | `QuestionGraderService` califica cualquier tipo soportado con `grade()` y `computeRewards()` |
-| Garantía de tipos por nodo | ✅ Terminado | `content.getQuestions` garantiza MATCHING, TRUE_FALSE_SWIPE, FILL_IN_BLANK y ORDERING por nodo (cuando existan en BD) |
+| `Engine` (orquestador) | ✅ Terminado | Lee `topicId`/`courseId`/`nodeIndex` de query params, carga preguntas reales con `useEngine` |
+| `useEngine` hook | ✅ Terminado | Maneja `content.getQuestions`, `game.submitAnswer`, feedback, vidas locales y pantalla de completado |
+| Registry de renderers | ✅ Terminado | 6 tipos de `QuestionType` → componente |
+| Renderers (6 tipos) | ✅ Terminado | Multiple choice, true/false swipe, flashcard, ordering, matching, fill-in-blank |
+| `SharedEngineUI` (UI) | ✅ Terminado | Feedback drawer, progress bar, IA modal |
+| `CompletionScreen` | ✅ Terminado | Muestra Correctas, Precisión, Tiempo, racha y monedas ganadas. Sin EXP |
+| Ruta `/engine` | ✅ Terminado | Página funcional envuelta en `Suspense`. Requiere `topicId` |
+| Game API (`game.submitAnswer`) | ✅ Terminado | `GameService` maneja energía, racha, guardado en `AnswerLog`. Devuelve `rewards: { coins, gems }` |
+| Calificación genérica | ✅ Terminado | `QuestionGraderService` califica cualquier tipo soportado y calcula recompensas |
 
-**Nota de gamificación:** El engine interno sigue usando "vidas locales" (`useEngine.ts`) mientras que el sistema real de energía se gasta al **iniciar** un nodo (`spendNodeEnergy`, -5 energía). Esto genera una experiencia ligeramente inconsistente que debería unificarse.
+**Nota de gamificación:** El engine interno sigue usando "vidas locales" (`useEngine.ts`) mientras que el sistema real de energía se gasta al **iniciar** un nodo (`spendNodeEnergy`, -5 energía).
 
 ---
 
@@ -108,14 +103,11 @@
 
 | Componente | Estado | Detalle |
 |------------|--------|---------|
-| UI del simulador | ✅ Terminado | Timer, navegación, ficha óptica, progress bar, burbujas A-E, contexto de lectura plegable por defecto |
+| UI del simulador | ✅ Terminado | Timer, navegación, ficha óptica, progress bar, burbujas A-E, contexto de lectura |
 | Banco de preguntas | ✅ Terminado | Conectado a `simulacro.getById`; usa `ExamQuestion` reales de BD |
-| Timer (countdown) | ✅ Terminado | Funciona correctamente según `timeLimitSeconds` del intento |
-| Ficha óptica modal | ✅ Terminado | Muestra estado de respuestas con navegación y banderas |
-| Componentes simulator (8) | ✅ Terminado | TopBar, ProgressBar, QuestionHeader, ReadingContextCard, QuestionCard, FooterNavigation, AnswerBubbles, FichaOpticaModal |
+| Timer (countdown) | ✅ Terminado | Funciona según `timeLimitSeconds` del intento |
 | Conexión con BD | ✅ Terminado | `simulacro.startGeneratedAttempt`, `startArchiveAttempt`, `getById`, `submit` |
-| Resultados/Review post-examen | ⚠️ Parcial | `simulacro.submit` devuelve score y recompensas; falta una pantalla de resultados dedicada más allá del feedback básico |
-| Entrada sin `attemptId` | ⚠️ Parcial | Redirige a `/simulacros`, pero puede producirse un flash de carga |
+| Resultados/Review post-examen | ⚠️ Parcial | `simulacro.submit` devuelve score y monedas; falta pantalla de resultados dedicada más allá del feedback básico |
 
 ---
 
@@ -123,14 +115,14 @@
 
 | Componente | Estado | Detalle |
 |------------|--------|---------|
-| `GoalCard` | ✅ Terminado | UI conectada a datos reales de carrera y score del simulacro |
+| `GoalCard` | ✅ Terminado | UI conectada a datos reales de carrera y score |
 | `AIExamCard` | ✅ Terminado | Sliders de # preguntas y tiempo; llama a `simulacro.startGeneratedAttempt` |
-| `HistoryArchive` | ✅ Terminado | Muestra exámenes reales de `simulacro.getArchiveExams`; premium-only para archive |
+| `HistoryArchive` | ✅ Terminado | Muestra exámenes reales de `simulacro.getArchiveExams`; premium-only |
 | `RecentAttempts` | ✅ Terminado | Muestra intentos reales de `simulacro.getRecentAttempts` |
 | Carrera selector modal | ✅ Terminado | Integrado con `profile.selectCareer` y `simulacro.getCareers` |
-| Archivo histórico (`/simulacros/archivo`) | ✅ Terminado | UI conectada a datos reales; requiere premium |
-| Contador de intentos free | ✅ Terminado | Se incrementa al **generar** el intento (`startGeneratedAttempt`), evitando abuso por abandono |
-| Padding corregido | ✅ Terminado | Eliminado `px-5` duplicado en `<main>` |
+| Archivo histórico | ✅ Terminado | UI conectada a datos reales; requiere premium |
+| Contador de intentos free | ✅ Terminado | Se incrementa al **generar** el intento, evitando abuso por abandono |
+| Temporadas / eventos oficiales | ✅ Terminado | `SeasonService` crea automáticamente la temporada de fin de semana. Controlado por DB |
 
 ---
 
@@ -138,10 +130,10 @@
 
 | Componente | Estado | Detalle |
 |------------|--------|---------|
-| Página de minijuegos | ⚠️ Parcial | UI de 3 minijuegos (Supervivencia, Contrarreloj, Racha Perfecta). Tickets locales |
+| Página de minijuegos | ⚠️ Parcial | UI de 3 minijuegos. Tickets locales |
 | `HeroDailyChallenge` | ⚠️ Parcial | UI completa pero no conectada |
-| `MinigameCard` × 3 | ⚠️ Parcial | UI bonita con colores y costos, pero `onPlay` solo resta tickets locales |
-| Motor de juego para cada minijuego | ❌ Falta | Al hacer click "Jugar" no pasa nada (solo resta tickets) |
+| `MinigameCard` × 3 | ⚠️ Parcial | UI con colores y costos, pero `onPlay` solo resta tickets locales |
+| Motor de juego para cada minijuego | ❌ Falta | Al hacer click "Jugar" no pasa nada |
 
 ---
 
@@ -150,16 +142,17 @@
 | Componente | Estado | Detalle |
 |------------|--------|---------|
 | `ProfileHeader` | ✅ Terminado | UI completa con datos reales (`profile.getMe`). Botón settings decorativo |
-| `StatsRow` | ✅ Terminado | Muestra datos reales (`streak`, `totalXp`, `coins`) |
+| Stats row | ✅ Terminado | Muestra datos reales (`streak`, `coins`, `gems`). `StatsRow` fue eliminado; stats ahora en header |
 | `AcademicDNA` (Radar chart) | ✅ Terminado | Radar chart SVG custom con 8 ejes. Datos reales de `profile.getAcademicDNA` |
-| `TrophyRoom` | ⚠️ Parcial | UI de trofeos/logros con datos mock locales; reacciona a racha ≥ 7 y rank ≤ 10 |
-| `CourseProgressList` | ⚠️ Parcial | Cursos reales; **progreso hardcoded a 0** (`// TODO`) |
+| `ContributionGraph` (heatmap) | ✅ Terminado | Heatmap de actividad real desde `ActivityLog` |
+| `WeeklyStreakCard` | ✅ Terminado | Racha semanal con iconos propios, datos reales de `ActivityLog` |
+| `TrophyRoom` | ⚠️ Parcial | UI de trofeos/logros con datos mock locales |
+| `CourseProgressList` | ⚠️ Parcial | Cursos reales; progreso hardcoded a 0 (`// TODO`) |
 | Profile API (`profile.getMe`) | ✅ Terminado | Devuelve datos completos del usuario incluyendo carrera y energía calculada |
 | Profile API (`profile.selectCareer`) | ✅ Terminado | Permite guardar `careerId` en el usuario |
-| Profile API (`profile.update`) | ✅ Terminado | Permite actualizar nombre e imagen, con validación de inventario para avatares de tienda |
-| Profile API (`profile.getAcademicDNA`) | ✅ Terminado | Calcula DNA académico real desde `AnswerLog` y `examQuestion` |
+| Profile API (`profile.update`) | ✅ Terminado | Permite actualizar nombre e imagen, con validación de inventario para avatares |
+| Profile API (`profile.getAcademicDNA`) | ✅ Terminado | Calcula DNA académico real desde `AnswerLog` |
 | Profile API (`profile.spendNodeEnergy`) | ✅ Terminado | Gasta energía real al iniciar un nodo (-5). Recarga automática cada 15 min |
-| Edición de perfil (UI) | ❌ Falta | No hay botón ni formulario de edición en `/perfil` |
 | Logout UI | ✅ Terminado | Botón "Cerrar sesión" en `/perfil` |
 
 ---
@@ -168,9 +161,9 @@
 
 | Componente | Estado | Detalle |
 |------------|--------|---------|
-| Shop API (`shop.getCatalog`) | ✅ Terminado | Devuelve 7 items (6 avatares + 1 pack de energía) |
+| Shop API (`shop.getCatalog`) | ✅ Terminado | Devuelve items reales |
 | Shop API (`shop.buyItem`) | ✅ Terminado | Compra con coins, validación de duplicados, incremento de energía |
-| UI de tienda | 🔴 Roto / Decorativo | Página `/shop` existe pero es **puramente decorativa**: vende "gemas" por dinero real sin backend, no consume `shop.getCatalog` ni `shop.buyItem`. **No usar en producción** |
+| UI de tienda | 🔴 Riesgo | Página `/shop` es **puramente decorativa**: vende "gemas" por dinero real sin backend, no consume `shop.getCatalog` ni `shop.buyItem`. **No usar en producción** |
 
 ---
 
@@ -178,9 +171,9 @@
 
 | Componente | Estado | Detalle |
 |------------|--------|---------|
-| Ranking API (`ranking.getTopStudents`) | ✅ Terminado | Top 10 por XP con flag `isMe` |
-| Ranking API (`ranking.getMyPosition`) | ✅ Terminado | Posición del usuario en ranking global. Usado en `/perfil` |
-| UI de ranking/leaderboard | ❌ Falta | No existe página `/ranking` |
+| Ranking API (`ranking.getTopStudents`) | ✅ Terminado | Top por división y global con flag `isMe` |
+| Ranking API (`ranking.getMyPosition`) | ✅ Terminado | Posición del usuario en ranking global |
+| UI de ranking/leaderboard | ✅ Terminado | Página `/ranking` conectada a datos reales |
 
 ---
 
@@ -188,11 +181,12 @@
 
 | Componente | Estado | Detalle |
 |------------|--------|---------|
-| Admin API (`admin.createQuestion`) | ✅ Terminado | Endpoint protegido por `role` y valida contenido por tipo (MULTIPLE_CHOICE, ORDERING, MATCHING, TRUE_FALSE_SWIPE, FILL_IN_BLANK) |
+| Admin API (`admin.createQuestion`) | ✅ Terminado | Endpoint protegido por `role` y valida contenido por tipo |
 | CRUD de preguntas | ⚠️ Parcial | Solo `create`; falta update/delete/list |
 | Panel de administración (UI) | ❌ Falta | No existe |
 | Gestión de suscripciones (API) | ✅ Terminado | 3 endpoints: request, getPending, process |
 | Gestión de suscripciones (UI) | ❌ Falta | No existe |
+| Gestión de usuarios / temporadas / config | ❌ Falta | Requiere acceso directo a BD o nuevos endpoints |
 
 ---
 
@@ -200,113 +194,111 @@
 
 | Componente | Estado | Detalle |
 |------------|--------|---------|
-| Sistema de XP | ✅ Terminado | Backend lo calcula y suma; frontend muestra datos reales en perfil y header |
+| Sistema de XP/EXP | ❌ Eliminado | Removido del producto. Las columnas en BD siguen existiendo pero no se usan |
+| Sistema de monedas (coins) | ✅ Terminado | Backend funcional (`game.submitAnswer`, `shop.buyItem`, `simulacro.submit`) |
+| Sistema de gemas (gems) | ✅ Terminado | Se otorgan por respuestas correctas en `learning` y simulacros |
 | Sistema de energía | ⚠️ Parcial | Backend recarga +1 cada 15 min y premium funciona; se gasta al iniciar nodo (-5). Engine interno aún usa vidas locales |
-| Sistema de coins | ⚠️ Parcial | Backend funcional (`game.submitAnswer`, `shop.buyItem`); frontend muestra en perfil; tienda no conectada |
-| Sistema de racha (streak) | ✅ Terminado | `GameService.calculateNewStreak()` calcula racha por día; frontend muestra dato real |
-| Sistema de niveles | ⚠️ Parcial | Fórmula en `stats.getDashboard`; sin endpoint central consumido ni efectos de subida |
+| Sistema de racha (streak) | ✅ Terminado | `ActivityService.recalculateStreak()` calcula racha desde `ActivityLog` tras cada acción |
+| Sistema de niveles | ❌ Eliminado | Fórmula de nivel basada en XP fue removida |
 | Logros/Trofeos | ⚠️ Parcial | UI en TrophyRoom con mock, sin backend |
 | Premium / Suscripciones | ⚠️ Parcial | API funcional, pero `subExpiresAt` no se valida en runtime; `isPremium` nunca expira |
+| Sistema competitivo (rating/divisiones/temporadas) | ✅ Terminado | `RatingService`, `SeasonService`, `LeaderboardService` operativos. 5 divisiones: HUEVITO, POLLITO, DINOSAURIO, FOSIL, CACHIMBO |
 
 ---
 
-## 🗄️ Estado de la Base de Datos
+## Estado de la Base de Datos
 
 | Aspecto | Estado | Detalle |
 |---------|--------|----------|
-| Schema Prisma | ✅ Terminado | 8 modelos principales (`User`, `Career`, `Course`, `Topic`, `Question`, `AnswerLog`, `Exam`, `ExamQuestion`, `ExamAttempt`, `UserTopicNodeCompletion`, `Subscription`), 5 enums |
-| Migraciones | ✅ Terminado | Múltiples migraciones aplicadas |
-| Seed principal | ✅ Terminado | 47 carreras, 8 cursos, ~20 temas, ~37+ preguntas con 6 tipos de pregunta |
+| Schema Prisma | ✅ Terminado | 15+ modelos incluyendo ranking, actividad y exámenes |
+| Migraciones | ✅ Terminado | Múltiples migraciones aplicadas, incluida la del sistema competitivo |
+| Seed principal | ✅ Terminado | 47 carreras, 8 cursos, ~20 temas, ~37+ preguntas con 6 tipos |
 | Seed de competidores | ✅ Terminado | 50 usuarios fake |
-| `AnswerLog` tabla | ✅ Terminado | Se usa correctamente para tracking de respuestas y progreso |
-| `UserTopicNodeCompletion` tabla | ✅ Terminado | Se escribe al completar nodos (`content.completeNode`) |
-| `UserProgress` tabla | ⚠️ Parcial | Existe en schema pero **ningún endpoint escribe en ella**. Considerar deprecar o usar |
-| `Exam` / `ExamQuestion` / `ExamAttempt` | ⚠️ Parcial | Tablas creadas. El simulador las usa, pero no hay seed de exámenes históricos reales |
-| Configuración de entorno | ⚠️ Parcial | `.env` está en el working tree con secretos reales. Aunque `.gitignore` lo ignora, es riesgo inmediato |
-| Índices y performance | ⚠️ Parcial | No hay índices custom. Funciona para dev pero no para producción |
+| Seed de usuarios demo | ⚠️ Parcial | Script `seed-demo-users.ts` listo; no ejecutado en producción |
+| `ActivityLog` tabla | ✅ Terminado | Fuente de verdad para racha y heatmap |
+| `AnswerLog` tabla | ✅ Terminado | Se usa para tracking de respuestas y progreso |
+| `UserTopicNodeCompletion` tabla | ✅ Terminado | Se escribe al completar nodos |
+| `Exam` / `ExamQuestion` / `ExamAttempt` | ⚠️ Parcial | Tablas creadas y usadas, pero sin seed de exámenes históricos reales |
+| `UserProgress` tabla | ⚠️ Parcial | Existe en schema pero ningún endpoint escribe en ella |
+| Configuración de entorno | ✅ Terminado | `.env` real está gitignored; solo `.env.example` trackeado |
+| Índices y performance | ⚠️ Parcial | No hay índices custom. Funciona para dev pero no escala a producción |
 
 ---
 
-## 🔌 Estado de la Integración Front ↔ Back
+## Estado de la Integración Front ↔ Back
 
 | Capa | Estado | Detalle |
 |------|--------|---------|
-| tRPC Client config | ✅ Terminado | `providers.tsx` crea el client y envía `Authorization: Bearer <token>` desde `localStorage` |
-| Token en headers | ✅ Terminado | `httpBatchLink` tiene `headers()` callback con `localStorage.getItem('auth_token')` |
-| Llamadas tRPC reales | ✅ Terminado | `auth`, `profile`, `content`, `game`, `ranking.getMyPosition`, `simulacro.*` conectados |
-| Tipos compartidos | ✅ Terminado | `@ingresa-pe/domain` centraliza tipos de auth, preguntas y resúmenes |
+| tRPC Client config | ✅ Terminado | `providers.tsx` crea el client y envía `Authorization: Bearer <token>` |
+| Token en headers | ✅ Terminado | `httpBatchLink` tiene `headers()` callback con token de `localStorage` |
+| Llamadas tRPC reales | ✅ Terminado | `auth`, `profile`, `content`, `game`, `ranking`, `simulacro.*` conectados |
+| Tipos compartidos | ✅ Terminado | `@ingresa-pe/domain` centraliza tipos |
 | `@ingresa-pe/api` (tipo router) | ✅ Terminado | `AppRouterType` se exporta y se usa en `utils/trpc.ts` |
-| APIs sin UI consumidora | ⚠️ Parcial | `stats.getDashboard`, `shop.*`, `ranking.getTopStudents`, `admin.*`, `subscription.*`, `learning.*` no tienen front |
+| APIs sin UI consumidora | ⚠️ Parcial | `stats.getDashboard`, `shop.*`, `admin.*`, `subscription.*`, `learning.*` no tienen front |
 
 ---
 
-## 🔐 Problemas de Seguridad
+## Problemas de Seguridad
 
 | # | Severidad | Problema |
 |---|-----------|----------|
-| 1 | 🔴 Crítico | `.env` real en el working tree contiene `JWT_SECRET`, `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` reales. Riesgo inmediato de exposición accidental |
-| 2 | 🔴 Crítico | JWT Secret es `"super-secreto-ingresa-pe-2025"` — inseguro para producción |
-| 3 | 🟠 Alto | Fallback JWT secret `'secret'` en `app.module.ts`, `auth.service.ts` y `trpc.context.ts` — si falta la env var, la seguridad es nula |
-| 4 | 🟠 Alto | CORS completamente abierto (`app.enableCors()` sin config) |
-| 5 | 🟠 Alto | Token OAuth enviado como URL parameter (`?token=...`) queda en historial del navegador |
-| 6 | 🟡 Medio | No hay rate limiting en ningún endpoint |
-| 7 | 🟡 Medio | `console.log` de datos de request en producción en `main.ts` (middleware `/trpc` spy) |
-| 8 | 🟡 Medio | `subExpiresAt` no se valida en runtime: el estado premium no expira realmente |
-| 9 | 🟡 Medio | Tienda `/shop` vende "gemas" por dinero real sin backend: inaceptable para producción |
-
-> **Nota:** Los items "JWT no incluye role", "Token no se envía", "Sin AuthGuard", "Recarga de energía rota" y "Simulador desconectado" del estado anterior ya están **resueltos**.
+| 1 | 🔴 Crítico | JWT Secret `"super-secreto-ingresa-pe-2025"` es inseguro para producción |
+| 2 | 🟠 Alto | Fallback JWT secret `'secret'` en `app.module.ts`, `auth.service.ts` y `trpc.context.ts` — si falta la env var, la seguridad es nula |
+| 3 | 🟠 Alto | CORS completamente abierto (`app.enableCors()` sin config) |
+| 4 | 🟠 Alto | Token OAuth enviado como URL parameter (`?token=...`) queda en historial del navegador |
+| 5 | 🟡 Medio | No hay rate limiting en ningún endpoint |
+| 6 | 🟡 Medio | `console.log` de datos de request en producción en `main.ts` (middleware `/trpc` spy) |
+| 7 | 🟡 Medio | `subExpiresAt` no se valida en runtime: el estado premium no expira realmente |
+| 8 | 🟡 Medio | Tienda `/shop` vende "gemas" por dinero real sin backend: inaceptable para producción |
 
 ---
 
-## 📊 Resumen Visual de Completitud
+## Resumen Visual de Completitud
 
 ```
 AUTENTICACIÓN    [█████████░] 90%  — Login/register/logout/OAuth funcionando; falta middleware server-side y recuperación de contraseña
-DASHBOARD        [████████░░] 80%  — Temas reales, selector inmersivo, skeletons; header aún usa mapeo vidas/energía
+DASHBOARD        [████████░░] 80%  — Temas reales, selector inmersivo, skeletons
 CURSOS           [███████░░░] 70%  — Lista real y navegación; progreso en tarjeta de cursos hardcoded
 ENGINE           [█████████░] 90%  — 6 motores conectados end-to-end; energía real vs vidas locales por unificar
 SIMULADOR        [████████░░] 80%  — Conectado a BD con intentos reales; falta pantalla de resultados polish
 SIMULACROS DASH  [████████░░] 80%  — Conectado a backend; contador de intentos free corregido
 ENTRENAR/ARCADE  [██░░░░░░░░] 20%  — UI parcial, sin lógica real
-PERFIL           [███████░░░] 75%  — Datos reales conectados; DNA real; trofeos y progreso de cursos aún mock
+PERFIL           [████████░░] 80%  — Datos reales, heatmap, racha semanal; trofeos y progreso de cursos aún mock
 TIENDA           [██░░░░░░░░] 15%  — API lista, UI decorativa/riesgo
-RANKING          [██░░░░░░░░] 15%  — Solo posición usada en perfil; falta leaderboard
-ADMIN            [████░░░░░░] 35%  — API lista, sin UI
-SEGURIDAD        [████░░░░░░] 40%  — Secretos débiles/expuestos, CORS abierto, token en URL
+RANKING          [████████░░] 80%  — API y página UI conectadas a datos reales
+ADMIN            [████░░░░░░] 40%  — API de createQuestion, sin UI ni gestión de usuarios/temporadas
+SEGURIDAD        [████░░░░░░] 40%  — Secretos débiles, CORS abierto, token en URL
 ```
 
 ---
 
-## ✅ Progreso Reciente Destacado
+## Progreso Reciente Destacado
 
-1. **Motores de preguntas completos:** se añadieron `MATCHING`, `FILL_IN_BLANK` y `ORDERING` con renderers propios, registrados en el engine.
-2. **Motor ORDERING drag-and-drop:** reescrito con `framer-motion Reorder`, feedback visual por posición y `correctOrder` desde backend.
-3. **Motor FILL_IN_BLANK estabilizado:** banco barajado estable, eliminación de placeholders "...", arreglo de selección de bloques.
-4. **Motor TRUE_FALSE_SWIPE arcade:** tarjeta deslizable con categorías, stamps y botones; en feedback solo muestra el sello de la respuesta correcta.
-5. **Garantía de tipos especiales por nodo:** `content.getQuestions` garantiza MATCHING, TRUE_FALSE_SWIPE, FILL_IN_BLANK y ORDERING por nodo cuando existan en BD.
-6. **Feedback de IA diferenciado:** "Truquitos con IA" en aciertos, "Retroalimentación IA" en errores, oculto para MATCHING.
-7. **Simulacro conectado end-to-end:** generación de intentos, historial, archivo premium, entrega y calificación con `ExamQuestion` reales.
-8. **Contador de intentos free corregido:** se incrementa al generar el intento, no al entregar, evitando abuso por abandono.
-9. **Contexto de lectura plegado por defecto:** `ReadingContextCard` inicia colapsado en simulacros.
-10. **Selección de carrera funcional:** modal en `/simulacros` y perfil conectado a `profile.selectCareer`.
-11. **AcademicDNA real:** `profile.getAcademicDNA` calcula el radar desde `AnswerLog`.
-12. **Energía real al iniciar nodo:** `spendNodeEnergy` gasta -5 energía y recarga automática cada 15 min.
-13. **Lint y typecheck:** build y tests pasan tras corregir warnings recientes (ej. `prefer-const` en `OrderingRenderer`).
+1. **Eliminación de XP/EXP del producto:** removido de recompensas, perfil, heatmap, engine, simulacro, tienda y tipos compartidos.
+2. **Sincronización de racha desde `ActivityLog`:** `ActivityService.recalculateStreak()` mantiene `user.streak` alineado con actividad real.
+3. **Nueva pantalla de nodo completado:** muestra Correctas, Precisión, Tiempo, racha y monedas ganadas.
+4. **Heatmap de actividad y racha semanal en `/perfil`:** datos reales desde `ActivityLog`.
+5. **Sistema de ranking competitivo:** divisiones, rating, temporadas, leaderboards por división/global.
+6. **Página `/ranking`:** UI conectada a `ranking.getTopStudents`.
+7. **CI corregido:** `npx prisma generate` se ejecuta antes del typecheck en GitHub Actions.
+8. **Tipos de `@ingresa-pe/ui` corregidos:** `package.json` apunta al `.d.ts` generado.
+9. **Builds y tests verdes:** `api` 46 tests, `web` 14 tests; build web/api OK.
+10. **Deploy a producción:** push a `main` desplegado en Coolify (API y front online).
 
 ---
 
-## 💡 Conclusión
+## Conclusión
 
-**El proyecto está significativamente más conectado y funcional.** El flujo crítico `login → curso → tema/nodo → responder preguntas reales de 6 tipos → ver feedback/XP/racha → desbloquear siguiente nodo` ya funciona. El simulacro también opera con datos reales de base de datos.
+**El proyecto está conectado y funcional en producción.** Los flujos críticos `login → curso → tema/nodo → responder preguntas reales → ver feedback/racha/monedas → desbloquear siguiente nodo` y `simulacro generado → entrega → score` ya operan con datos reales.
 
-**Prioridad #1 — Seguridad crítica:** rotar JWT_SECRET y secretos de OAuth, eliminar `.env` real del working tree, quitar fallbacks `'secret'`, configurar CORS y eliminar el middleware spy.
+**Prioridad #1 — Seguridad crítica:** rotar `JWT_SECRET` y secretos de OAuth, quitar fallbacks `'secret'`, configurar CORS restringido, evitar token en URL, agregar rate limiting.
 
-**Prioridad #2 — Funcionalidades decorativas:** reconectar `/shop` a `shop.*` (evitar venta de gemas sin backend), crear página `/ranking`, conectar `stats.getDashboard` al frontend y corregir progreso hardcoded en cursos/perfil.
+**Prioridad #2 — Funcionalidades decorativas/riesgo:** reconectar `/shop` a `shop.*` (o deshabilitarla), conectar `stats.getDashboard` al frontend, corregir progreso hardcoded en cursos/perfil.
 
-**Prioridad #3 — Consistencia de gamificación:** unificar vidas locales del engine con energía real del usuario, o documentar el modelo híbrido actual.
+**Prioridad #3 — Panel de administración:** endpoints y UI para gestionar usuarios, temporadas, contenido y configuraciones (ej. intentos free de simulacro).
 
-**Prioridad #4 — Simulador polish:** pantalla de resultados post-examen y seed de exámenes históricos reales.
+**Prioridad #4 — Consistencia de gamificación:** unificar vidas locales del engine con energía real del usuario.
 
-**Prioridad #5 — Features secundarias:** modos arcade (`/entrenar`), panel de admin, recuperación de contraseña.
+**Prioridad #5 — Features secundarias:** modos arcade (`/entrenar`), pantalla de resultados post-simulacro, recuperación de contraseña.
 
 **Prioridad #6 — Limpieza técnica:** eliminar `BasicQuizEngine`, `AppController`, `AppService` y sus tests; consolidar duplicados; reducir `any` y `console.log`.

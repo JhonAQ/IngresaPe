@@ -1,6 +1,6 @@
-# 📡 API_REGISTRY.md — Registro Completo de Endpoints
+# API_REGISTRY.md — Registro Completo de Endpoints
 
-> **Última actualización:** 2026-07-08  
+> **Última actualización:** 2026-07-17  
 > **Backend:** NestJS 11 + tRPC 11 + Prisma 5  
 > **Base URL API:** `http://localhost:3000`  
 > **Base URL tRPC:** `http://localhost:3000/trpc`  
@@ -8,7 +8,7 @@
 
 ---
 
-## 📌 Tabla de Contenidos
+## Tabla de Contenidos
 
 1. [Visión General](#visión-general)
 2. [Endpoints tRPC](#endpoints-trpc)
@@ -27,15 +27,16 @@
 3. [Endpoints REST](#endpoints-rest)
 4. [Estado de Conexión con Frontend](#estado-de-conexión-con-frontend)
 5. [Esquemas de Validación Compartidos](#esquemas-de-validación-compartidos)
+6. [Deuda y Advertencias del API](#deuda-y-advertencias-del-api)
 
 ---
 
 ## Visión General
 
 ```
-Total de endpoints: ~30 (~28 tRPC + 2 REST)
+Total de endpoints: ~45 (~42 tRPC + 2 REST)
 ├── Públicos (sin auth):  5
-├── Protegidos (JWT):    21
+├── Protegidos (JWT):    33
 ├── Admin/Data-entry:     2
 └── REST (OAuth):         2
 ```
@@ -64,17 +65,34 @@ appRouter
 ├── stats
 │   └── getDashboard ........... query (protegido)
 ├── ranking
-│   ├── getTopStudents ......... query (protegido)
-│   └── getMyPosition .......... query (protegido)
+│   ├── getCurrentSeasonStatus . query (protegido)
+│   ├── getMyStats ............. query (protegido)
+│   ├── getDivisionLeaderboard . query (protegido)
+│   ├── getGlobalLeaderboard ... query (protegido)
+│   ├── getAreaLeaderboard ..... query (protegido)
+│   ├── getCareerLeaderboard ... query (protegido)
+│   ├── getRatingHistory ....... query (protegido)
+│   ├── getWeeklyLeague ........ query (protegido, legacy)
+│   ├── getAllCareersLeaderboard query (protegido)
+│   ├── getAllAreasLeaderboard . query (protegido)
+│   ├── getGlobalLeaderboardGroup query (protegido)
+│   ├── getMyLeagueStatus ...... query (protegido)
+│   └── getCareerOptions ....... query (protegido)
 ├── profile
 │   ├── getMe .................. query (protegido)
 │   ├── selectCareer ........... mutation (protegido)
 │   ├── update ................. mutation (protegido)
 │   ├── getAcademicDNA ......... query (protegido)
-│   └── spendNodeEnergy ........ mutation (protegido)
+│   ├── spendNodeEnergy ........ mutation (protegido)
+│   ├── getStats ............... query (protegido)
+│   ├── getActivityHeatmap ..... query (protegido)
+│   ├── getWeeklyStreak ........ query (protegido)
+│   ├── getRatingGraph ......... query (protegido)
+│   └── getInventory ........... query (protegido)
 ├── shop
 │   ├── getCatalog ............. query (protegido)
-│   └── buyItem ................ mutation (protegido)
+│   ├── buyItem ................ mutation (protegido)
+│   └── getInventory ........... query (protegido)
 ├── simulacro
 │   ├── getStats ............... query (protegido)
 │   ├── getRecentAttempts ...... query (protegido)
@@ -89,7 +107,7 @@ appRouter
 └── subscription
     ├── requestSubscription .... mutation (protegido)
     ├── getPendingRequests ..... query (admin-only)
-    └── processRequest ........ mutation (admin-only)
+    └── processRequest ......... mutation (admin-only)
 ```
 
 ---
@@ -103,10 +121,10 @@ appRouter
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `query` |
-| **Auth** | 🔓 Público |
+| **Auth** | Público |
 | **Input** | Ninguno |
 | **Output** | `string` → `"OK"` |
-| **Frontend** | ❌ No conectado |
+| **Frontend** | No conectado |
 
 ---
 
@@ -119,10 +137,10 @@ Ubicación: `apps/api/src/app/routers/auth.router.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `mutation` |
-| **Auth** | 🔓 Público |
+| **Auth** | Público |
 | **Input** | `registerSchema` de `@ingresa-pe/domain` |
 | **Output** | `{ message, token, user }` |
-| **Frontend** | ✅ Conectado en `/register` |
+| **Frontend** | Conectado en `/register` |
 
 **Input Schema (Zod):**
 ```typescript
@@ -149,10 +167,10 @@ Ubicación: `apps/api/src/app/routers/auth.router.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `mutation` |
-| **Auth** | 🔓 Público |
+| **Auth** | Público |
 | **Input** | `loginSchema` de `@ingresa-pe/domain` |
 | **Output** | `{ message, token, user }` |
-| **Frontend** | ✅ Conectado en `/login` |
+| **Frontend** | Conectado en `/login` |
 
 **Input Schema (Zod):**
 ```typescript
@@ -173,10 +191,10 @@ Ubicación: `apps/api/src/app/routers/auth.router.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `query` |
-| **Auth** | 🔒 Protegido (JWT) |
+| **Auth** | Protegido (JWT) |
 | **Input** | Ninguno |
 | **Output** | Objeto de usuario reducido |
-| **Frontend** | ✅ Conectado vía `useAuth` |
+| **Frontend** | Conectado vía `useAuth` |
 
 **Output:**
 ```typescript
@@ -187,9 +205,10 @@ Ubicación: `apps/api/src/app/routers/auth.router.ts`
   role: "USER" | "ADMIN" | "DATA_ENTRY",
   image: string | null,
   energy: number,     // 0-25
-  totalXp: number,
 }
 ```
+
+**Nota:** XP fue eliminado del producto; este endpoint ya no devuelve `totalXp`.
 
 ---
 
@@ -202,10 +221,10 @@ Ubicación: `apps/api/src/app/routers/content.router.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `query` |
-| **Auth** | 🔒 Protegido |
+| **Auth** | Protegido |
 | **Input** | Ninguno |
 | **Output** | `Course[]` con conteo de temas |
-| **Frontend** | ✅ Conectado en `/cursos` y `/dashboard` |
+| **Frontend** | Conectado en `/cursos` y `/dashboard` |
 
 **Output:**
 ```typescript
@@ -227,10 +246,10 @@ Ubicación: `apps/api/src/app/routers/content.router.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `query` |
-| **Auth** | 🔒 Protegido |
+| **Auth** | Protegido |
 | **Input** | `{ courseId: string }` |
 | **Output** | Temas con progreso del usuario |
-| **Frontend** | ✅ Conectado en `/dashboard` |
+| **Frontend** | Conectado en `/dashboard` |
 
 **Output:**
 ```typescript
@@ -266,10 +285,10 @@ Ubicación: `apps/api/src/app/routers/content.router.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `query` |
-| **Auth** | 🔒 Protegido |
+| **Auth** | Protegido |
 | **Input** | Filtros opcionales |
 | **Output** | `QuestionDto[]` |
-| **Frontend** | ✅ Conectado en `/engine` (`useEngine`) |
+| **Frontend** | Conectado en `/engine` (`useEngine`) |
 
 **Input Schema:**
 ```typescript
@@ -306,10 +325,12 @@ Ubicación: `apps/api/src/app/routers/content.router.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `mutation` |
-| **Auth** | 🔒 Protegido |
+| **Auth** | Protegido |
 | **Input** | `{ topicId: string, nodeIndex: number }` |
 | **Output** | `{ success: true, completedNodeIndex: number }` |
-| **Frontend** | ✅ Conectado en `useEngine` |
+| **Frontend** | Conectado en `useEngine` |
+
+**Efecto secundario:** Registra actividad en `ActivityLog` y recalcula `user.streak`.
 
 ---
 
@@ -322,10 +343,10 @@ Ubicación: `apps/api/src/app/routers/game.router.ts` → delega a `GameService`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `mutation` |
-| **Auth** | 🔒 Protegido |
+| **Auth** | Protegido |
 | **Input** | `{ questionId: string, answer: AnswerSubmission }` |
 | **Output** | Resultado detallado |
-| **Frontend** | ✅ Conectado en `useEngine` |
+| **Frontend** | Conectado en `useEngine` |
 
 **Input `AnswerSubmission` (discriminated union):**
 ```typescript
@@ -345,11 +366,13 @@ Ubicación: `apps/api/src/app/routers/game.router.ts` → delega a `GameService`
   isCorrect: boolean,
   correctAnswerText: string,
   explanation: string | null,
-  rewards: { xp: number, coins: number },
-  userStats: { energy: number, totalXp: number, streak: number },
+  rewards: { coins: number },
+  userStats: { energy: number, streak: number },
   correctOrder?: string[]  // solo para ORDERING
 }
 ```
+
+**Nota:** XP fue eliminado. Las recompensas son solo monedas.
 
 ---
 
@@ -362,10 +385,10 @@ Ubicación: `apps/api/src/app/routers/learning.router.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `query` |
-| **Auth** | 🔒 Protegido |
+| **Auth** | Protegido |
 | **Input** | `{ topicId: string }` |
 | **Output** | Una sola `Question` aleatoria |
-| **Frontend** | ❌ No conectado |
+| **Frontend** | No conectado |
 
 ---
 
@@ -374,10 +397,23 @@ Ubicación: `apps/api/src/app/routers/learning.router.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `mutation` |
-| **Auth** | 🔒 Protegido |
-| **Input** | `{ questionId: string, selectedOptionIndex: number }` |
-| **Output** | Resultado con rewards |
-| **Frontend** | ❌ No conectado |
+| **Auth** | Protegido |
+| **Input** | `{ questionId: string, answer: AnswerSubmission }` |
+| **Output** | Resultado con recompensas |
+| **Frontend** | No conectado |
+
+**Output:**
+```typescript
+{
+  correct: boolean,
+  correctAnswerText: string,
+  explanation: string,
+  rewards: { coins: number, gems: number },
+  streakIncremented: boolean,
+  newTotalCoins: number,
+  newTotalGems: number,
+}
+```
 
 **⚠️ DUPLICACIÓN:** Lógica similar a `game.submitAnswer`. Considerar consolidar.
 
@@ -392,15 +428,15 @@ Ubicación: `apps/api/src/app/routers/stats.routers.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `query` |
-| **Auth** | 🔒 Protegido |
+| **Auth** | Protegido |
 | **Input** | Ninguno |
 | **Output** | Estadísticas del usuario |
-| **Frontend** | ❌ No conectado directamente (`useDashboardData` usa `profile.getMe`) |
+| **Frontend** | No conectado directamente (`useDashboardData` usa `profile.getMe`) |
 
 **Output:**
 ```typescript
 {
-  user: { name: string | null, level: number, xp: number, energy: number, streak: number },
+  user: { name: string | null, energy: number, streak: number },
   stats: { daysUntilExam: number, questionsToday: number }
 }
 ```
@@ -409,38 +445,140 @@ Ubicación: `apps/api/src/app/routers/stats.routers.ts`
 
 ---
 
-### Ranking (Clasificación)
+### Ranking (Clasificación Competitiva)
 
 Ubicación: `apps/api/src/app/routers/ranking.router.ts`
 
-#### `ranking.getTopStudents` — Top 10
+Sistema basado en **rating** (0-3000) y **5 divisiones**: `HUEVITO`, `POLLITO`, `DINOSAURIO`, `FOSIL`, `CACHIMBO`. El puntaje visible (`score`) se deriva del rating.
+
+#### `ranking.getCurrentSeasonStatus` — Estado de la Temporada Semanal
 
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `query` |
-| **Auth** | 🔒 Protegido |
+| **Auth** | Protegido |
 | **Input** | Ninguno |
-| **Output** | Top 10 usuarios por XP |
-| **Frontend** | ❌ No conectado (no existe UI de ranking) |
+| **Output** | Datos de la temporada activa |
+| **Frontend** | Conectado en `/simulacros` |
 
 **Output:**
 ```typescript
-[
-  { id: string, name: string | null, totalXp: number, rank: number, isMe: boolean }
-]
+{
+  id: string,
+  isEventOpen: boolean,
+  eventStartsAt: Date,
+  eventEndsAt: Date,
+  isRevealed: boolean,
+  revealedAt: Date | null,
+  hasOfficialAttempt: boolean,
+}
 ```
 
 ---
 
-#### `ranking.getMyPosition` — Mi Posición
+#### `ranking.getMyStats` — Mis Estadísticas de Ranking
 
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `query` |
-| **Auth** | 🔒 Protegido |
+| **Auth** | Protegido |
 | **Input** | Ninguno |
-| **Output** | `{ rank: number, xp: number, name: string | null }` |
-| **Frontend** | ✅ Conectado en `/perfil` |
+| **Output** | Rating, score, división y carrera |
+| **Frontend** | Conectado en `/ranking` |
+
+**Output:**
+```typescript
+{
+  userId: string,
+  name: string | null,
+  image: string | null,
+  rating: number,
+  score: number,
+  highestRating: number,
+  highestScore: number,
+  division: Division,
+  highestDivision: Division,
+  career: Career | null,
+  lastDelta: number | null,
+}
+```
+
+---
+
+#### `ranking.getDivisionLeaderboard` — Ranking por División
+
+| Propiedad | Valor |
+|-----------|-------|
+| **Tipo** | `query` |
+| **Auth** | Protegido |
+| **Input** | `{ division: Division, page?: number, pageSize?: number }` |
+| **Output** | `{ entries: RankingUser[], me?: RankingUser, total: number }` |
+| **Frontend** | Conectado en `/ranking` |
+
+---
+
+#### `ranking.getGlobalLeaderboard` — Ranking Global
+
+| Propiedad | Valor |
+|-----------|-------|
+| **Tipo** | `query` |
+| **Auth** | Protegido |
+| **Input** | `{ page?: number, pageSize?: number }` |
+| **Output** | `{ entries: RankingUser[], me?: RankingUser, total: number }` |
+| **Frontend** | Conectado en `/ranking` |
+
+---
+
+#### `ranking.getAreaLeaderboard` — Ranking por Área
+
+| Propiedad | Valor |
+|-----------|-------|
+| **Tipo** | `query` |
+| **Auth** | Protegido |
+| **Input** | `{ area: "INGENIERIAS" | "SOCIALES" | "BIOMEDICAS", page?: number, pageSize?: number }` |
+| **Output** | `{ entries: RankingUser[], me?: RankingUser, total: number }` |
+| **Frontend** | Conectado en `/ranking` |
+
+---
+
+#### `ranking.getCareerLeaderboard` — Ranking por Carrera
+
+| Propiedad | Valor |
+|-----------|-------|
+| **Tipo** | `query` |
+| **Auth** | Protegido |
+| **Input** | `{ careerId: string, page?: number, pageSize?: number }` |
+| **Output** | `{ entries: RankingUser[], me?: RankingUser, total: number }` |
+| **Frontend** | Conectado en `/ranking` |
+
+**Tipo `RankingUser`:**
+```typescript
+{
+  id: string,
+  name: string | null,
+  image: string | null,
+  score: number,
+  rank: number,
+  division: Division,
+  delta: number | null,
+  isMe: boolean,
+  career: { id: string, name: string, area: Area } | null,
+}
+```
+
+---
+
+#### Otros endpoints de ranking
+
+| Endpoint | Uso |
+|----------|-----|
+| `ranking.getRatingHistory` | Historial de cambios de rating del usuario. |
+| `ranking.getWeeklyLeague` | Leaderboard de la división actual del usuario (legacy). |
+| `ranking.getAllCareersLeaderboard` | Agrupación por carrera. |
+| `ranking.getAllAreasLeaderboard` | Agrupación por área. |
+| `ranking.getGlobalLeaderboardGroup` | Wrapper global paginado. |
+| `ranking.getMyLeagueStatus` | Alias de `getMyStats`. |
+| `ranking.getCareerOptions` | Lista de carreras para filtros. |
 
 ---
 
@@ -453,10 +591,10 @@ Ubicación: `apps/api/src/app/routers/profile.routers.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `query` |
-| **Auth** | 🔒 Protegido |
+| **Auth** | Protegido |
 | **Input** | Ninguno |
-| **Output** | Perfil completo con energía calculada |
-| **Frontend** | ✅ Conectado en `useAuth`, `/perfil`, `/simulacros`, header |
+| **Output** | Perfil completo con energía calculada y datos competitivos |
+| **Frontend** | Conectado en `useAuth`, `/perfil`, `/simulacros`, header |
 
 **Output:**
 ```typescript
@@ -472,9 +610,9 @@ Ubicación: `apps/api/src/app/routers/profile.routers.ts`
   career: { id: string, name: string, area: Area, minimumScore: number } | null,
   energy: number,              // calculada con recarga automática
   coins: number,
+  gems: number,
   inventory: string[],
   lastRefill: Date | null,
-  totalXp: number,
   streak: number,
   lastInteraction: Date | null,
   isPremium: boolean,
@@ -482,8 +620,18 @@ Ubicación: `apps/api/src/app/routers/profile.routers.ts`
   lastExamScore: number | null,
   freeSimAttemptsUsed: number,
   freeSimAttemptsResetAt: Date | null,
+  rating: number,
+  score: number,
+  highestRating: number,
+  highestScore: number,
+  division: Division,
+  highestDivision: Division,
+  seasonHighestRating: number,
+  seasonBestDivision: Division,
 }
 ```
+
+**Nota:** `totalXp` fue eliminado.
 
 ---
 
@@ -492,10 +640,10 @@ Ubicación: `apps/api/src/app/routers/profile.routers.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `mutation` |
-| **Auth** | 🔒 Protegido |
+| **Auth** | Protegido |
 | **Input** | `{ careerId: string }` |
 | **Output** | `{ message: string, career: Career }` |
-| **Frontend** | ✅ Conectado en modal de `/simulacros` |
+| **Frontend** | Conectado en selector de `/simulacros` y `/perfil` |
 
 ---
 
@@ -504,10 +652,10 @@ Ubicación: `apps/api/src/app/routers/profile.routers.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `mutation` |
-| **Auth** | 🔒 Protegido |
+| **Auth** | Protegido |
 | **Input** | `{ name?: string, image?: string }` |
 | **Output** | `{ message: string, user: User }` |
-| **Frontend** | ❌ No conectado (no existe UI de edición) |
+| **Frontend** | No conectado (no existe UI de edición) |
 
 **Lógica especial:** Valida que `image` de tienda esté en el `inventory` del usuario.
 
@@ -518,10 +666,10 @@ Ubicación: `apps/api/src/app/routers/profile.routers.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `query` |
-| **Auth** | 🔒 Protegido |
+| **Auth** | Protegido |
 | **Input** | Ninguno |
 | **Output** | Radar chart data con 8 ejes |
-| **Frontend** | ✅ Conectado en `/perfil` (`AcademicDNA`) |
+| **Frontend** | Conectado en `/perfil` (`AcademicDNA`) |
 
 ---
 
@@ -530,39 +678,139 @@ Ubicación: `apps/api/src/app/routers/profile.routers.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `mutation` |
-| **Auth** | 🔒 Protegido |
+| **Auth** | Protegido |
 | **Input** | Ninguno |
 | **Output** | `{ success: true, energy: number }` |
-| **Frontend** | ✅ Conectado en `TopicList` |
+| **Frontend** | Conectado en `TopicList` |
 
 **Lógica:** -5 energía por nodo. Premium no paga. Recarga automática cada 15 min.
 
 ---
 
+#### `profile.getStats` — Estadísticas Agregadas de Actividad
+
+| Propiedad | Valor |
+|-----------|-------|
+| **Tipo** | `query` |
+| **Auth** | Protegido |
+| **Input** | Ninguno |
+| **Output** | Totales de actividad + rating |
+| **Frontend** | Conectado en `/perfil` |
+
+**Output:**
+```typescript
+{
+  totalQuestionsAnswered: number,
+  totalQuestionsCorrect: number,
+  totalNodesCompleted: number,
+  totalSimulacrosCompleted: number,
+  rating: number,
+  score: number,
+  highestRating: number,
+  highestScore: number,
+  division: Division,
+  highestDivision: Division,
+}
+```
+
+---
+
+#### `profile.getActivityHeatmap` — Heatmap de Actividad
+
+| Propiedad | Valor |
+|-----------|-------|
+| **Tipo** | `query` |
+| **Auth** | Protegido |
+| **Input** | `{ days?: number }` (default 84, min 7, max 365) |
+| **Output** | `HeatmapDay[]` |
+| **Frontend** | Conectado en `/perfil` (`ContributionGraph`) |
+
+**Output:**
+```typescript
+[
+  {
+    date: "2026-07-17",
+    intensity: 0..4,
+    questionsAnswered: number,
+    nodesCompleted: number,
+    gemsEarned: number,
+    simulacrosCompleted: number,
+  }
+]
+```
+
+---
+
+#### `profile.getWeeklyStreak` — Racha Semanal
+
+| Propiedad | Valor |
+|-----------|-------|
+| **Tipo** | `query` |
+| **Auth** | Protegido |
+| **Input** | Ninguno |
+| **Output** | Estado de los últimos 7 días |
+| **Frontend** | Conectado en `/perfil` (`WeeklyStreakCard`) |
+
+**Output:**
+```typescript
+[
+  { date: "2026-07-17", label: "Vie", isToday: true, status: "done" | "missed" | "not_yet" }
+]
+```
+
+---
+
+#### `profile.getRatingGraph` — Gráfico de Desempeño
+
+| Propiedad | Valor |
+|-----------|-------|
+| **Tipo** | `query` |
+| **Auth** | Protegido |
+| **Input** | `{ weeks?: number }` (default 12) |
+| **Output** | Historial de rating por semana |
+| **Frontend** | Conectado en `/perfil` (`RatingChart`) |
+
+---
+
+#### `profile.getInventory` — Inventario de Items
+
+| Propiedad | Valor |
+|-----------|-------|
+| **Tipo** | `query` |
+| **Auth** | Protegido |
+| **Input** | Ninguno |
+| **Output** | `UserItem[]` |
+| **Frontend** | No conectado |
+
+---
+
 ### Shop (Tienda Virtual)
 
-Ubicación: `apps/api/src/app/routers/shop.router.ts`
+Ubicación: `apps/api/src/app/routers/shop.router.ts` y `ShopService`
+
+La tienda real vende **protectores de rating** pagados con **gemas**. La página `/shop` actual del frontend **no consume estos endpoints** y vende "gemas" por dinero real sin backend.
 
 #### `shop.getCatalog` — Catálogo de la Tienda
 
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `query` |
-| **Auth** | 🔒 Protegido |
+| **Auth** | Protegido |
 | **Input** | Ninguno |
-| **Output** | `ShopItem[]` (7 items estáticos) |
-| **Frontend** | ❌ No conectado (`/shop` no lo consume) |
+| **Output** | `ShopItemDto[]` |
+| **Frontend** | No conectado |
 
-**Catálogo:**
+**Output:**
 ```typescript
 [
-  { id: "avatar_male_1",   name: "Estudiante Cool",        price: 200,  type: "AVATAR",     category: "MALE" },
-  { id: "avatar_male_2",   name: "Hacker",                 price: 500,  type: "AVATAR",     category: "MALE" },
-  { id: "avatar_male_3",   name: "Cachimbo Legendario",    price: 1000, type: "AVATAR",     category: "MALE" },
-  { id: "avatar_female_1", name: "Estudiante Aplicada",    price: 200,  type: "AVATAR",     category: "FEMALE" },
-  { id: "avatar_female_2", name: "Ingeniera",              price: 500,  type: "AVATAR",     category: "FEMALE" },
-  { id: "avatar_female_3", name: "Genio",                  price: 1000, type: "AVATAR",     category: "FEMALE" },
-  { id: "energy_pack_5",   name: "Pack de Energía (+5)",   price: 100,  type: "CONSUMABLE", category: "ENERGY" }
+  {
+    key: "RATING_SHIELD_50",
+    name: "Escudo de Rating",
+    description: "Absorbe el 50% de la bajada de rating...",
+    priceGems: number,
+    maxQuantity: number | null,
+    owned: number,
+  }
 ]
 ```
 
@@ -573,10 +821,22 @@ Ubicación: `apps/api/src/app/routers/shop.router.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `mutation` |
-| **Auth** | 🔒 Protegido |
-| **Input** | `{ itemId: string }` |
-| **Output** | `{ success: boolean, message: string, user: { coins, inventory, energy } }` |
-| **Frontend** | ❌ No conectado |
+| **Auth** | Protegido |
+| **Input** | `{ itemKey: string, quantity?: number }` |
+| **Output** | `{ remainingGems: number, owned: number }` |
+| **Frontend** | No conectado |
+
+---
+
+#### `shop.getInventory` — Inventario
+
+| Propiedad | Valor |
+|-----------|-------|
+| **Tipo** | `query` |
+| **Auth** | Protegido |
+| **Input** | Ninguno |
+| **Output** | `UserItem[]` |
+| **Frontend** | No conectado |
 
 ---
 
@@ -589,16 +849,15 @@ Ubicación: `apps/api/src/app/routers/simulacro.router.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `query` |
-| **Auth** | 🔒 Protegido |
+| **Auth** | Protegido |
 | **Input** | Ninguno |
 | **Output** | Stats para el dashboard |
-| **Frontend** | ✅ Conectado en `/simulacros` |
+| **Frontend** | Conectado en `/simulacros` |
 
 **Output:**
 ```typescript
 {
   lastExamScore: number | null,
-  recentAverageScore: number | null,
   bestScore: number | null,
   averageScore: number | null,
   totalAttempts: number,
@@ -607,6 +866,12 @@ Ubicación: `apps/api/src/app/routers/simulacro.router.ts`
   freeAttemptsRemaining: number,
   freeAttemptsResetAt: Date | null,
   isPremium: boolean,
+  rating: number,
+  score: number,
+  division: Division,
+  highestRating: number,
+  gems: number,
+  season: { id, isEventOpen, eventStartsAt, eventEndsAt, isRevealed, hasOfficialAttempt, officialAttemptStatus },
 }
 ```
 
@@ -617,10 +882,10 @@ Ubicación: `apps/api/src/app/routers/simulacro.router.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `query` |
-| **Auth** | 🔒 Protegido |
+| **Auth** | Protegido |
 | **Input** | Ninguno |
 | **Output** | `ExamAttempt[]` |
-| **Frontend** | ✅ Conectado en `/simulacros` |
+| **Frontend** | Conectado en `/simulacros` |
 
 ---
 
@@ -629,10 +894,10 @@ Ubicación: `apps/api/src/app/routers/simulacro.router.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `query` |
-| **Auth** | 🔓 Público |
+| **Auth** | Público |
 | **Input** | Ninguno |
 | **Output** | Carreras mínimas `{ id, name, area, minimumScore }` |
-| **Frontend** | ✅ Conectado en selector de carrera |
+| **Frontend** | Conectado en selector de carrera |
 
 ---
 
@@ -641,10 +906,10 @@ Ubicación: `apps/api/src/app/routers/simulacro.router.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `query` |
-| **Auth** | 🔒 Protegido |
+| **Auth** | Protegido |
 | **Input** | Ninguno |
 | **Output** | Exámenes históricos `{ id, title, year, phase, type, questionCount, timeLimitMinutes }` |
-| **Frontend** | ✅ Conectado en `/simulacros` |
+| **Frontend** | Conectado en `/simulacros` |
 
 ---
 
@@ -653,10 +918,10 @@ Ubicación: `apps/api/src/app/routers/simulacro.router.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `mutation` |
-| **Auth** | 🔒 Protegido + Premium |
+| **Auth** | Protegido + Premium |
 | **Input** | `{ examId: string }` |
-| **Output** | `{ attemptId: string }` |
-| **Frontend** | ✅ Conectado en `/simulacros` |
+| **Output** | `{ attemptId: string, isOfficial: boolean }` |
+| **Frontend** | Conectado en `/simulacros` |
 
 ---
 
@@ -665,10 +930,10 @@ Ubicación: `apps/api/src/app/routers/simulacro.router.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `mutation` |
-| **Auth** | 🔒 Protegido |
-| **Input** | `{ questionCount: number, timeLimitMinutes: number, strategy: "AI" | "RANDOM" }` |
-| **Output** | `{ attemptId: string }` |
-| **Frontend** | ✅ Conectado en `/simulacros` |
+| **Auth** | Protegido |
+| **Input** | `{ questionCount: number, timeLimitMinutes: number, strategy: "AI" | "RANDOM", isOfficial?: boolean }` |
+| **Output** | `{ attemptId: string, isOfficial: boolean }` |
+| **Frontend** | Conectado en `/simulacros` |
 
 **Nota:** Incrementa `freeSimAttemptsUsed` en la misma transacción de creación del intento.
 
@@ -679,10 +944,10 @@ Ubicación: `apps/api/src/app/routers/simulacro.router.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `query` |
-| **Auth** | 🔒 Protegido |
+| **Auth** | Protegido |
 | **Input** | `{ attemptId: string }` |
 | **Output** | Intento + preguntas ordenadas |
-| **Frontend** | ✅ Conectado en `/simulator` |
+| **Frontend** | Conectado en `/simulator` |
 
 ---
 
@@ -691,10 +956,36 @@ Ubicación: `apps/api/src/app/routers/simulacro.router.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `mutation` |
-| **Auth** | 🔒 Protegido |
+| **Auth** | Protegido |
 | **Input** | `{ attemptId: string, answers: Record<qid, { selectedOptionId, timeTaken? }> }` |
-| **Output** | `{ attemptId, score, correctCount, incorrectCount, blankCount, totalAnswered, timeUsedSeconds, xpEarned, coinsEarned }` |
-| **Frontend** | ✅ Conectado en `/simulator` |
+| **Output** | Resultado (varía si es oficial o no) |
+| **Frontend** | Conectado en `/simulator` |
+
+**Output no oficial:**
+```typescript
+{
+  attemptId: string,
+  status: "COMPLETED",
+  score: number,
+  correctCount: number,
+  incorrectCount: number,
+  blankCount: number,
+  totalAnswered: number,
+  timeUsedSeconds: number,
+  coinsEarned: number,
+}
+```
+
+**Output oficial:**
+```typescript
+{
+  attemptId: string,
+  status: "RECEIVED",
+  message: "Examen recibido. Calculando percentiles...",
+}
+```
+
+**Nota:** XP fue eliminado; `totalXpEarned: 0` se guarda en BD solo por compatibilidad.
 
 ---
 
@@ -707,10 +998,10 @@ Ubicación: `apps/api/src/app/routers/admin.router.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `mutation` |
-| **Auth** | 🔒 Protegido + Role check (`ADMIN` o `DATA_ENTRY`) |
+| **Auth** | Protegido + Role check (`ADMIN` o `DATA_ENTRY`) |
 | **Input** | Datos de pregunta |
 | **Output** | Pregunta creada con relaciones |
-| **Frontend** | ❌ No existe UI |
+| **Frontend** | No existe UI |
 
 **Input:**
 ```typescript
@@ -743,10 +1034,10 @@ Ubicación: `apps/api/src/app/routers/subscription.router.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `mutation` |
-| **Auth** | 🔒 Protegido |
+| **Auth** | Protegido |
 | **Input** | `{ plan: "MONTHLY" | "ANNUAL", proofUrl: string, amount: number }` |
 | **Output** | Subscription creada |
-| **Frontend** | ❌ No existe UI |
+| **Frontend** | No existe UI |
 
 ---
 
@@ -755,9 +1046,9 @@ Ubicación: `apps/api/src/app/routers/subscription.router.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `query` |
-| **Auth** | 🔒 Admin-only |
+| **Auth** | Admin-only |
 | **Output** | `Subscription[]` con datos del usuario |
-| **Frontend** | ❌ No existe UI |
+| **Frontend** | No existe UI |
 
 ---
 
@@ -766,10 +1057,10 @@ Ubicación: `apps/api/src/app/routers/subscription.router.ts`
 | Propiedad | Valor |
 |-----------|-------|
 | **Tipo** | `mutation` |
-| **Auth** | 🔒 Admin-only |
+| **Auth** | Admin-only |
 | **Input** | `{ subscriptionId: string, action: "APPROVE" | "REJECT" }` |
 | **Output** | Subscription actualizada |
-| **Frontend** | ❌ No existe UI |
+| **Frontend** | No existe UI |
 
 **Lógica de aprobación:** actualiza `isPremium: true` y `subExpiresAt` (+30/365 días).
 
@@ -786,7 +1077,7 @@ Ubicación: `apps/api/src/app/routers/subscription.router.ts`
 | **Auth** | Passport Guard (google) |
 | **Acción** | Redirige al consent screen de Google |
 | **Scopes** | `email`, `profile` |
-| **Frontend** | ✅ Conectado desde `/login` |
+| **Frontend** | Conectado desde `/login` |
 
 ---
 
@@ -797,7 +1088,7 @@ Ubicación: `apps/api/src/app/routers/subscription.router.ts`
 | **Auth** | Passport Guard (google) |
 | **Acción** | Recibe código de Google → crea/actualiza usuario → genera JWT → redirige |
 | **Redirect** | `${FRONTEND_URL}/auth-callback?token={jwt}` |
-| **Frontend** | ✅ Conectado en `/auth-callback` |
+| **Frontend** | Conectado en `/auth-callback` |
 
 ---
 
@@ -805,30 +1096,39 @@ Ubicación: `apps/api/src/app/routers/subscription.router.ts`
 
 | Endpoint | ¿Frontend lo llama? | ¿Qué usa el frontend? |
 |----------|---------------------|------------------------|
-| `auth.register` | ✅ Sí | `/register` |
-| `auth.login` | ✅ Sí | `/login` |
-| `auth.me` | ✅ Sí | `useAuth` |
-| `content.getCourses` | ✅ Sí | `/cursos`, `/dashboard` |
-| `content.getTopics` | ✅ Sí | `/dashboard` |
-| `content.getQuestions` | ✅ Sí | `/engine` |
-| `content.completeNode` | ✅ Sí | `/engine` |
-| `game.submitAnswer` | ✅ Sí | `/engine` |
-| `learning.*` | ❌ No | Sin UI |
-| `stats.getDashboard` | ❌ No | `useDashboardData` usa `profile.getMe` |
-| `ranking.getTopStudents` | ❌ No | Sin UI |
-| `ranking.getMyPosition` | ✅ Sí | `/perfil` |
-| `profile.getMe` | ✅ Sí | `useAuth`, `/perfil`, `/simulacros`, header |
-| `profile.selectCareer` | ✅ Sí | Selector de carrera |
-| `profile.update` | ❌ No | Sin UI de edición |
-| `profile.getAcademicDNA` | ✅ Sí | `/perfil` |
-| `profile.spendNodeEnergy` | ✅ Sí | `TopicList` |
-| `shop.getCatalog` | ❌ No | `/shop` no lo consume |
-| `shop.buyItem` | ❌ No | `/shop` no lo consume |
-| `simulacro.*` | ✅ Sí | `/simulacros`, `/simulator` |
-| `admin.*` | ❌ No | Sin UI |
-| `subscription.*` | ❌ No | Sin UI |
-| `GET /api/auth/google` | ✅ Sí | Redirect desde `/login` |
-| `GET /api/auth/google/callback` | ✅ Sí | Redirige a `/auth-callback?token=...` |
+| `auth.register` | Sí | `/register` |
+| `auth.login` | Sí | `/login` |
+| `auth.me` | Sí | `useAuth` |
+| `content.getCourses` | Sí | `/cursos`, `/dashboard` |
+| `content.getTopics` | Sí | `/dashboard` |
+| `content.getQuestions` | Sí | `/engine` |
+| `content.completeNode` | Sí | `/engine` |
+| `game.submitAnswer` | Sí | `/engine` |
+| `learning.*` | No | Sin UI |
+| `stats.getDashboard` | No | `useDashboardData` usa `profile.getMe` |
+| `ranking.getCurrentSeasonStatus` | Sí | `/simulacros` |
+| `ranking.getMyStats` | Sí | `/ranking` |
+| `ranking.getDivisionLeaderboard` | Sí | `/ranking` |
+| `ranking.getGlobalLeaderboard` | Sí | `/ranking` |
+| `ranking.getAreaLeaderboard` | Sí | `/ranking` |
+| `ranking.getCareerLeaderboard` | Sí | `/ranking` |
+| `ranking.getRatingHistory` | Sí | `/ranking` |
+| `profile.getMe` | Sí | `useAuth`, `/perfil`, `/simulacros`, header |
+| `profile.selectCareer` | Sí | Selector de carrera |
+| `profile.update` | No | Sin UI de edición |
+| `profile.getAcademicDNA` | Sí | `/perfil` |
+| `profile.spendNodeEnergy` | Sí | `TopicList` |
+| `profile.getStats` | Sí | `/perfil` |
+| `profile.getActivityHeatmap` | Sí | `/perfil` |
+| `profile.getWeeklyStreak` | Sí | `/perfil` |
+| `profile.getRatingGraph` | Sí | `/perfil` |
+| `profile.getInventory` | No | Sin UI |
+| `shop.*` | No | `/shop` no lo consume |
+| `simulacro.*` | Sí | `/simulacros`, `/simulator` |
+| `admin.*` | No | Sin UI |
+| `subscription.*` | No | Sin UI |
+| `GET /api/auth/google` | Sí | Redirect desde `/login` |
+| `GET /api/auth/google/callback` | Sí | Redirige a `/auth-callback?token=...` |
 
 ---
 
@@ -854,10 +1154,17 @@ export const loginSchema = z.object({
 
 ---
 
-## ⚠️ Deuda y Advertencias del API
+## Deuda y Advertencias del API
 
-1. **`learning.submitAnswer`** usa índice numérico y lógica duplicada; no se consume.
+1. **`learning.submitAnswer`** usa lógica duplicada; no se consume desde el frontend.
 2. **`stats.getDashboard`** devuelve `daysUntilExam` con fecha hardcoded pasada.
-3. **`subExpiresAt`** no se valida en runtime; `isPremium` nunca expira.
-4. **`.env`** con secretos reales en working tree: riesgo inmediato.
-5. **Tienda `/shop`** no consume `shop.*`; su UI actual vende gemas sin backend.
+3. **`subExpiresAt`** no se valida en runtime; `isPremium` no expira realmente.
+4. **Tienda `/shop`** no consume `shop.*`; su UI actual vende gemas por dinero real sin backend.
+5. **Ranking legacy** (`getWeeklyLeague`) mantiene compatibilidad; preferir nuevos endpoints de leaderboard.
+6. **No hay rate limiting** en ningún endpoint.
+7. **CORS** está abierto a todos los orígenes.
+8. **JWT secret** es débil y tiene fallback `'secret'` en varios archivos.
+
+---
+
+> **XP/EXP fue removido del producto.** Los endpoints relacionados con recompensas ahora devuelven solo monedas y gemas.

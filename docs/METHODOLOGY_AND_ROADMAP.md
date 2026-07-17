@@ -1,8 +1,8 @@
-# 🧭 METHODOLOGY & ROADMAP — Guía de Recuperación del Proyecto Ingresa.pe
+# METHODOLOGY & ROADMAP — Guía de Recuperación del Proyecto Ingresa.pe
 
 > **Para:** JhonAQ (Solo Dev)  
 > **De:** Tu Tech Lead / Mentor AI  
-> **Fecha:** 2026-07-08  
+> **Fecha:** 2026-07-17  
 > **Objetivo:** Retomar el proyecto con una estrategia clara, sin abrumarte
 
 ---
@@ -11,21 +11,23 @@
 
 ---
 
-### 🟢 El buen trabajo hecho
+### El buen trabajo hecho
 
 El proyecto ya **funciona end-to-end en su flujo crítico**:
 
 ```
-Login / Register  →  Cursos  →  Tema/Nodo  →  Preguntas reales (6 tipos)
-                                                          ↓
-                                     Feedback + XP/coins/racha  →  Desbloquear siguiente nodo
-                                                          ↓
-                                         Simulacros / Simulador con BD real
+Login / Register / OAuth  →  Cursos  →  Tema/Nodo  →  Preguntas reales (6 tipos)
+                                                               ↓
+                              Feedback + monedas/gems/racha  →  Desbloquear siguiente nodo
+                                                               ↓
+                                          Simulacros / Simulador con BD real
+                                                               ↓
+                                       Perfil con heatmap, racha semanal y ranking competitivo
 ```
 
-Esto es posible gracias a que seguiste **vertical slicing** parcialmente: conectaste auth, cursos, engine y simulacro feature por feature.
+Esto es posible gracias a que seguiste **vertical slicing** parcialmente: conectaste auth, cursos, engine, simulacro, perfil y ranking feature por feature.
 
-### 🔴 El riesgo actual
+### El riesgo actual
 
 Ahora el peligro es el **"desarrollo horizontal de nuevo"**: saltar entre muchas mejoras sin terminar ninguna. El proyecto tiene deuda técnica real (seguridad, funcionalidades decorativas, limpieza) que puede hacer que vuelvas a sentirte abrumado si no priorizas.
 
@@ -64,17 +66,17 @@ Cada paso debería ser un commit descriptivo.
 
 ---
 
-> **Estado actual (2026-07-08):** Auth, cursos, engine (6 motores), perfil, simulacros y simulador ya están conectados. Lo que más duele ahora es **seguridad** y **funcionalidades decorativas**.
+> **Estado actual (2026-07-17):** Auth, cursos, engine (6 motores), perfil (heatmap + racha semanal), simulacros, simulador y ranking ya están conectados. XP/EXP fue removido del producto. Lo que más duele ahora es **seguridad**, **la tienda desconectada/riesgo** y **funcionalidades decorativas restantes**.
 
 ---
 
-### 🔐 FASE 0: SEGURIDAD CRÍTICA (Día 1)
+### FASE 0: SEGURIDAD CRÍTICA (Día 1)
 *"Arreglar lo roto antes de construir encima"*
 
-#### Paso 0.1 — Rotar secretos y eliminar `.env` del working tree ⏱️ 30 min
+#### Paso 0.1 — Rotar secretos y asegurar `.env` ⏱️ 30 min
 
 **Archivos a tocar:**
-- `.env` (raíz del monorepo) — NO commitear
+- `.env` (raíz del monorepo) — ya está en `.gitignore`, NO commitear
 - `.env.example` — actualizar con placeholders
 - Tus credenciales de Google Cloud Console
 
@@ -82,10 +84,9 @@ Cada paso debería ser un commit descriptivo.
 1. Generar nuevo `JWT_SECRET`: `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"`
 2. Rotar `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` en Google Cloud.
 3. Actualizar `.env` local con los nuevos valores.
-4. Asegurar que `.env` esté en `.gitignore`.
-5. Hacer `git rm --cached .env` si por alguna razón está trackeado.
+4. Verificar que `.env` esté en `.gitignore` (sí lo está).
 
-**⚠️ No subas secretos reales al repo nunca más.**
+**No subas secretos reales al repo nunca más.**
 
 ---
 
@@ -136,8 +137,8 @@ Eliminar o condicionar el `console.log` del body de requests `/trpc` que corre e
 
 ---
 
-### 🛠️ FASE 1: FUNCIONALIDADES DECORATIVAS (Días 2-6)
-*"Conectar lo que ya existe en el backend"*
+### FASE 1: FUNCIONALIDADES DECORATIVAS Y RIESGO (Días 2-6)
+*"Conectar lo que ya existe en el backend o deshabilitar lo que no sirve"*
 
 ---
 
@@ -149,31 +150,18 @@ Eliminar o condicionar el `console.log` del body de requests `/trpc` que corre e
 
 **Qué hacer:**
 1. Llamar `trpc.shop.getCatalog.useQuery()` para listar items.
-2. Mostrar precio en **monedas** (no "gemas" ni dinero real).
+2. Mostrar precio en **gemas**.
 3. Llamar `trpc.shop.buyItem.useMutation()` al comprar.
 4. Actualizar `useAuth().user` o invalidar `profile.getMe` después de compra.
 5. Deshabilitar items ya comprados (`inventory`).
 
-**Resultado:** Un usuario puede gastar sus monedas reales en avatares/energía.
+**Alternativa:** si no vas a vender protectores de rating aún, deshabilita la página `/shop` para evitar confusiones.
+
+**Resultado:** Un usuario puede gastar sus gemas reales en protectores de rating.
 
 ---
 
-#### Paso 1.2 — Crear página de ranking (`/ranking`) ⏱️ 2 horas
-
-**Backend:** `ranking.getTopStudents` y `ranking.getMyPosition` ya existen.
-
-**Archivos a crear:**
-- `apps/web/src/app/(app)/ranking/page.tsx`
-- `apps/web/src/components/ranking/Leaderboard.tsx`
-
-**Qué hacer:**
-1. Mostrar top 10 con posición, avatar, nombre, XP.
-2. Resaltar al usuario actual.
-3. Agregar link en BottomNav o Header.
-
----
-
-#### Paso 1.3 — Conectar `stats.getDashboard` y corregir fecha de examen ⏱️ 1 hora
+#### Paso 1.2 — Conectar `stats.getDashboard` y corregir fecha de examen ⏱️ 1 hora
 
 **Backend:** `apps/api/src/app/routers/stats.routers.ts`
 
@@ -183,7 +171,7 @@ Eliminar o condicionar el `console.log` del body de requests `/trpc` que corre e
 
 ---
 
-#### Paso 1.4 — Progreso real en `/cursos` y `CourseProgressList` ⏱️ 1.5 horas
+#### Paso 1.3 — Progreso real en `/cursos` y `CourseProgressList` ⏱️ 1.5 horas
 
 **Archivos:**
 - `apps/web/src/app/(app)/cursos/page.tsx`
@@ -195,7 +183,7 @@ Eliminar o condicionar el `console.log` del body de requests `/trpc` que corre e
 
 ---
 
-### 🎮 FASE 2: CONSISTENCIA DEL ENGINE Y GAMIFICACIÓN (Días 7-10)
+### FASE 2: CONSISTENCIA DEL ENGINE Y GAMIFICACIÓN (Días 7-10)
 *"El engine debe usar la misma energía real que el resto de la app"*
 
 ---
@@ -228,11 +216,11 @@ Usar directamente `energy` de `profile.getMe` en lugar del mapeo confuso `vidas`
 **Archivo:** `apps/web/src/app/simulator/page.tsx` o nueva ruta `/simulator/results`
 
 **Qué hacer:**
-Mostrar score, aciertos/errores/blancos, tiempo usado, XP y monedas ganadas.
+Mostrar score, aciertos/errores/blancos, tiempo usado, monedas ganadas y delta de rating (si aplica).
 
 ---
 
-### 🏆 FASE 3: FEATURES SECUNDARIAS (Días 11-18)
+### FASE 3: FEATURES SECUNDARIAS (Días 11-18)
 *"Una vez que el core está sano"*
 
 ---
@@ -271,7 +259,7 @@ Usa `content.getQuestions` o `learning.getRandomQuestion`.
 
 ---
 
-### 🧹 FASE 4: LIMPIEZA TÉCNICA (Día 19+)
+### FASE 4: LIMPIEZA TÉCNICA (Día 19+)
 *"Borrar lo que no sirve y consolidar duplicados"*
 
 ---
@@ -300,10 +288,10 @@ Usa `content.getQuestions` o `learning.getRandomQuestion`.
 SEMANA 1 (Días 1-5): SEGURIDAD + FUNCIONALIDADES DECORATIVAS
 ─────────────────────────────────────────
 Día 1:  Fase 0 completa (seguridad crítica)
-Día 2:  Paso 1.1 — Tienda real
-Día 3:  Paso 1.2 — Página de ranking
-Día 4:  Paso 1.3 — stats.getDashboard + fecha de examen
-Día 5:  Paso 1.4 — Progreso real en cursos/perfil
+Día 2:  Paso 1.1 — Tienda real o deshabilitada
+Día 3:  Paso 1.2 — stats.getDashboard + fecha de examen
+Día 4:  Paso 1.3 — Progreso real en cursos/perfil
+Día 5:  Buffer / bugs / polish
 
 SEMANA 2 (Días 6-10): CORE SANO
 ─────────────────────────────────────────
@@ -334,16 +322,15 @@ Día 25: Review general y deploy prep
 ```
 FASE 0 — SEGURIDAD CRÍTICA
   [ ] 0.1 Rotar JWT_SECRET y secretos de OAuth
-  [ ] 0.2 Eliminar `.env` real del working tree
+  [x] 0.2 .env real está en .gitignore (verificado)
   [ ] 0.3 Quitar fallback 'secret' del JWT
   [ ] 0.4 Configurar CORS con whitelist
   [ ] 0.5 Quitar/condicionar middleware spy
 
 FASE 1 — FUNCIONALIDADES DECORATIVAS
-  [ ] 1.1 Conectar tienda a shop.*
-  [ ] 1.2 Crear página /ranking
-  [ ] 1.3 Conectar stats.getDashboard
-  [ ] 1.4 Progreso real en cursos/perfil
+  [ ] 1.1 Conectar tienda a shop.* o deshabilitar /shop
+  [ ] 1.2 Conectar stats.getDashboard
+  [ ] 1.3 Progreso real en cursos/perfil
 
 FASE 2 — CORE SANO
   [ ] 2.1 Unificar energía en engine
@@ -363,14 +350,14 @@ FASE 4 — LIMPIEZA
 
 ---
 
-## 💬 Mensaje Final
+## Mensaje Final
 
-JhonAQ, el proyecto ya **no es un puente roto**. Tienes una plataforma real donde un usuario puede loguearse, estudiar con 6 tipos de preguntas, ganar XP, hacer simulacros y ver su perfil.
+JhonAQ, el proyecto ya **no es un puente roto**. Tienes una plataforma real donde un usuario puede loguearse, estudiar con 6 tipos de preguntas, ganar monedas y gemas, hacer simulacros, ver su perfil con heatmap/racha semanal y competir en rankings.
 
 **Pero hay una trampa:** es fácil caer en "voy a pulir esto, luego aquello" y nada termina. El roadmap de arriba está ordenado por impacto real:
 
 1. **Seguridad** primero (no negociable).
-2. **Funcionalidades decorativas** (tienda, ranking, progreso) porque el backend ya existe.
+2. **Funcionalidades decorativas/riesgo** (tienda, stats, progreso) porque el backend ya existe.
 3. **Consistencia del engine** para que la experiencia no sea confusa.
 4. **Features nuevas** solo después.
 
@@ -378,4 +365,4 @@ No reconstruyas. No refactorices de cero. **Conecta lo que ya tienes, sana lo cr
 
 **Empieza por el Paso 0.1. Ahora.**
 
-— Tu Tech Lead 🎯
+— Tu Tech Lead
