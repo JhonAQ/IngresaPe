@@ -22,4 +22,6 @@ WORKDIR /app/apps/api
 
 EXPOSE 3000
 
-CMD ["node", "dist/main.js"]
+# Ejecutar migraciones pendientes antes de levantar la app.
+# Esto garantiza que el esquema esté actualizado antes de que el backend acepte tráfico.
+CMD ["sh", "-c", "npx prisma migrate deploy --schema=prisma/schema.prisma && node dist/main.js"]
