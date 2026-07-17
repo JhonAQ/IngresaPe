@@ -25,7 +25,6 @@ describe('ActivityService', () => {
         questionsAnswered: 5,
         questionsCorrect: 3,
         nodesCompleted: 2,
-        xpEarned: 50,
         gemsEarned: 10,
         simulacrosCompleted: 1,
       });
@@ -34,7 +33,7 @@ describe('ActivityService', () => {
       const call = mockPrisma.activityLog.upsert.mock.calls[0][0];
       expect(call.where.userId_date.userId).toBe('user-ficticio-1');
       expect(call.update.questionsAnswered.increment).toBe(5);
-      expect(call.update.xpEarned.increment).toBe(50);
+      expect(call.update.gemsEarned.increment).toBe(10);
     });
   });
 
@@ -46,7 +45,6 @@ describe('ActivityService', () => {
           questionsAnswered: 20,
           nodesCompleted: 2,
           simulacrosCompleted: 0,
-          xpEarned: 200,
           gemsEarned: 15,
         },
       ]);
@@ -65,7 +63,6 @@ describe('ActivityService', () => {
           questionsAnswered: 0,
           nodesCompleted: 0,
           simulacrosCompleted: 1,
-          xpEarned: 0,
           gemsEarned: 0,
         },
       ]);
@@ -83,7 +80,6 @@ describe('ActivityService', () => {
           questionsAnswered: 50,
           nodesCompleted: 0,
           simulacrosCompleted: 0,
-          xpEarned: 500,
           gemsEarned: 100,
         },
       ]);
@@ -100,7 +96,6 @@ describe('ActivityService', () => {
           questionsAnswered: 10,
           nodesCompleted: 2,
           simulacrosCompleted: 1,
-          xpEarned: 80,
           gemsEarned: 5,
         },
       ]);
@@ -117,7 +112,6 @@ describe('ActivityService', () => {
           questionsAnswered: 0,
           nodesCompleted: 0,
           simulacrosCompleted: 0,
-          xpEarned: 0,
           gemsEarned: 0,
         },
       ]);

@@ -1,5 +1,4 @@
 import { trpc } from '../utils/trpc';
-import { getLevelFromXp, getLevelProgress } from '../lib/level';
 
 interface BackendUser {
   id: string;
@@ -13,7 +12,6 @@ interface BackendUser {
   coins?: number;
   gems?: number;
   inventory?: string[];
-  totalXp?: number;
   streak?: number;
   lastInteraction?: Date | string | null;
   isPremium?: boolean;
@@ -53,15 +51,10 @@ export function useProfileData() {
 
   const profile = user as BackendUser | undefined;
   const rank = (rankData as RankingPosition | undefined)?.rank ?? null;
-  const totalXp = profile?.totalXp ?? 0;
-  const level = getLevelFromXp(totalXp);
-  const xpProgress = getLevelProgress(totalXp);
 
   return {
     user: profile,
     rank,
-    level,
-    xpProgress,
     score: profile?.score ?? 0,
     division: profile?.division ?? 'HUEVITO',
     highestScore: profile?.highestScore ?? 0,

@@ -28,7 +28,7 @@ describe('ContributionGraph', () => {
   it('muestra actividad real en las celdas correspondientes', () => {
     const today = localISODate();
     const data: HeatmapDay[] = [
-      makeDay(today, 3, { questionsAnswered: 12, xpEarned: 60 }),
+      makeDay(today, 3, { questionsAnswered: 12 }),
     ];
 
     render(<ContributionGraph weeks={4} data={data} />);

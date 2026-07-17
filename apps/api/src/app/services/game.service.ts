@@ -3,7 +3,6 @@ import { PrismaService } from '../prisma.service';
 import { QuestionGraderService } from './question-grader.service';
 import { TRPCError } from '@trpc/server';
 import { AnswerSubmission } from '@ingresa-pe/domain';
-import { calculateNewStreak } from '../utils/streak.utils';
 import { ActivityService } from './activity.service';
 
 interface SubmitAnswerInput {
@@ -53,66 +52,60 @@ export class GameService {
     const { isCorrect, correctAnswerText, correctOrder, explanation } =
       gradeResult;
 
-    // 4. Calcular Recompensas
+    // 4. Calcular Recompensas (solo monedas/gemas, sin XP)
     const rewards = this.grader.computeRewards(question.difficulty, isCorrect);
-    const { xp: xpEarned, coins: coinsEarned } = rewards;
+    const { coins: coinsEarned } = rewards;
+    const gemsEarned = isCorrect ? GEMS_PER_CORRECT : 0;
 
-    // 5. Calcular Nueva Racha (Streak)
-    const { newStreak, shouldUpdateDate, streakIncremented } =
-      calculateNewStreak(user.streak, user.lastInteraction);
+    // Guardamos la racha previa para detectar si incrementó con esta acción
+    const previousStreak = user.streak;
 
-    // 6. Transacción Atómica: Guardar Intento y Actualizar User
-    return await this.prisma.$transaction(async (tx) => {
-      // A. Actualizar Stats del Usuario (XP, monedas, gemas y racha)
-      const gemsEarned = isCorrect ? GEMS_PER_CORRECT : 0;
-      const updatedUser = await tx.user.update({
+    // 5. Transacción Atómica: Guardar Intento y Actualizar User
+    const updatedUser = await this.prisma.$transaction(async (tx) => {
+      const userRow = await tx.user.update({
         where: { id: userId },
         data: {
-          totalXp: { increment: xpEarned },
           coins: { increment: coinsEarned },
           gems: { increment: gemsEarned },
-          streak: newStreak,
-          lastInteraction: shouldUpdateDate ? new Date() : undefined,
         },
       });
 
-      // B. Guardar el Log (Historial)
       await tx.answerLog.create({
         data: {
           userId,
           questionId: question.id,
           isCorrect,
           answer: answer as any, // Prisma Json acepta object
-          // timeTaken: ... (Podríamos recibir esto del front en el futuro)
         },
       });
 
-      // C. Registrar actividad diaria
-      await this.activityService.log({
-        userId,
-        questionsAnswered: 1,
-        questionsCorrect: isCorrect ? 1 : 0,
-        xpEarned,
-        gemsEarned,
-      });
-
-      // Retornamos el resultado procesado
-      return {
-        success: true,
-        isCorrect,
-        correctAnswerText,
-        correctOrder,
-        explanation: explanation ?? question.explanation,
-        rewards,
-        streakIncremented,
-        userStats: {
-          xp: updatedUser.totalXp,
-          energy: updatedUser.energy,
-          streak: updatedUser.streak,
-          coins: updatedUser.coins,
-          gems: updatedUser.gems,
-        },
-      };
+      return userRow;
     });
+
+    // 6. Registrar actividad diaria y sincronizar racha desde ActivityLog
+    await this.activityService.log({
+      userId,
+      questionsAnswered: 1,
+      questionsCorrect: isCorrect ? 1 : 0,
+      gemsEarned,
+    });
+    const newStreak = await this.activityService.recalculateStreak(userId);
+    const streakIncremented = newStreak > previousStreak;
+
+    return {
+      success: true,
+      isCorrect,
+      correctAnswerText,
+      correctOrder,
+      explanation: explanation ?? question.explanation,
+      rewards: { coins: coinsEarned, gems: gemsEarned },
+      streakIncremented,
+      userStats: {
+        energy: updatedUser.energy,
+        streak: newStreak,
+        coins: updatedUser.coins,
+        gems: updatedUser.gems,
+      },
+    };
   }
 }

@@ -7,7 +7,6 @@ export interface HeatmapDay {
   questionsAnswered?: number;
   nodesCompleted?: number;
   simulacrosCompleted?: number;
-  xpEarned?: number;
   gemsEarned?: number;
   isFuture?: boolean;
 }
@@ -93,7 +92,6 @@ function buildHeatmap(data: HeatmapDay[], weeks: number): HeatmapDay[] {
       questionsAnswered: log?.questionsAnswered,
       nodesCompleted: log?.nodesCompleted,
       simulacrosCompleted: log?.simulacrosCompleted,
-      xpEarned: log?.xpEarned,
       gemsEarned: log?.gemsEarned,
       isFuture: date.getTime() > today.getTime(),
     });
@@ -112,7 +110,6 @@ function tooltipText(day: HeatmapDay): string {
         day.simulacrosCompleted > 1 ? 's' : ''
       }`
     );
-  if (day.xpEarned) parts.push(`${day.xpEarned} XP`);
   if (day.gemsEarned) parts.push(`${day.gemsEarned} gemas`);
   if (parts.length === 1) parts.push('Sin actividad');
   return parts.join(' · ');

@@ -7,7 +7,6 @@ interface BackendUser {
   streak?: number;
   energy?: number;
   coins?: number;
-  totalXp?: number;
 }
 
 function mapUserToStats(user: BackendUser): UserStats {
@@ -15,7 +14,6 @@ function mapUserToStats(user: BackendUser): UserStats {
     racha: user.streak ?? 0,
     vidas: user.energy ?? 0,
     gemas: user.coins ?? 0,
-    xp: user.totalXp ?? 0,
   };
 }
 

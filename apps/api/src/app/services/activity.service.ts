@@ -6,7 +6,6 @@ export interface ActivityInput {
   questionsAnswered?: number;
   questionsCorrect?: number;
   nodesCompleted?: number;
-  xpEarned?: number;
   gemsEarned?: number;
   simulacrosCompleted?: number;
 }
@@ -31,7 +30,6 @@ export class ActivityService {
         questionsAnswered: { increment: input.questionsAnswered ?? 0 },
         questionsCorrect: { increment: input.questionsCorrect ?? 0 },
         nodesCompleted: { increment: input.nodesCompleted ?? 0 },
-        xpEarned: { increment: input.xpEarned ?? 0 },
         gemsEarned: { increment: input.gemsEarned ?? 0 },
         simulacrosCompleted: { increment: input.simulacrosCompleted ?? 0 },
       },
@@ -41,7 +39,6 @@ export class ActivityService {
         questionsAnswered: input.questionsAnswered ?? 0,
         questionsCorrect: input.questionsCorrect ?? 0,
         nodesCompleted: input.nodesCompleted ?? 0,
-        xpEarned: input.xpEarned ?? 0,
         gemsEarned: input.gemsEarned ?? 0,
         simulacrosCompleted: input.simulacrosCompleted ?? 0,
       },
@@ -69,12 +66,10 @@ export class ActivityService {
         questionsAnswered: log.questionsAnswered,
         nodesCompleted: log.nodesCompleted,
         simulacrosCompleted: log.simulacrosCompleted,
-        xpEarned: log.xpEarned,
         gemsEarned: log.gemsEarned,
       }),
       questionsAnswered: log.questionsAnswered,
       nodesCompleted: log.nodesCompleted,
-      xpEarned: log.xpEarned,
       gemsEarned: log.gemsEarned,
       simulacrosCompleted: log.simulacrosCompleted,
     }));
@@ -140,6 +135,47 @@ export class ActivityService {
   }
 
   /**
+   * Recalcula la racha del usuario a partir de los ActivityLog y sincroniza
+   * user.streak / user.lastInteraction. Devuelve la nueva racha.
+   */
+  async recalculateStreak(userId: string): Promise<number> {
+    const today = this.toDate(new Date());
+
+    const logs = await this.prisma.activityLog.findMany({
+      where: {
+        userId,
+        date: { lte: today },
+        OR: [
+          { questionsAnswered: { gt: 0 } },
+          { nodesCompleted: { gt: 0 } },
+          { simulacrosCompleted: { gt: 0 } },
+        ],
+      },
+      orderBy: { date: 'desc' },
+      select: { date: true },
+    });
+
+    let streak = 0;
+    let expectedTime = today.getTime();
+    for (const log of logs) {
+      const logTime = this.toDate(log.date).getTime();
+      if (logTime === expectedTime) {
+        streak++;
+        expectedTime -= 86_400_000;
+      } else if (logTime < expectedTime) {
+        break;
+      }
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { streak, lastInteraction: new Date() },
+    });
+
+    return streak;
+  }
+
+  /**
    * Estadísticas agregadas para el perfil.
    */
   async getStats(userId: string) {
@@ -173,11 +209,10 @@ export class ActivityService {
     questionsAnswered: number;
     nodesCompleted: number;
     simulacrosCompleted: number;
-    xpEarned: number;
     gemsEarned: number;
   }): number {
     // La intensidad refleja unidades de contenido completadas, no volumen de
-    // preguntas/XP/gemas. Un simulacro cuenta el doble que un nodo del path.
+    // preguntas/gemas. Un simulacro cuenta el doble que un nodo del path.
     const value = log.nodesCompleted + log.simulacrosCompleted * 2;
     if (value === 0) return 0;
     if (value === 1) return 1;

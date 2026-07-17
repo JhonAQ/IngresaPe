@@ -30,7 +30,7 @@ export function HeroDailyChallenge({ tickets, onPlay }: HeroDailyChallengeProps)
           Fiebre de Lectura
         </h3>
         <p className="font-bold text-white/90 text-[14px] leading-snug">
-          Gana el TRIPLE de EXP superando retos de comprensión.
+          Gana el TRIPLE de monedas superando retos de comprensión.
         </p>
       </div>
 

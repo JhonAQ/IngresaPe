@@ -1,7 +1,7 @@
 import { BookOpen, Target, Smartphone, Layers } from 'lucide-react';
 import type { TemaData, UserStats, Course } from '../types/index';
 
-export const userStats: UserStats = { racha: 12, vidas: 5, gemas: 450, xp: 2850 };
+export const userStats: UserStats = { racha: 12, vidas: 5, gemas: 450 };
 
 export const mockCourses: Course[] = [
   { id: '1', title: 'Biología Celular', progress: 35 },

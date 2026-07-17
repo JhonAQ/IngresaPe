@@ -129,7 +129,6 @@ export const examResultSchema = z.object({
   incorrectCount: z.number(),
   blankCount: z.number(),
   timeUsedSeconds: z.number(),
-  xpEarned: z.number(),
   coinsEarned: z.number(),
 });
 export type ExamResultDto = z.infer<typeof examResultSchema>;

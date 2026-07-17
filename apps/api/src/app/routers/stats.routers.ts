@@ -18,22 +18,19 @@ export class StatsRouter {
       // 1. Datos del Usuario
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        select: { totalXp: true, streak: true, energy: true, name: true }
+        select: { streak: true, energy: true, name: true }
       });
 
       if (!user) throw new Error('Usuario no encontrado');
 
-      // 2. Calcular Nivel (Fórmula simple: Nivel = Raíz cuadrada de XP / 10)
-      const level = Math.floor(Math.sqrt(user.totalXp) * 0.5) + 1;
-
-      // 3. Cuenta Regresiva (Hardcoded por ahora: Examen UNSA aprox Agosto/Sept)
+      // 2. Cuenta Regresiva (Hardcoded por ahora: Examen UNSA aprox Agosto/Sept)
       // OJO: Cámbialo a la fecha real de tu examen objetivo
-      const examDate = new Date('2025-08-15'); 
+      const examDate = new Date('2025-08-15');
       const today = new Date();
       const diffTime = Math.abs(examDate.getTime() - today.getTime());
       const daysUntilExam = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-      // 4. Preguntas respondidas HOY (Para la gráfica diaria)
+      // 3. Preguntas respondidas HOY (Para la gráfica diaria)
       const startOfDay = new Date();
       startOfDay.setHours(0,0,0,0);
 
@@ -47,15 +44,12 @@ export class StatsRouter {
       return {
         user: {
             name: user.name,
-            level,
-            xp: user.totalXp,
             energy: user.energy,
             streak: user.streak
         },
         stats: {
             daysUntilExam,
             questionsToday,
-            // Aquí podríamos agregar "weeklyProgress" más adelante
         }
       };
     }),

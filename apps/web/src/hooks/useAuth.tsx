@@ -24,7 +24,6 @@ interface AuthUser {
   role?: string;
   energy?: number;
   coins?: number;
-  totalXp?: number;
   streak?: number;
   isPremium?: boolean;
 }

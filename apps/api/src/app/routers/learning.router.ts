@@ -5,7 +5,6 @@ import { PrismaService } from '../prisma.service';
 import { TRPCError } from '@trpc/server';
 import { QuestionGraderService } from '../services/question-grader.service';
 import { answerSubmissionSchema } from '@ingresa-pe/domain';
-import { calculateNewStreak } from '../utils/streak.utils';
 import { ActivityService } from '../services/activity.service';
 
 const GEMS_PER_CORRECT = 1;
@@ -77,13 +76,12 @@ export class LearningRouter {
 
         const gradeResult = this.grader.grade(question, answer);
         const { isCorrect, correctAnswerText, explanation } = gradeResult;
-        const { xp: xpEarned, coins: coinsEarned } = this.grader.computeRewards(
+        const { coins: coinsEarned } = this.grader.computeRewards(
           question.difficulty,
           isCorrect
         );
         const gemsEarned = isCorrect ? GEMS_PER_CORRECT : 0;
 
-        const now = new Date();
         const user = await this.prisma.user.findUnique({
           where: { id: ctx.user.userId },
         });
@@ -95,17 +93,13 @@ export class LearningRouter {
           });
         }
 
-        const { newStreak, shouldUpdateDate, streakIncremented } =
-          calculateNewStreak(user.streak, user.lastInteraction);
+        const previousStreak = user.streak;
 
         await this.prisma.user.update({
           where: { id: ctx.user.userId },
           data: {
-            totalXp: { increment: xpEarned },
             coins: { increment: coinsEarned },
             gems: { increment: gemsEarned },
-            streak: newStreak,
-            lastInteraction: shouldUpdateDate ? now : undefined,
           },
         });
 
@@ -122,15 +116,17 @@ export class LearningRouter {
           userId: ctx.user.userId,
           questionsAnswered: 1,
           questionsCorrect: isCorrect ? 1 : 0,
-          xpEarned,
           gemsEarned,
         });
+
+        const newStreak = await this.activityService.recalculateStreak(ctx.user.userId);
+        const streakIncremented = newStreak > previousStreak;
 
         return {
           correct: isCorrect,
           correctAnswerText,
           explanation: explanation ?? question.explanation,
-          rewards: { xp: xpEarned, coins: coinsEarned, gems: gemsEarned },
+          rewards: { coins: coinsEarned, gems: gemsEarned },
           streakIncremented,
           newTotalCoins: (user?.coins || 0) + coinsEarned,
           newTotalGems: (user?.gems || 0) + gemsEarned,

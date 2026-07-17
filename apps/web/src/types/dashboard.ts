@@ -14,7 +14,6 @@ export interface UserStats {
   racha: number;
   vidas: number;
   gemas: number;
-  xp: number;
 }
 
 export interface TemaData {

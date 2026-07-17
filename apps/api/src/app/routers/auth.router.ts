@@ -97,14 +97,13 @@ export class AuthRouter {
         // Si llegamos aquí, el token ya fue validado por el middleware
         const user = await this.prisma.user.findUnique({
           where: { id: ctx.user.userId },
-          select: { 
-            id: true, 
-            name: true, 
-            email: true, 
-            role: true, 
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
             image: true,
-            energy: true, 
-            totalXp: true 
+            energy: true
           }
         });
         

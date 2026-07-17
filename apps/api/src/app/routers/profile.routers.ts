@@ -74,7 +74,6 @@ export class ProfileRouter {
           gems: true,
           inventory: true,
           lastRefill: true,
-          totalXp: true,
           streak: true,
           lastInteraction: true,
           isPremium: true,

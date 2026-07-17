@@ -84,20 +84,20 @@ export class QuestionGraderService {
   computeRewards(
     difficulty: Difficulty,
     isCorrect: boolean
-  ): { xp: number; coins: number } {
+  ): { coins: number } {
     if (!isCorrect) {
-      return { xp: 5, coins: 0 }; // XP consuelo
+      return { coins: 0 };
     }
 
     switch (difficulty) {
       case 'EASY':
-        return { xp: 10, coins: 5 };
+        return { coins: 5 };
       case 'MEDIUM':
-        return { xp: 20, coins: 10 };
+        return { coins: 10 };
       case 'HARD':
-        return { xp: 30, coins: 15 };
+        return { coins: 15 };
       default:
-        return { xp: 20, coins: 10 };
+        return { coins: 10 };
     }
   }
 

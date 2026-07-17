@@ -156,7 +156,6 @@ export function Engine() {
         onClose={handleConfirmExit}
         correctCount={correctCount}
         totalQuestions={questions.length}
-        xpGained={totalRewards.xp}
         coinsGained={totalRewards.coins}
         durationSeconds={durationSeconds}
         streakIncremented={streakIncremented}

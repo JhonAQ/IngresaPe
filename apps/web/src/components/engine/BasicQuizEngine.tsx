@@ -79,7 +79,7 @@ export function BasicQuizEngine({ onClose }: { onClose: () => void }) {
       setStatus('idle');
       setIsCorrect(null);
     } else {
-      alert('¡Lección Completada! Ganaste +15 EXP');
+      alert('¡Lección Completada! Ganaste +15 monedas');
       onClose();
     }
   };

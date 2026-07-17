@@ -262,6 +262,8 @@ export class ContentRouter {
           nodesCompleted: 1,
         });
 
+        await this.activityService.recalculateStreak(userId);
+
         return { success: true, completedNodeIndex: nodeIndex };
       }),
   });

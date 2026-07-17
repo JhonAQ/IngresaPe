@@ -30,7 +30,6 @@ const submitSchema = z.object({
   ),
 });
 
-const XP_PER_CORRECT = 10;
 const COINS_PER_CORRECT = 5;
 
 @Injectable()
@@ -546,7 +545,7 @@ export class SimulacroRouter {
               Math.floor((Date.now() - attempt.startedAt.getTime()) / 1000)
             );
 
-        const xpEarned = correctCount * XP_PER_CORRECT;
+        const xpEarned = 0;
         const coinsEarned = correctCount * COINS_PER_CORRECT;
 
         await this.prisma.$transaction(async (tx) => {
@@ -575,7 +574,6 @@ export class SimulacroRouter {
             await tx.user.update({
               where: { id: ctx.user.userId },
               data: {
-                totalXp: { increment: xpEarned },
                 coins: { increment: coinsEarned },
                 lastExamScore: score,
               },
@@ -586,7 +584,6 @@ export class SimulacroRouter {
         await this.activityService.log({
           userId: ctx.user.userId,
           simulacrosCompleted: 1,
-          xpEarned,
         });
 
         if (attempt.isOfficial) {
@@ -606,7 +603,6 @@ export class SimulacroRouter {
           blankCount,
           totalAnswered,
           timeUsedSeconds,
-          xpEarned,
           coinsEarned,
         };
       }),

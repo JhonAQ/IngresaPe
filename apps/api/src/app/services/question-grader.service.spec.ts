@@ -270,13 +270,13 @@ describe('QuestionGraderService', () => {
 
   describe('computeRewards', () => {
     it('devuelve recompensas por dificultad cuando acierta', () => {
-      expect(grader.computeRewards(Difficulty.EASY, true)).toEqual({ xp: 10, coins: 5 });
-      expect(grader.computeRewards(Difficulty.MEDIUM, true)).toEqual({ xp: 20, coins: 10 });
-      expect(grader.computeRewards(Difficulty.HARD, true)).toEqual({ xp: 30, coins: 15 });
+      expect(grader.computeRewards(Difficulty.EASY, true)).toEqual({ coins: 5 });
+      expect(grader.computeRewards(Difficulty.MEDIUM, true)).toEqual({ coins: 10 });
+      expect(grader.computeRewards(Difficulty.HARD, true)).toEqual({ coins: 15 });
     });
 
-    it('devuelve XP de consuelo cuando falla', () => {
-      expect(grader.computeRewards(Difficulty.MEDIUM, false)).toEqual({ xp: 5, coins: 0 });
+    it('no otorga recompensas cuando falla', () => {
+      expect(grader.computeRewards(Difficulty.MEDIUM, false)).toEqual({ coins: 0 });
     });
   });
 });

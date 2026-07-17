@@ -55,7 +55,7 @@ const powerUps = [
 const premiumBenefits = [
   { icon: Zap, text: 'Energía ilimitada' },
   { icon: Sparkles, text: 'Explicaciones con IA sin límites' },
-  { icon: Star, text: 'Doble XP en cada lección' },
+  { icon: Star, text: 'Doble de monedas en cada lección' },
 ];
 
 const containerVariants = {

@@ -2,11 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, Share2 } from 'lucide-react';
+import { ChevronRight, Share2, CheckCircle2 } from 'lucide-react';
 import { ChunkyTrophy } from './ChunkyTrophy';
 import { AnimatedCounter } from './AnimatedCounter';
 import {
-  XpIcon,
   FlameIcon,
   GemIcon,
   FreezeHotIcon,
@@ -19,7 +18,6 @@ interface CompletionScreenProps {
   onClose: () => void;
   correctCount: number;
   totalQuestions: number;
-  xpGained: number;
   coinsGained: number;
   durationSeconds: number;
   streakIncremented: boolean;
@@ -107,14 +105,12 @@ function StreakCard({
   onShare,
   correctCount,
   totalQuestions,
-  xpGained,
 }: {
   show: boolean;
   streak: number;
   onShare: () => void;
   correctCount: number;
   totalQuestions: number;
-  xpGained: number;
 }) {
   return (
     <AnimatePresence>
@@ -155,7 +151,7 @@ function StreakCard({
               if (navigator.share) {
                 void navigator.share({
                   title: '¡Terminé un nodo en ingresa.pe!',
-                  text: `Acerté ${correctCount}/${totalQuestions} y gané ${xpGained} XP.`,
+                  text: `Acerté ${correctCount}/${totalQuestions} preguntas y completé un nodo en ingresa.pe.`,
                   url: window.location.href,
                 });
               } else {
@@ -272,7 +268,6 @@ export function CompletionScreen({
   onClose,
   correctCount,
   totalQuestions,
-  xpGained,
   coinsGained,
   durationSeconds,
   streakIncremented,
@@ -281,7 +276,7 @@ export function CompletionScreen({
   const streak = user?.streak ?? 0;
   const accuracy = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
 
-  const [showExp, setShowExp] = useState(false);
+  const [showCorrect, setShowCorrect] = useState(false);
   const [showAcc, setShowAcc] = useState(false);
   const [showTime, setShowTime] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
@@ -289,7 +284,7 @@ export function CompletionScreen({
 
   useEffect(() => {
     const timers = [
-      setTimeout(() => setShowExp(true), 800),
+      setTimeout(() => setShowCorrect(true), 800),
       setTimeout(() => setShowAcc(true), 1400),
       setTimeout(() => setShowTime(true), 2000),
       setTimeout(() => setShowSummary(true), 2800),
@@ -333,36 +328,36 @@ export function CompletionScreen({
         <main className="w-full flex flex-col gap-4">
           <div className="grid grid-cols-3 gap-3 min-h-[110px]">
             <StatCard
-              show={showExp}
-              header="EXP Ganada"
-              icon={<XpIcon className="w-6 h-6 text-[#ffc800]" />}
-              value={xpGained}
-              prefix="+"
-              bgColor="bg-[#ffc800]"
-              borderColor="border-[#e5a900]"
-              textColor="text-[#e5a900]"
-            />
-
-            <StatCard
-              show={showAcc}
-              header="Precisión"
-              icon={<TargetIcon className="w-6 h-6 text-[#58cc02]" />}
-              value={accuracy}
-              suffix="%"
+              show={showCorrect}
+              header="Correctas"
+              icon={<CheckCircle2 className="w-6 h-6 text-[#58cc02]" />}
+              value={correctCount}
+              suffix={`/${totalQuestions}`}
               bgColor="bg-[#58cc02]"
               borderColor="border-[#58a700]"
               textColor="text-[#58a700]"
             />
 
             <StatCard
-              show={showTime}
-              header="Tiempo"
-              icon={<TimerIcon className="w-6 h-6 text-[#1cb0f6]" />}
-              value={durationSeconds}
-              formatTime
+              show={showAcc}
+              header="Precisión"
+              icon={<TargetIcon className="w-6 h-6 text-[#1cb0f6]" />}
+              value={accuracy}
+              suffix="%"
               bgColor="bg-[#1cb0f6]"
               borderColor="border-[#1899d6]"
               textColor="text-[#1899d6]"
+            />
+
+            <StatCard
+              show={showTime}
+              header="Tiempo"
+              icon={<TimerIcon className="w-6 h-6 text-[#ff9600]" />}
+              value={durationSeconds}
+              formatTime
+              bgColor="bg-[#ff9600]"
+              borderColor="border-[#e5a900]"
+              textColor="text-[#e5a900]"
             />
           </div>
 
@@ -372,7 +367,6 @@ export function CompletionScreen({
               streak={streak}
               correctCount={correctCount}
               totalQuestions={totalQuestions}
-              xpGained={xpGained}
               onShare={() => {
                 // Fallback cuando navigator.share no está disponible.
               }}

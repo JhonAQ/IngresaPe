@@ -1,7 +1,7 @@
 import { BookOpen, Target, Smartphone, Layers } from "lucide-react";
 import { TemaData, UserStats } from "@ingresa-pe/domain";
 
-export const userStats: UserStats = { racha: 12, vidas: 5, gemas: 450, xp: 2850 };
+export const userStats: UserStats = { racha: 12, vidas: 5, gemas: 450 };
 
 export interface Course {
   id: string;
