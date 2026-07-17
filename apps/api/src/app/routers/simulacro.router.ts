@@ -253,7 +253,8 @@ export class SimulacroRouter {
             questionIds,
             isOfficial,
             seasonId: isOfficial ? season.id : null,
-            timerStartedAt: isOfficial ? new Date() : null,
+            timerStartedAt: new Date(),
+            serverTimeLimitSec: exam.timeLimitMinutes * 60,
           },
           select: { id: true },
         });
@@ -350,7 +351,8 @@ export class SimulacroRouter {
             questionIds,
             isOfficial,
             seasonId: isOfficial ? season.id : null,
-            timerStartedAt: isOfficial ? new Date() : null,
+            timerStartedAt: new Date(),
+            serverTimeLimitSec: input.timeLimitMinutes * 60,
           },
           select: { id: true },
         });

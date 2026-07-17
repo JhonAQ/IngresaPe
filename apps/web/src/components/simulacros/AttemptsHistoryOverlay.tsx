@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -47,7 +48,9 @@ function getAttemptTitle(attempt: ExamAttemptSummaryDto): string {
 
 export function AttemptsHistoryOverlay() {
   const { mode, close } = useImmersiveOverlay();
-  const { data: attempts = [], isLoading } = trpc.simulacro.getRecentAttempts.useQuery();
+  const router = useRouter();
+  const { data: attempts = [], isLoading } =
+    trpc.simulacro.getRecentAttempts.useQuery();
 
   const isOpen = mode === 'attemptsHistory';
 
@@ -93,7 +96,11 @@ export function AttemptsHistoryOverlay() {
         ) : attempts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 px-5 text-center">
             <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
-              <FileText size={28} className="text-slate-400" strokeWidth={2.5} />
+              <FileText
+                size={28}
+                className="text-slate-400"
+                strokeWidth={2.5}
+              />
             </div>
             <h3 className="text-xl font-black text-slate-800 mb-2">
               Aún no has dado ningún simulacro
@@ -162,13 +169,16 @@ export function AttemptsHistoryOverlay() {
 
                       <div className="flex items-center gap-2 text-slate-500 font-bold text-[9px] mb-3">
                         <span className="flex items-center gap-0.5">
-                          <CheckCircle size={10} className="text-emerald-500" /> {correct}
+                          <CheckCircle size={10} className="text-emerald-500" />{' '}
+                          {correct}
                         </span>
                         <span className="flex items-center gap-0.5">
-                          <XCircle size={10} className="text-rose-500" /> {incorrect}
+                          <XCircle size={10} className="text-rose-500" />{' '}
+                          {incorrect}
                         </span>
                         <span className="flex items-center gap-0.5">
-                          <Clock size={10} /> {formatDuration(attempt.timeUsedSeconds)}
+                          <Clock size={10} />{' '}
+                          {formatDuration(attempt.timeUsedSeconds)}
                         </span>
                       </div>
 
@@ -176,7 +186,12 @@ export function AttemptsHistoryOverlay() {
                         className="w-full py-1.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center gap-1 text-[9px] font-black text-slate-500 uppercase tracking-widest hover:bg-blue-50 hover:text-blue-500 hover:border-blue-100 transition-colors"
                         onClick={(e) => {
                           e.stopPropagation();
-                          // TODO: navegar a revisión del intento
+                          if (isCompleted) {
+                            // TODO: navegar a revisión del intento
+                            return;
+                          }
+                          close();
+                          router.push(`/simulator?attemptId=${attempt.id}`);
                         }}
                       >
                         <RotateCcw size={10} strokeWidth={3} />

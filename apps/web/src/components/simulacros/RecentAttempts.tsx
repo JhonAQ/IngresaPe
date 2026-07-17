@@ -8,6 +8,7 @@ import {
   Clock,
   RotateCcw,
   ChevronRight,
+  Play,
 } from 'lucide-react';
 import { Button3D } from '../ui/Button3D';
 import { useImmersiveOverlay } from '../dashboard/ImmersiveOverlayContext';
@@ -75,13 +76,21 @@ export const RecentAttempts: React.FC<RecentAttemptsProps> = ({
 
   const isStarting = startGenerated.isPending || startArchive.isPending;
 
-  const handleRetake = (attempt: ExamAttemptSummaryDto) => {
+  const handleAction = (attempt: ExamAttemptSummaryDto) => {
+    if (attempt.status !== 'COMPLETED') {
+      router.push(`/simulator?attemptId=${attempt.id}`);
+      return;
+    }
+
     if (attempt.mode === 'ARCHIVE' && attempt.examId) {
       startArchive.mutate({ examId: attempt.examId });
     } else {
       startGenerated.mutate({
         questionCount: attempt.questionCount,
-        timeLimitMinutes: Math.max(1, Math.round(attempt.timeLimitSeconds / 60)),
+        timeLimitMinutes: Math.max(
+          1,
+          Math.round(attempt.timeLimitSeconds / 60)
+        ),
         strategy: 'RANDOM',
       });
     }
@@ -158,8 +167,7 @@ export const RecentAttempts: React.FC<RecentAttemptsProps> = ({
                   <span className="text-slate-400 text-[9px]">BIEN</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <XCircle size={14} className="text-rose-500" />{' '}
-                  {incorrect}{' '}
+                  <XCircle size={14} className="text-rose-500" /> {incorrect}{' '}
                   <span className="text-slate-400 text-[9px]">MAL</span>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -172,11 +180,15 @@ export const RecentAttempts: React.FC<RecentAttemptsProps> = ({
                   Revisar Fallos
                 </Button3D>
                 <button
-                  onClick={() => handleRetake(attempt)}
+                  onClick={() => handleAction(attempt)}
                   disabled={isStarting}
                   className="w-12 h-12 bg-white border-2 border-slate-200 border-b-4 border-b-slate-300 rounded-2xl flex items-center justify-center text-slate-400 active:translate-y-[2px] active:border-b-0 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <RotateCcw size={20} strokeWidth={3} />
+                  {isCompleted ? (
+                    <RotateCcw size={20} strokeWidth={3} />
+                  ) : (
+                    <Play size={20} strokeWidth={3} />
+                  )}
                 </button>
               </div>
             </div>

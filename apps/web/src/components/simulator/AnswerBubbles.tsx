@@ -18,7 +18,7 @@ export const AnswerBubbles = ({
   selectedOptionId,
   onSelect,
 }: AnswerBubblesProps) => (
-  <div className="bg-white px-6 py-5 flex items-center gap-5 justify-center pb-safe">
+  <div className="bg-white px-6 pt-5 pb-6 flex items-center gap-5 justify-center">
     <span className="text-[#ef4444] font-black text-2xl tracking-tighter">
       {questionNumber.toString().padStart(3, '0')}.
     </span>

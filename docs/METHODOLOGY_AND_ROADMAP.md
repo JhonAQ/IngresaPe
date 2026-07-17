@@ -40,24 +40,31 @@ Ahora el peligro es el **"desarrollo horizontal de nuevo"**: saltar entre muchas
 ### Reglas de Oro para un Solo Dev
 
 #### Regla 1: "Una Feature, Un PR mental"
+
 Nunca trabajes en más de 1 feature a la vez. Termínala antes de empezar la siguiente.
 
 #### Regla 2: "Backend primero, Frontend después (por feature)"
+
 Dentro de cada vertical slice:
+
 1. Verifica/arregla el endpoint del backend.
 2. Crea el hook del frontend que lo consume.
 3. Conecta el componente existente al hook.
 
 #### Regla 3: "Seguridad antes de features nuevas"
+
 No agregues más funcionalidad visible hasta que los secretos, CORS y JWT estén saneados. Es aburrido pero evita catástrofes.
 
 #### Regla 4: "Funcional > Bonito"
+
 Tu UI ya es bonita. Ahora el trabajo es hacerla FUNCIONAL. No toques CSS/animaciones hasta que los datos sean reales.
 
 #### Regla 5: "Máximo 2 horas sin ver un resultado"
+
 Si llevas 2 horas y no ves algo nuevo funcionando, estás haciendo algo mal. Divide la tarea más.
 
 #### Regla 6: "Commit por micro-feature"
+
 Cada paso debería ser un commit descriptivo.
 
 ---
@@ -71,16 +78,19 @@ Cada paso debería ser un commit descriptivo.
 ---
 
 ### FASE 0: SEGURIDAD CRÍTICA (Día 1)
-*"Arreglar lo roto antes de construir encima"*
+
+_"Arreglar lo roto antes de construir encima"_
 
 #### Paso 0.1 — Rotar secretos y asegurar `.env` ⏱️ 30 min
 
 **Archivos a tocar:**
+
 - `.env` (raíz del monorepo) — ya está en `.gitignore`, NO commitear
 - `.env.example` — actualizar con placeholders
 - Tus credenciales de Google Cloud Console
 
 **Qué hacer:**
+
 1. Generar nuevo `JWT_SECRET`: `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"`
 2. Rotar `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` en Google Cloud.
 3. Actualizar `.env` local con los nuevos valores.
@@ -93,11 +103,13 @@ Cada paso debería ser un commit descriptivo.
 #### Paso 0.2 — Eliminar fallback `'secret'` del JWT ⏱️ 15 min
 
 **Archivos a tocar:**
+
 - `apps/api/src/app/app.module.ts`
 - `apps/api/src/app/services/auth.service.ts`
 - `apps/api/src/app/trpc.context.ts`
 
 **Qué hacer:**
+
 ```typescript
 // CAMBIAR:
 secret: process.env.JWT_SECRET || 'secret',
@@ -115,6 +127,7 @@ Si `JWT_SECRET` no está definido, el servidor debe fallar al arrancar (fail fas
 **Archivo:** `apps/api/src/main.ts`
 
 **Qué hacer:**
+
 ```typescript
 const allowedOrigins = process.env.CORS_ORIGINS?.split(',') ?? [
   'http://localhost:4200',
@@ -138,7 +151,8 @@ Eliminar o condicionar el `console.log` del body de requests `/trpc` que corre e
 ---
 
 ### FASE 1: FUNCIONALIDADES DECORATIVAS Y RIESGO (Días 2-6)
-*"Conectar lo que ya existe en el backend o deshabilitar lo que no sirve"*
+
+_"Conectar lo que ya existe en el backend o deshabilitar lo que no sirve"_
 
 ---
 
@@ -149,6 +163,7 @@ Eliminar o condicionar el `console.log` del body de requests `/trpc` que corre e
 **Frontend:** `apps/web/src/app/shop/page.tsx`
 
 **Qué hacer:**
+
 1. Llamar `trpc.shop.getCatalog.useQuery()` para listar items.
 2. Mostrar precio en **gemas**.
 3. Llamar `trpc.shop.buyItem.useMutation()` al comprar.
@@ -166,6 +181,7 @@ Eliminar o condicionar el `console.log` del body de requests `/trpc` que corre e
 **Backend:** `apps/api/src/app/routers/stats.routers.ts`
 
 **Qué hacer:**
+
 1. Cambiar `new Date('2025-08-15')` por una fecha futura configurable (env var o constante centralizada).
 2. En `useDashboardData.ts`, reemplazar el mock `temarioMock` por `stats.getDashboard` o eliminar el fallback mock.
 
@@ -174,17 +190,20 @@ Eliminar o condicionar el `console.log` del body de requests `/trpc` que corre e
 #### Paso 1.3 — Progreso real en `/cursos` y `CourseProgressList` ⏱️ 1.5 horas
 
 **Archivos:**
+
 - `apps/web/src/app/(app)/cursos/page.tsx`
 - `apps/web/src/components/perfil/CourseProgressList.tsx`
 
 **Qué hacer:**
+
 1. Calcular progreso por curso desde `content.getTopics` o `profile.getAcademicDNA`.
 2. Eliminar `progress: 0` hardcoded.
 
 ---
 
 ### FASE 2: CONSISTENCIA DEL ENGINE Y GAMIFICACIÓN (Días 7-10)
-*"El engine debe usar la misma energía real que el resto de la app"*
+
+_"El engine debe usar la misma energía real que el resto de la app"_
 
 ---
 
@@ -193,6 +212,7 @@ Eliminar o condicionar el `console.log` del body de requests `/trpc` que corre e
 **Problema:** `TopicList` gasta -5 energía al iniciar nodo, pero dentro del engine `useEngine` usa "vidas locales". El usuario ve dos sistemas.
 
 **Opciones:**
+
 - **Opción A (recomendada):** eliminar vidas locales del engine; cada respuesta no cuesta energía adicional (ya pagó al entrar).
 - **Opción B:** hacer que `game.submitAnswer` reste 1 energía por respuesta y quitar `spendNodeEnergy`.
 
@@ -221,7 +241,8 @@ Mostrar score, aciertos/errores/blancos, tiempo usado, monedas ganadas y delta d
 ---
 
 ### FASE 3: FEATURES SECUNDARIAS (Días 11-18)
-*"Una vez que el core está sano"*
+
+_"Una vez que el core está sano"_
 
 ---
 
@@ -230,9 +251,11 @@ Mostrar score, aciertos/errores/blancos, tiempo usado, monedas ganadas y delta d
 **Backend:** `admin.createQuestion`, `subscription.getPendingRequests`, `subscription.processRequest`.
 
 **Archivos a crear:**
+
 - `apps/web/src/app/(app)/admin/page.tsx` (protegido por role)
 
 **Qué hacer:**
+
 1. Formulario para crear preguntas por tipo.
 2. Tabla de suscripciones pendientes con botones Aprobar/Rechazar.
 
@@ -242,6 +265,7 @@ Mostrar score, aciertos/errores/blancos, tiempo usado, monedas ganadas y delta d
 
 **Qué hacer:**
 Conectar cada minijuego al engine existente:
+
 - **Supervivencia:** 1 error = fin.
 - **Contrarreloj:** 60 segundos, máximo preguntas.
 - **Racha Perfecta:** 10 correctas seguidas.
@@ -253,6 +277,7 @@ Usa `content.getQuestions` o `learning.getRandomQuestion`.
 #### Paso 3.3 — Recuperación de contraseña ⏱️ 3 horas
 
 **Qué hacer:**
+
 1. Endpoint `auth.requestPasswordReset` que genere token y "simule" envío (log por ahora).
 2. Página `/forgot-password` y `/reset-password`.
 3. Endpoint `auth.resetPassword`.
@@ -260,13 +285,15 @@ Usa `content.getQuestions` o `learning.getRandomQuestion`.
 ---
 
 ### FASE 4: LIMPIEZA TÉCNICA (Día 19+)
-*"Borrar lo que no sirve y consolidar duplicados"*
+
+_"Borrar lo que no sirve y consolidar duplicados"_
 
 ---
 
 #### Paso 4.1 — Eliminar código muerto ⏱️ 1 hora
 
 **Eliminar:**
+
 - `apps/api/src/app/app.controller.ts` y `app.controller.spec.ts`
 - `apps/api/src/app/app.service.ts` y `app.service.spec.ts`
 - `apps/web/src/components/engine/BasicQuizEngine.tsx` (o su export)

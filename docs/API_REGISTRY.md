@@ -118,13 +118,13 @@ appRouter
 
 #### `healthCheck` — Verificación de Salud
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Público |
-| **Input** | Ninguno |
-| **Output** | `string` → `"OK"` |
-| **Frontend** | No conectado |
+| Propiedad    | Valor             |
+| ------------ | ----------------- |
+| **Tipo**     | `query`           |
+| **Auth**     | Público           |
+| **Input**    | Ninguno           |
+| **Output**   | `string` → `"OK"` |
+| **Frontend** | No conectado      |
 
 ---
 
@@ -134,24 +134,26 @@ Ubicación: `apps/api/src/app/routers/auth.router.ts`
 
 #### `auth.register` — Registro de Usuario
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `mutation` |
-| **Auth** | Público |
-| **Input** | `registerSchema` de `@ingresa-pe/domain` |
-| **Output** | `{ message, token, user }` |
-| **Frontend** | Conectado en `/register` |
+| Propiedad    | Valor                                    |
+| ------------ | ---------------------------------------- |
+| **Tipo**     | `mutation`                               |
+| **Auth**     | Público                                  |
+| **Input**    | `registerSchema` de `@ingresa-pe/domain` |
+| **Output**   | `{ message, token, user }`               |
+| **Frontend** | Conectado en `/register`                 |
 
 **Input Schema (Zod):**
+
 ```typescript
 {
-  name: string     // min 2, max 100, trimmed
-  email: string    // email válido, lowercase, trimmed
-  password: string // min 6, max 100
+  name: string; // min 2, max 100, trimmed
+  email: string; // email válido, lowercase, trimmed
+  password: string; // min 6, max 100
 }
 ```
 
 **Output:**
+
 ```typescript
 {
   message: "¡Bienvenido a Ingresa.pe!",
@@ -164,23 +166,25 @@ Ubicación: `apps/api/src/app/routers/auth.router.ts`
 
 #### `auth.login` — Inicio de Sesión
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `mutation` |
-| **Auth** | Público |
-| **Input** | `loginSchema` de `@ingresa-pe/domain` |
-| **Output** | `{ message, token, user }` |
-| **Frontend** | Conectado en `/login` |
+| Propiedad    | Valor                                 |
+| ------------ | ------------------------------------- |
+| **Tipo**     | `mutation`                            |
+| **Auth**     | Público                               |
+| **Input**    | `loginSchema` de `@ingresa-pe/domain` |
+| **Output**   | `{ message, token, user }`            |
+| **Frontend** | Conectado en `/login`                 |
 
 **Input Schema (Zod):**
+
 ```typescript
 {
-  email: string    // email válido, lowercase, trimmed
-  password: string // min 1
+  email: string; // email válido, lowercase, trimmed
+  password: string; // min 1
 }
 ```
 
 **Errores:**
+
 - `UNAUTHORIZED` → "Credenciales inválidas"
 - `CONFLICT` → "Este correo ya está registrado" (solo en register)
 
@@ -188,15 +192,16 @@ Ubicación: `apps/api/src/app/routers/auth.router.ts`
 
 #### `auth.me` — Obtener Usuario Actual
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido (JWT) |
-| **Input** | Ninguno |
-| **Output** | Objeto de usuario reducido |
-| **Frontend** | Conectado vía `useAuth` |
+| Propiedad    | Valor                      |
+| ------------ | -------------------------- |
+| **Tipo**     | `query`                    |
+| **Auth**     | Protegido (JWT)            |
+| **Input**    | Ninguno                    |
+| **Output**   | Objeto de usuario reducido |
+| **Frontend** | Conectado vía `useAuth`    |
 
 **Output:**
+
 ```typescript
 {
   id: string,
@@ -218,47 +223,49 @@ Ubicación: `apps/api/src/app/routers/content.router.ts`
 
 #### `content.getCourses` — Obtener Todos los Cursos
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido |
-| **Input** | Ninguno |
-| **Output** | `Course[]` con conteo de temas |
+| Propiedad    | Valor                                 |
+| ------------ | ------------------------------------- |
+| **Tipo**     | `query`                               |
+| **Auth**     | Protegido                             |
+| **Input**    | Ninguno                               |
+| **Output**   | `Course[]` con conteo de temas        |
 | **Frontend** | Conectado en `/cursos` y `/dashboard` |
 
 **Output:**
+
 ```typescript
 [
   {
-    id: "uuid",
-    name: "Razonamiento Matemático",
-    slug: "razonamiento-matematico",
+    id: 'uuid',
+    name: 'Razonamiento Matemático',
+    slug: 'razonamiento-matematico',
     iconUrl: string | null,
-    _count: { topics: 3 }
-  }
-]
+    _count: { topics: 3 },
+  },
+];
 ```
 
 ---
 
 #### `content.getTopics` — Obtener Temas de un Curso
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido |
-| **Input** | `{ courseId: string }` |
-| **Output** | Temas con progreso del usuario |
-| **Frontend** | Conectado en `/dashboard` |
+| Propiedad    | Valor                          |
+| ------------ | ------------------------------ |
+| **Tipo**     | `query`                        |
+| **Auth**     | Protegido                      |
+| **Input**    | `{ courseId: string }`         |
+| **Output**   | Temas con progreso del usuario |
+| **Frontend** | Conectado en `/dashboard`      |
 
 **Output:**
+
 ```typescript
 {
   topics: [
     {
-      id: "uuid",
-      name: "Ecuaciones de primer grado",
-      slug: "ecuaciones-primer-grado",
+      id: 'uuid',
+      name: 'Ecuaciones de primer grado',
+      slug: 'ecuaciones-primer-grado',
       order: 1,
       summary: ParsedSummaryBlocks,
       totalQuestions: number,
@@ -271,10 +278,10 @@ Ubicación: `apps/api/src/app/routers/content.router.ts`
         goal: 15,
         percentage: number,
         isGold: boolean,
-        isCompleted: boolean
-      }
-    }
-  ]
+        isCompleted: boolean,
+      },
+    },
+  ];
 }
 ```
 
@@ -282,15 +289,16 @@ Ubicación: `apps/api/src/app/routers/content.router.ts`
 
 #### `content.getQuestions` — Obtener Preguntas
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido |
-| **Input** | Filtros opcionales |
-| **Output** | `QuestionDto[]` |
+| Propiedad    | Valor                                |
+| ------------ | ------------------------------------ |
+| **Tipo**     | `query`                              |
+| **Auth**     | Protegido                            |
+| **Input**    | Filtros opcionales                   |
+| **Output**   | `QuestionDto[]`                      |
 | **Frontend** | Conectado en `/engine` (`useEngine`) |
 
 **Input Schema:**
+
 ```typescript
 {
   topicId?: string,
@@ -302,18 +310,25 @@ Ubicación: `apps/api/src/app/routers/content.router.ts`
 ```
 
 **Output:**
+
 ```typescript
 [
   {
-    id: "uuid",
-    statement: "Calcula el valor de X...",
+    id: 'uuid',
+    statement: 'Calcula el valor de X...',
     imageUrl: string | null,
-    difficulty: "MEDIUM",
-    type: "MULTIPLE_CHOICE" | "TRUE_FALSE_SWIPE" | "FLASHCARD" | "ORDERING" | "MATCHING" | "FILL_IN_BLANK",
-    explanation: "Paso 1...",
-    content: QuestionView  // discriminated union según type
-  }
-]
+    difficulty: 'MEDIUM',
+    type:
+      'MULTIPLE_CHOICE' |
+      'TRUE_FALSE_SWIPE' |
+      'FLASHCARD' |
+      'ORDERING' |
+      'MATCHING' |
+      'FILL_IN_BLANK',
+    explanation: 'Paso 1...',
+    content: QuestionView, // discriminated union según type
+  },
+];
 ```
 
 **Nota técnica:** En modo libre usa `$queryRaw` con `ORDER BY RANDOM()`. En modo nodo la selección es determinista y garantiza al menos una pregunta de cada tipo especial disponible.
@@ -322,13 +337,13 @@ Ubicación: `apps/api/src/app/routers/content.router.ts`
 
 #### `content.completeNode` — Completar Nodo
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `mutation` |
-| **Auth** | Protegido |
-| **Input** | `{ topicId: string, nodeIndex: number }` |
-| **Output** | `{ success: true, completedNodeIndex: number }` |
-| **Frontend** | Conectado en `useEngine` |
+| Propiedad    | Valor                                           |
+| ------------ | ----------------------------------------------- |
+| **Tipo**     | `mutation`                                      |
+| **Auth**     | Protegido                                       |
+| **Input**    | `{ topicId: string, nodeIndex: number }`        |
+| **Output**   | `{ success: true, completedNodeIndex: number }` |
+| **Frontend** | Conectado en `useEngine`                        |
 
 **Efecto secundario:** Registra actividad en `ActivityLog` y recalcula `user.streak`.
 
@@ -340,15 +355,16 @@ Ubicación: `apps/api/src/app/routers/game.router.ts` → delega a `GameService`
 
 #### `game.submitAnswer` — Enviar Respuesta (Modo Clásico)
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `mutation` |
-| **Auth** | Protegido |
-| **Input** | `{ questionId: string, answer: AnswerSubmission }` |
-| **Output** | Resultado detallado |
-| **Frontend** | Conectado en `useEngine` |
+| Propiedad    | Valor                                              |
+| ------------ | -------------------------------------------------- |
+| **Tipo**     | `mutation`                                         |
+| **Auth**     | Protegido                                          |
+| **Input**    | `{ questionId: string, answer: AnswerSubmission }` |
+| **Output**   | Resultado detallado                                |
+| **Frontend** | Conectado en `useEngine`                           |
 
 **Input `AnswerSubmission` (discriminated union):**
+
 ```typescript
 | { type: "MULTIPLE_CHOICE", selectedOptionId: string }
 | { type: "TRUE_FALSE_SWIPE", isTrue: boolean }           // legacy
@@ -360,6 +376,7 @@ Ubicación: `apps/api/src/app/routers/game.router.ts` → delega a `GameService`
 ```
 
 **Output:**
+
 ```typescript
 {
   success: true,
@@ -382,27 +399,28 @@ Ubicación: `apps/api/src/app/routers/learning.router.ts`
 
 #### `learning.getRandomQuestion` — Pregunta Aleatoria
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido |
-| **Input** | `{ topicId: string }` |
-| **Output** | Una sola `Question` aleatoria |
-| **Frontend** | No conectado |
+| Propiedad    | Valor                         |
+| ------------ | ----------------------------- |
+| **Tipo**     | `query`                       |
+| **Auth**     | Protegido                     |
+| **Input**    | `{ topicId: string }`         |
+| **Output**   | Una sola `Question` aleatoria |
+| **Frontend** | No conectado                  |
 
 ---
 
 #### `learning.submitAnswer` — Enviar Respuesta (Modo Learning)
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `mutation` |
-| **Auth** | Protegido |
-| **Input** | `{ questionId: string, answer: AnswerSubmission }` |
-| **Output** | Resultado con recompensas |
-| **Frontend** | No conectado |
+| Propiedad    | Valor                                              |
+| ------------ | -------------------------------------------------- |
+| **Tipo**     | `mutation`                                         |
+| **Auth**     | Protegido                                          |
+| **Input**    | `{ questionId: string, answer: AnswerSubmission }` |
+| **Output**   | Resultado con recompensas                          |
+| **Frontend** | No conectado                                       |
 
 **Output:**
+
 ```typescript
 {
   correct: boolean,
@@ -425,15 +443,16 @@ Ubicación: `apps/api/src/app/routers/stats.routers.ts`
 
 #### `stats.getDashboard` — Dashboard del Usuario
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido |
-| **Input** | Ninguno |
-| **Output** | Estadísticas del usuario |
+| Propiedad    | Valor                                                              |
+| ------------ | ------------------------------------------------------------------ |
+| **Tipo**     | `query`                                                            |
+| **Auth**     | Protegido                                                          |
+| **Input**    | Ninguno                                                            |
+| **Output**   | Estadísticas del usuario                                           |
 | **Frontend** | No conectado directamente (`useDashboardData` usa `profile.getMe`) |
 
 **Output:**
+
 ```typescript
 {
   user: { name: string | null, energy: number, streak: number },
@@ -453,15 +472,16 @@ Sistema basado en **rating** (0-3000) y **5 divisiones**: `HUEVITO`, `POLLITO`, 
 
 #### `ranking.getCurrentSeasonStatus` — Estado de la Temporada Semanal
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido |
-| **Input** | Ninguno |
-| **Output** | Datos de la temporada activa |
-| **Frontend** | Conectado en `/simulacros` |
+| Propiedad    | Valor                        |
+| ------------ | ---------------------------- |
+| **Tipo**     | `query`                      |
+| **Auth**     | Protegido                    |
+| **Input**    | Ninguno                      |
+| **Output**   | Datos de la temporada activa |
+| **Frontend** | Conectado en `/simulacros`   |
 
 **Output:**
+
 ```typescript
 {
   id: string,
@@ -478,15 +498,16 @@ Sistema basado en **rating** (0-3000) y **5 divisiones**: `HUEVITO`, `POLLITO`, 
 
 #### `ranking.getMyStats` — Mis Estadísticas de Ranking
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido |
-| **Input** | Ninguno |
-| **Output** | Rating, score, división y carrera |
-| **Frontend** | Conectado en `/ranking` |
+| Propiedad    | Valor                             |
+| ------------ | --------------------------------- |
+| **Tipo**     | `query`                           |
+| **Auth**     | Protegido                         |
+| **Input**    | Ninguno                           |
+| **Output**   | Rating, score, división y carrera |
+| **Frontend** | Conectado en `/ranking`           |
 
 **Output:**
+
 ```typescript
 {
   userId: string,
@@ -507,51 +528,52 @@ Sistema basado en **rating** (0-3000) y **5 divisiones**: `HUEVITO`, `POLLITO`, 
 
 #### `ranking.getDivisionLeaderboard` — Ranking por División
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido |
-| **Input** | `{ division: Division, page?: number, pageSize?: number }` |
-| **Output** | `{ entries: RankingUser[], me?: RankingUser, total: number }` |
-| **Frontend** | Conectado en `/ranking` |
+| Propiedad    | Valor                                                         |
+| ------------ | ------------------------------------------------------------- |
+| **Tipo**     | `query`                                                       |
+| **Auth**     | Protegido                                                     |
+| **Input**    | `{ division: Division, page?: number, pageSize?: number }`    |
+| **Output**   | `{ entries: RankingUser[], me?: RankingUser, total: number }` |
+| **Frontend** | Conectado en `/ranking`                                       |
 
 ---
 
 #### `ranking.getGlobalLeaderboard` — Ranking Global
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido |
-| **Input** | `{ page?: number, pageSize?: number }` |
-| **Output** | `{ entries: RankingUser[], me?: RankingUser, total: number }` |
-| **Frontend** | Conectado en `/ranking` |
+| Propiedad    | Valor                                                         |
+| ------------ | ------------------------------------------------------------- |
+| **Tipo**     | `query`                                                       |
+| **Auth**     | Protegido                                                     |
+| **Input**    | `{ page?: number, pageSize?: number }`                        |
+| **Output**   | `{ entries: RankingUser[], me?: RankingUser, total: number }` |
+| **Frontend** | Conectado en `/ranking`                                       |
 
 ---
 
 #### `ranking.getAreaLeaderboard` — Ranking por Área
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido |
-| **Input** | `{ area: "INGENIERIAS" | "SOCIALES" | "BIOMEDICAS", page?: number, pageSize?: number }` |
-| **Output** | `{ entries: RankingUser[], me?: RankingUser, total: number }` |
-| **Frontend** | Conectado en `/ranking` |
+| Propiedad    | Valor                                                         |
+| ------------ | ------------------------------------------------------------- | ---------- | ------------------------------------------------- |
+| **Tipo**     | `query`                                                       |
+| **Auth**     | Protegido                                                     |
+| **Input**    | `{ area: "INGENIERIAS"                                        | "SOCIALES" | "BIOMEDICAS", page?: number, pageSize?: number }` |
+| **Output**   | `{ entries: RankingUser[], me?: RankingUser, total: number }` |
+| **Frontend** | Conectado en `/ranking`                                       |
 
 ---
 
 #### `ranking.getCareerLeaderboard` — Ranking por Carrera
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido |
-| **Input** | `{ careerId: string, page?: number, pageSize?: number }` |
-| **Output** | `{ entries: RankingUser[], me?: RankingUser, total: number }` |
-| **Frontend** | Conectado en `/ranking` |
+| Propiedad    | Valor                                                         |
+| ------------ | ------------------------------------------------------------- |
+| **Tipo**     | `query`                                                       |
+| **Auth**     | Protegido                                                     |
+| **Input**    | `{ careerId: string, page?: number, pageSize?: number }`      |
+| **Output**   | `{ entries: RankingUser[], me?: RankingUser, total: number }` |
+| **Frontend** | Conectado en `/ranking`                                       |
 
 **Tipo `RankingUser`:**
+
 ```typescript
 {
   id: string,
@@ -570,15 +592,15 @@ Sistema basado en **rating** (0-3000) y **5 divisiones**: `HUEVITO`, `POLLITO`, 
 
 #### Otros endpoints de ranking
 
-| Endpoint | Uso |
-|----------|-----|
-| `ranking.getRatingHistory` | Historial de cambios de rating del usuario. |
-| `ranking.getWeeklyLeague` | Leaderboard de la división actual del usuario (legacy). |
-| `ranking.getAllCareersLeaderboard` | Agrupación por carrera. |
-| `ranking.getAllAreasLeaderboard` | Agrupación por área. |
-| `ranking.getGlobalLeaderboardGroup` | Wrapper global paginado. |
-| `ranking.getMyLeagueStatus` | Alias de `getMyStats`. |
-| `ranking.getCareerOptions` | Lista de carreras para filtros. |
+| Endpoint                            | Uso                                                     |
+| ----------------------------------- | ------------------------------------------------------- |
+| `ranking.getRatingHistory`          | Historial de cambios de rating del usuario.             |
+| `ranking.getWeeklyLeague`           | Leaderboard de la división actual del usuario (legacy). |
+| `ranking.getAllCareersLeaderboard`  | Agrupación por carrera.                                 |
+| `ranking.getAllAreasLeaderboard`    | Agrupación por área.                                    |
+| `ranking.getGlobalLeaderboardGroup` | Wrapper global paginado.                                |
+| `ranking.getMyLeagueStatus`         | Alias de `getMyStats`.                                  |
+| `ranking.getCareerOptions`          | Lista de carreras para filtros.                         |
 
 ---
 
@@ -588,15 +610,16 @@ Ubicación: `apps/api/src/app/routers/profile.routers.ts`
 
 #### `profile.getMe` — Obtener Mi Perfil Completo
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido |
-| **Input** | Ninguno |
-| **Output** | Perfil completo con energía calculada y datos competitivos |
-| **Frontend** | Conectado en `useAuth`, `/perfil`, `/simulacros`, header |
+| Propiedad    | Valor                                                      |
+| ------------ | ---------------------------------------------------------- |
+| **Tipo**     | `query`                                                    |
+| **Auth**     | Protegido                                                  |
+| **Input**    | Ninguno                                                    |
+| **Output**   | Perfil completo con energía calculada y datos competitivos |
+| **Frontend** | Conectado en `useAuth`, `/perfil`, `/simulacros`, header   |
 
 **Output:**
+
 ```typescript
 {
   id: string,
@@ -637,24 +660,24 @@ Ubicación: `apps/api/src/app/routers/profile.routers.ts`
 
 #### `profile.selectCareer` — Seleccionar Carrera
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `mutation` |
-| **Auth** | Protegido |
-| **Input** | `{ careerId: string }` |
-| **Output** | `{ message: string, career: Career }` |
+| Propiedad    | Valor                                              |
+| ------------ | -------------------------------------------------- |
+| **Tipo**     | `mutation`                                         |
+| **Auth**     | Protegido                                          |
+| **Input**    | `{ careerId: string }`                             |
+| **Output**   | `{ message: string, career: Career }`              |
 | **Frontend** | Conectado en selector de `/simulacros` y `/perfil` |
 
 ---
 
 #### `profile.update` — Actualizar Perfil
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `mutation` |
-| **Auth** | Protegido |
-| **Input** | `{ name?: string, image?: string }` |
-| **Output** | `{ message: string, user: User }` |
+| Propiedad    | Valor                                  |
+| ------------ | -------------------------------------- |
+| **Tipo**     | `mutation`                             |
+| **Auth**     | Protegido                              |
+| **Input**    | `{ name?: string, image?: string }`    |
+| **Output**   | `{ message: string, user: User }`      |
 | **Frontend** | No conectado (no existe UI de edición) |
 
 **Lógica especial:** Valida que `image` de tienda esté en el `inventory` del usuario.
@@ -663,25 +686,25 @@ Ubicación: `apps/api/src/app/routers/profile.routers.ts`
 
 #### `profile.getAcademicDNA` — DNA Académico
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido |
-| **Input** | Ninguno |
-| **Output** | Radar chart data con 8 ejes |
+| Propiedad    | Valor                                  |
+| ------------ | -------------------------------------- |
+| **Tipo**     | `query`                                |
+| **Auth**     | Protegido                              |
+| **Input**    | Ninguno                                |
+| **Output**   | Radar chart data con 8 ejes            |
 | **Frontend** | Conectado en `/perfil` (`AcademicDNA`) |
 
 ---
 
 #### `profile.spendNodeEnergy` — Gastar Energía al Iniciar Nodo
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `mutation` |
-| **Auth** | Protegido |
-| **Input** | Ninguno |
-| **Output** | `{ success: true, energy: number }` |
-| **Frontend** | Conectado en `TopicList` |
+| Propiedad    | Valor                               |
+| ------------ | ----------------------------------- |
+| **Tipo**     | `mutation`                          |
+| **Auth**     | Protegido                           |
+| **Input**    | Ninguno                             |
+| **Output**   | `{ success: true, energy: number }` |
+| **Frontend** | Conectado en `TopicList`            |
 
 **Lógica:** -5 energía por nodo. Premium no paga. Recarga automática cada 15 min.
 
@@ -689,15 +712,16 @@ Ubicación: `apps/api/src/app/routers/profile.routers.ts`
 
 #### `profile.getStats` — Estadísticas Agregadas de Actividad
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido |
-| **Input** | Ninguno |
-| **Output** | Totales de actividad + rating |
-| **Frontend** | Conectado en `/perfil` |
+| Propiedad    | Valor                         |
+| ------------ | ----------------------------- |
+| **Tipo**     | `query`                       |
+| **Auth**     | Protegido                     |
+| **Input**    | Ninguno                       |
+| **Output**   | Totales de actividad + rating |
+| **Frontend** | Conectado en `/perfil`        |
 
 **Output:**
+
 ```typescript
 {
   totalQuestionsAnswered: number,
@@ -717,15 +741,16 @@ Ubicación: `apps/api/src/app/routers/profile.routers.ts`
 
 #### `profile.getActivityHeatmap` — Heatmap de Actividad
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido |
-| **Input** | `{ days?: number }` (default 84, min 7, max 365) |
-| **Output** | `HeatmapDay[]` |
-| **Frontend** | Conectado en `/perfil` (`ContributionGraph`) |
+| Propiedad    | Valor                                            |
+| ------------ | ------------------------------------------------ |
+| **Tipo**     | `query`                                          |
+| **Auth**     | Protegido                                        |
+| **Input**    | `{ days?: number }` (default 84, min 7, max 365) |
+| **Output**   | `HeatmapDay[]`                                   |
+| **Frontend** | Conectado en `/perfil` (`ContributionGraph`)     |
 
 **Output:**
+
 ```typescript
 [
   {
@@ -743,43 +768,49 @@ Ubicación: `apps/api/src/app/routers/profile.routers.ts`
 
 #### `profile.getWeeklyStreak` — Racha Semanal
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido |
-| **Input** | Ninguno |
-| **Output** | Estado de los últimos 7 días |
+| Propiedad    | Valor                                       |
+| ------------ | ------------------------------------------- |
+| **Tipo**     | `query`                                     |
+| **Auth**     | Protegido                                   |
+| **Input**    | Ninguno                                     |
+| **Output**   | Estado de los últimos 7 días                |
 | **Frontend** | Conectado en `/perfil` (`WeeklyStreakCard`) |
 
 **Output:**
+
 ```typescript
 [
-  { date: "2026-07-17", label: "Vie", isToday: true, status: "done" | "missed" | "not_yet" }
-]
+  {
+    date: '2026-07-17',
+    label: 'Vie',
+    isToday: true,
+    status: 'done' | 'missed' | 'not_yet',
+  },
+];
 ```
 
 ---
 
 #### `profile.getRatingGraph` — Gráfico de Desempeño
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido |
-| **Input** | `{ weeks?: number }` (default 12) |
-| **Output** | Historial de rating por semana |
+| Propiedad    | Valor                                  |
+| ------------ | -------------------------------------- |
+| **Tipo**     | `query`                                |
+| **Auth**     | Protegido                              |
+| **Input**    | `{ weeks?: number }` (default 12)      |
+| **Output**   | Historial de rating por semana         |
 | **Frontend** | Conectado en `/perfil` (`RatingChart`) |
 
 ---
 
 #### `profile.getInventory` — Inventario de Items
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido |
-| **Input** | Ninguno |
-| **Output** | `UserItem[]` |
+| Propiedad    | Valor        |
+| ------------ | ------------ |
+| **Tipo**     | `query`      |
+| **Auth**     | Protegido    |
+| **Input**    | Ninguno      |
+| **Output**   | `UserItem[]` |
 | **Frontend** | No conectado |
 
 ---
@@ -792,50 +823,51 @@ La tienda real vende **protectores de rating** pagados con **gemas**. La página
 
 #### `shop.getCatalog` — Catálogo de la Tienda
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido |
-| **Input** | Ninguno |
-| **Output** | `ShopItemDto[]` |
-| **Frontend** | No conectado |
+| Propiedad    | Valor           |
+| ------------ | --------------- |
+| **Tipo**     | `query`         |
+| **Auth**     | Protegido       |
+| **Input**    | Ninguno         |
+| **Output**   | `ShopItemDto[]` |
+| **Frontend** | No conectado    |
 
 **Output:**
+
 ```typescript
 [
   {
-    key: "RATING_SHIELD_50",
-    name: "Escudo de Rating",
-    description: "Absorbe el 50% de la bajada de rating...",
+    key: 'RATING_SHIELD_50',
+    name: 'Escudo de Rating',
+    description: 'Absorbe el 50% de la bajada de rating...',
     priceGems: number,
     maxQuantity: number | null,
     owned: number,
-  }
-]
+  },
+];
 ```
 
 ---
 
 #### `shop.buyItem` — Comprar Item
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `mutation` |
-| **Auth** | Protegido |
-| **Input** | `{ itemKey: string, quantity?: number }` |
-| **Output** | `{ remainingGems: number, owned: number }` |
-| **Frontend** | No conectado |
+| Propiedad    | Valor                                      |
+| ------------ | ------------------------------------------ |
+| **Tipo**     | `mutation`                                 |
+| **Auth**     | Protegido                                  |
+| **Input**    | `{ itemKey: string, quantity?: number }`   |
+| **Output**   | `{ remainingGems: number, owned: number }` |
+| **Frontend** | No conectado                               |
 
 ---
 
 #### `shop.getInventory` — Inventario
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido |
-| **Input** | Ninguno |
-| **Output** | `UserItem[]` |
+| Propiedad    | Valor        |
+| ------------ | ------------ |
+| **Tipo**     | `query`      |
+| **Auth**     | Protegido    |
+| **Input**    | Ninguno      |
+| **Output**   | `UserItem[]` |
 | **Frontend** | No conectado |
 
 ---
@@ -846,15 +878,16 @@ Ubicación: `apps/api/src/app/routers/simulacro.router.ts`
 
 #### `simulacro.getStats` — Estadísticas del Simulacro
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido |
-| **Input** | Ninguno |
-| **Output** | Stats para el dashboard |
+| Propiedad    | Valor                      |
+| ------------ | -------------------------- |
+| **Tipo**     | `query`                    |
+| **Auth**     | Protegido                  |
+| **Input**    | Ninguno                    |
+| **Output**   | Stats para el dashboard    |
 | **Frontend** | Conectado en `/simulacros` |
 
 **Output:**
+
 ```typescript
 {
   lastExamScore: number | null,
@@ -879,61 +912,61 @@ Ubicación: `apps/api/src/app/routers/simulacro.router.ts`
 
 #### `simulacro.getRecentAttempts` — Historial de Intentos
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido |
-| **Input** | Ninguno |
-| **Output** | `ExamAttempt[]` |
+| Propiedad    | Valor                      |
+| ------------ | -------------------------- |
+| **Tipo**     | `query`                    |
+| **Auth**     | Protegido                  |
+| **Input**    | Ninguno                    |
+| **Output**   | `ExamAttempt[]`            |
 | **Frontend** | Conectado en `/simulacros` |
 
 ---
 
 #### `simulacro.getCareers` — Listar Carreras
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Público |
-| **Input** | Ninguno |
-| **Output** | Carreras mínimas `{ id, name, area, minimumScore }` |
-| **Frontend** | Conectado en selector de carrera |
+| Propiedad    | Valor                                               |
+| ------------ | --------------------------------------------------- |
+| **Tipo**     | `query`                                             |
+| **Auth**     | Público                                             |
+| **Input**    | Ninguno                                             |
+| **Output**   | Carreras mínimas `{ id, name, area, minimumScore }` |
+| **Frontend** | Conectado en selector de carrera                    |
 
 ---
 
 #### `simulacro.getArchiveExams` — Archivo Histórico
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido |
-| **Input** | Ninguno |
-| **Output** | Exámenes históricos `{ id, title, year, phase, type, questionCount, timeLimitMinutes }` |
-| **Frontend** | Conectado en `/simulacros` |
+| Propiedad    | Valor                                                                                   |
+| ------------ | --------------------------------------------------------------------------------------- |
+| **Tipo**     | `query`                                                                                 |
+| **Auth**     | Protegido                                                                               |
+| **Input**    | Ninguno                                                                                 |
+| **Output**   | Exámenes históricos `{ id, title, year, phase, type, questionCount, timeLimitMinutes }` |
+| **Frontend** | Conectado en `/simulacros`                                                              |
 
 ---
 
 #### `simulacro.startArchiveAttempt` — Iniciar Examen Histórico
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `mutation` |
-| **Auth** | Protegido + Premium |
-| **Input** | `{ examId: string }` |
-| **Output** | `{ attemptId: string, isOfficial: boolean }` |
-| **Frontend** | Conectado en `/simulacros` |
+| Propiedad    | Valor                                        |
+| ------------ | -------------------------------------------- |
+| **Tipo**     | `mutation`                                   |
+| **Auth**     | Protegido + Premium                          |
+| **Input**    | `{ examId: string }`                         |
+| **Output**   | `{ attemptId: string, isOfficial: boolean }` |
+| **Frontend** | Conectado en `/simulacros`                   |
 
 ---
 
 #### `simulacro.startGeneratedAttempt` — Generar Simulacro Personalizado
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `mutation` |
-| **Auth** | Protegido |
-| **Input** | `{ questionCount: number, timeLimitMinutes: number, strategy: "AI" | "RANDOM", isOfficial?: boolean }` |
-| **Output** | `{ attemptId: string, isOfficial: boolean }` |
-| **Frontend** | Conectado en `/simulacros` |
+| Propiedad    | Valor                                                              |
+| ------------ | ------------------------------------------------------------------ | --------------------------------- |
+| **Tipo**     | `mutation`                                                         |
+| **Auth**     | Protegido                                                          |
+| **Input**    | `{ questionCount: number, timeLimitMinutes: number, strategy: "AI" | "RANDOM", isOfficial?: boolean }` |
+| **Output**   | `{ attemptId: string, isOfficial: boolean }`                       |
+| **Frontend** | Conectado en `/simulacros`                                         |
 
 **Nota:** Incrementa `freeSimAttemptsUsed` en la misma transacción de creación del intento.
 
@@ -941,27 +974,28 @@ Ubicación: `apps/api/src/app/routers/simulacro.router.ts`
 
 #### `simulacro.getById` — Obtener Intento con Preguntas
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Protegido |
-| **Input** | `{ attemptId: string }` |
-| **Output** | Intento + preguntas ordenadas |
-| **Frontend** | Conectado en `/simulator` |
+| Propiedad    | Valor                         |
+| ------------ | ----------------------------- |
+| **Tipo**     | `query`                       |
+| **Auth**     | Protegido                     |
+| **Input**    | `{ attemptId: string }`       |
+| **Output**   | Intento + preguntas ordenadas |
+| **Frontend** | Conectado en `/simulator`     |
 
 ---
 
 #### `simulacro.submit` — Entregar Simulacro
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `mutation` |
-| **Auth** | Protegido |
-| **Input** | `{ attemptId: string, answers: Record<qid, { selectedOptionId, timeTaken? }> }` |
-| **Output** | Resultado (varía si es oficial o no) |
-| **Frontend** | Conectado en `/simulator` |
+| Propiedad    | Valor                                                                           |
+| ------------ | ------------------------------------------------------------------------------- |
+| **Tipo**     | `mutation`                                                                      |
+| **Auth**     | Protegido                                                                       |
+| **Input**    | `{ attemptId: string, answers: Record<qid, { selectedOptionId, timeTaken? }> }` |
+| **Output**   | Resultado (varía si es oficial o no)                                            |
+| **Frontend** | Conectado en `/simulator`                                                       |
 
 **Output no oficial:**
+
 ```typescript
 {
   attemptId: string,
@@ -977,6 +1011,7 @@ Ubicación: `apps/api/src/app/routers/simulacro.router.ts`
 ```
 
 **Output oficial:**
+
 ```typescript
 {
   attemptId: string,
@@ -995,15 +1030,16 @@ Ubicación: `apps/api/src/app/routers/admin.router.ts`
 
 #### `admin.createQuestion` — Crear Pregunta
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `mutation` |
-| **Auth** | Protegido + Role check (`ADMIN` o `DATA_ENTRY`) |
-| **Input** | Datos de pregunta |
-| **Output** | Pregunta creada con relaciones |
-| **Frontend** | No existe UI |
+| Propiedad    | Valor                                           |
+| ------------ | ----------------------------------------------- |
+| **Tipo**     | `mutation`                                      |
+| **Auth**     | Protegido + Role check (`ADMIN` o `DATA_ENTRY`) |
+| **Input**    | Datos de pregunta                               |
+| **Output**   | Pregunta creada con relaciones                  |
+| **Frontend** | No existe UI                                    |
 
 **Input:**
+
 ```typescript
 {
   statement: string,
@@ -1017,6 +1053,7 @@ Ubicación: `apps/api/src/app/routers/admin.router.ts`
 ```
 
 **Validaciones por tipo:**
+
 - `MULTIPLE_CHOICE`: exactamente una opción correcta.
 - `ORDERING`: `correctOrder` contiene todos los `item.id` sin duplicados.
 - `MATCHING`: 2-6 pares, ids únicos, textos no vacíos.
@@ -1031,36 +1068,36 @@ Ubicación: `apps/api/src/app/routers/subscription.router.ts`
 
 #### `subscription.requestSubscription` — Solicitar Suscripción
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `mutation` |
-| **Auth** | Protegido |
-| **Input** | `{ plan: "MONTHLY" | "ANNUAL", proofUrl: string, amount: number }` |
-| **Output** | Subscription creada |
-| **Frontend** | No existe UI |
+| Propiedad    | Valor               |
+| ------------ | ------------------- | --------------------------------------------- |
+| **Tipo**     | `mutation`          |
+| **Auth**     | Protegido           |
+| **Input**    | `{ plan: "MONTHLY"  | "ANNUAL", proofUrl: string, amount: number }` |
+| **Output**   | Subscription creada |
+| **Frontend** | No existe UI        |
 
 ---
 
 #### `subscription.getPendingRequests` — Ver Solicitudes Pendientes
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `query` |
-| **Auth** | Admin-only |
-| **Output** | `Subscription[]` con datos del usuario |
-| **Frontend** | No existe UI |
+| Propiedad    | Valor                                  |
+| ------------ | -------------------------------------- |
+| **Tipo**     | `query`                                |
+| **Auth**     | Admin-only                             |
+| **Output**   | `Subscription[]` con datos del usuario |
+| **Frontend** | No existe UI                           |
 
 ---
 
 #### `subscription.processRequest` — Aprobar/Rechazar Solicitud
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Tipo** | `mutation` |
-| **Auth** | Admin-only |
-| **Input** | `{ subscriptionId: string, action: "APPROVE" | "REJECT" }` |
-| **Output** | Subscription actualizada |
-| **Frontend** | No existe UI |
+| Propiedad    | Valor                                        |
+| ------------ | -------------------------------------------- | ----------- |
+| **Tipo**     | `mutation`                                   |
+| **Auth**     | Admin-only                                   |
+| **Input**    | `{ subscriptionId: string, action: "APPROVE" | "REJECT" }` |
+| **Output**   | Subscription actualizada                     |
+| **Frontend** | No existe UI                                 |
 
 **Lógica de aprobación:** actualiza `isPremium: true` y `subExpiresAt` (+30/365 días).
 
@@ -1072,63 +1109,63 @@ Ubicación: `apps/api/src/app/routers/subscription.router.ts`
 
 #### `GET /api/auth/google`
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Auth** | Passport Guard (google) |
-| **Acción** | Redirige al consent screen de Google |
-| **Scopes** | `email`, `profile` |
-| **Frontend** | Conectado desde `/login` |
+| Propiedad    | Valor                                |
+| ------------ | ------------------------------------ |
+| **Auth**     | Passport Guard (google)              |
+| **Acción**   | Redirige al consent screen de Google |
+| **Scopes**   | `email`, `profile`                   |
+| **Frontend** | Conectado desde `/login`             |
 
 ---
 
 #### `GET /api/auth/google/callback`
 
-| Propiedad | Valor |
-|-----------|-------|
-| **Auth** | Passport Guard (google) |
-| **Acción** | Recibe código de Google → crea/actualiza usuario → genera JWT → redirige |
-| **Redirect** | `${FRONTEND_URL}/auth-callback?token={jwt}` |
-| **Frontend** | Conectado en `/auth-callback` |
+| Propiedad    | Valor                                                                    |
+| ------------ | ------------------------------------------------------------------------ |
+| **Auth**     | Passport Guard (google)                                                  |
+| **Acción**   | Recibe código de Google → crea/actualiza usuario → genera JWT → redirige |
+| **Redirect** | `${FRONTEND_URL}/auth-callback?token={jwt}`                              |
+| **Frontend** | Conectado en `/auth-callback`                                            |
 
 ---
 
 ## Estado de Conexión con Frontend
 
-| Endpoint | ¿Frontend lo llama? | ¿Qué usa el frontend? |
-|----------|---------------------|------------------------|
-| `auth.register` | Sí | `/register` |
-| `auth.login` | Sí | `/login` |
-| `auth.me` | Sí | `useAuth` |
-| `content.getCourses` | Sí | `/cursos`, `/dashboard` |
-| `content.getTopics` | Sí | `/dashboard` |
-| `content.getQuestions` | Sí | `/engine` |
-| `content.completeNode` | Sí | `/engine` |
-| `game.submitAnswer` | Sí | `/engine` |
-| `learning.*` | No | Sin UI |
-| `stats.getDashboard` | No | `useDashboardData` usa `profile.getMe` |
-| `ranking.getCurrentSeasonStatus` | Sí | `/simulacros` |
-| `ranking.getMyStats` | Sí | `/ranking` |
-| `ranking.getDivisionLeaderboard` | Sí | `/ranking` |
-| `ranking.getGlobalLeaderboard` | Sí | `/ranking` |
-| `ranking.getAreaLeaderboard` | Sí | `/ranking` |
-| `ranking.getCareerLeaderboard` | Sí | `/ranking` |
-| `ranking.getRatingHistory` | Sí | `/ranking` |
-| `profile.getMe` | Sí | `useAuth`, `/perfil`, `/simulacros`, header |
-| `profile.selectCareer` | Sí | Selector de carrera |
-| `profile.update` | No | Sin UI de edición |
-| `profile.getAcademicDNA` | Sí | `/perfil` |
-| `profile.spendNodeEnergy` | Sí | `TopicList` |
-| `profile.getStats` | Sí | `/perfil` |
-| `profile.getActivityHeatmap` | Sí | `/perfil` |
-| `profile.getWeeklyStreak` | Sí | `/perfil` |
-| `profile.getRatingGraph` | Sí | `/perfil` |
-| `profile.getInventory` | No | Sin UI |
-| `shop.*` | No | `/shop` no lo consume |
-| `simulacro.*` | Sí | `/simulacros`, `/simulator` |
-| `admin.*` | No | Sin UI |
-| `subscription.*` | No | Sin UI |
-| `GET /api/auth/google` | Sí | Redirect desde `/login` |
-| `GET /api/auth/google/callback` | Sí | Redirige a `/auth-callback?token=...` |
+| Endpoint                         | ¿Frontend lo llama? | ¿Qué usa el frontend?                       |
+| -------------------------------- | ------------------- | ------------------------------------------- |
+| `auth.register`                  | Sí                  | `/register`                                 |
+| `auth.login`                     | Sí                  | `/login`                                    |
+| `auth.me`                        | Sí                  | `useAuth`                                   |
+| `content.getCourses`             | Sí                  | `/cursos`, `/dashboard`                     |
+| `content.getTopics`              | Sí                  | `/dashboard`                                |
+| `content.getQuestions`           | Sí                  | `/engine`                                   |
+| `content.completeNode`           | Sí                  | `/engine`                                   |
+| `game.submitAnswer`              | Sí                  | `/engine`                                   |
+| `learning.*`                     | No                  | Sin UI                                      |
+| `stats.getDashboard`             | No                  | `useDashboardData` usa `profile.getMe`      |
+| `ranking.getCurrentSeasonStatus` | Sí                  | `/simulacros`                               |
+| `ranking.getMyStats`             | Sí                  | `/ranking`                                  |
+| `ranking.getDivisionLeaderboard` | Sí                  | `/ranking`                                  |
+| `ranking.getGlobalLeaderboard`   | Sí                  | `/ranking`                                  |
+| `ranking.getAreaLeaderboard`     | Sí                  | `/ranking`                                  |
+| `ranking.getCareerLeaderboard`   | Sí                  | `/ranking`                                  |
+| `ranking.getRatingHistory`       | Sí                  | `/ranking`                                  |
+| `profile.getMe`                  | Sí                  | `useAuth`, `/perfil`, `/simulacros`, header |
+| `profile.selectCareer`           | Sí                  | Selector de carrera                         |
+| `profile.update`                 | No                  | Sin UI de edición                           |
+| `profile.getAcademicDNA`         | Sí                  | `/perfil`                                   |
+| `profile.spendNodeEnergy`        | Sí                  | `TopicList`                                 |
+| `profile.getStats`               | Sí                  | `/perfil`                                   |
+| `profile.getActivityHeatmap`     | Sí                  | `/perfil`                                   |
+| `profile.getWeeklyStreak`        | Sí                  | `/perfil`                                   |
+| `profile.getRatingGraph`         | Sí                  | `/perfil`                                   |
+| `profile.getInventory`           | No                  | Sin UI                                      |
+| `shop.*`                         | No                  | `/shop` no lo consume                       |
+| `simulacro.*`                    | Sí                  | `/simulacros`, `/simulator`                 |
+| `admin.*`                        | No                  | Sin UI                                      |
+| `subscription.*`                 | No                  | Sin UI                                      |
+| `GET /api/auth/google`           | Sí                  | Redirect desde `/login`                     |
+| `GET /api/auth/google/callback`  | Sí                  | Redirige a `/auth-callback?token=...`       |
 
 ---
 

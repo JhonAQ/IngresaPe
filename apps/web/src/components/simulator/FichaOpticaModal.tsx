@@ -34,7 +34,9 @@ export const FichaOpticaModal = ({
   onSelectQuestion,
   onSubmit,
 }: FichaOpticaModalProps) => {
-  const resueltas = Object.values(answers).filter((a) => a.selectedOptionId).length;
+  const resueltas = Object.values(answers).filter(
+    (a) => a.selectedOptionId
+  ).length;
   const enBlanco = questions.length - resueltas;
 
   const [startY, setStartY] = useState(0);
@@ -155,7 +157,7 @@ export const FichaOpticaModal = ({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="absolute bottom-0 left-0 right-0 bg-white h-[90%] max-h-[90%] rounded-t-[2.5rem] shadow-2xl flex flex-col overflow-hidden"
+        className="absolute bottom-0 left-0 right-0 bg-white max-h-[90%] rounded-t-[2.5rem] shadow-2xl flex flex-col overflow-hidden"
         style={{
           transform: isOpen
             ? `translateY(${isDragging ? dragY : 0}px)`
@@ -188,17 +190,21 @@ export const FichaOpticaModal = ({
             <span className="text-[#22c55e] text-[10px] font-black uppercase tracking-widest mb-1">
               Resueltas
             </span>
-            <span className="text-[#16a34a] text-2xl font-black leading-none">{resueltas}</span>
+            <span className="text-[#16a34a] text-2xl font-black leading-none">
+              {resueltas}
+            </span>
           </div>
           <div className="flex-1 bg-[#fffbeb] border-2 border-[#fde68a] rounded-2xl p-3 flex flex-col items-center justify-center shadow-sm">
             <span className="text-[#d97706] text-[10px] font-black uppercase tracking-widest mb-1">
               En Blanco
             </span>
-            <span className="text-[#d97706] text-2xl font-black leading-none">{enBlanco}</span>
+            <span className="text-[#d97706] text-2xl font-black leading-none">
+              {enBlanco}
+            </span>
           </div>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-2">
+        <div className="overflow-y-auto px-4 py-2">
           <div className="flex gap-3 pb-8">
             {renderColumna(firstColumn, 0)}
             {secondColumn.length > 0 && renderColumna(secondColumn, mid)}

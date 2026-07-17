@@ -45,23 +45,23 @@
 
 ### Stack Tecnológico
 
-| Capa | Tecnología | Versión | Rol |
-|------|------------|---------|-----|
-| **Monorepo** | Nx | 22.3.x | Gestión de workspaces, builds, dependencias |
-| **Frontend** | Next.js | 16.0.1 | App Router, SSR/CSR, páginas |
-| **UI Framework** | React | 19.0.0 | Componentes de interfaz |
-| **Styling** | TailwindCSS | 3.4.x | Utility-first CSS |
-| **Animations** | Framer Motion | 12.38.0 | Animaciones fluidas, drag-and-drop |
-| **Icons** | Lucide React | 1.14.0 | Iconos SVG + custom SVGs |
-| **Backend** | NestJS | 11.0.0 | Framework de API |
-| **API Protocol** | tRPC | 11.8.1 | Type-safe API client/server |
-| **Queries** | TanStack Query | 5.90.14 | Cache, fetching, mutations |
-| **ORM** | Prisma | 5.22.0 | Schema, migraciones, queries |
-| **Database** | PostgreSQL | 15-alpine | Almacenamiento principal |
-| **Cache** | Redis | alpine | Preparado pero no usado |
-| **Auth** | Passport + JWT | - | OAuth2 + Bearer tokens |
-| **Validation** | Zod | 3.24.x | Schemas compartidos front/back |
-| **Serialization** | superjson | 2.2.6 | Serialización de Date/BigInt en tRPC |
+| Capa              | Tecnología     | Versión   | Rol                                         |
+| ----------------- | -------------- | --------- | ------------------------------------------- |
+| **Monorepo**      | Nx             | 22.3.x    | Gestión de workspaces, builds, dependencias |
+| **Frontend**      | Next.js        | 16.0.1    | App Router, SSR/CSR, páginas                |
+| **UI Framework**  | React          | 19.0.0    | Componentes de interfaz                     |
+| **Styling**       | TailwindCSS    | 3.4.x     | Utility-first CSS                           |
+| **Animations**    | Framer Motion  | 12.38.0   | Animaciones fluidas, drag-and-drop          |
+| **Icons**         | Lucide React   | 1.14.0    | Iconos SVG + custom SVGs                    |
+| **Backend**       | NestJS         | 11.0.0    | Framework de API                            |
+| **API Protocol**  | tRPC           | 11.8.1    | Type-safe API client/server                 |
+| **Queries**       | TanStack Query | 5.90.14   | Cache, fetching, mutations                  |
+| **ORM**           | Prisma         | 5.22.0    | Schema, migraciones, queries                |
+| **Database**      | PostgreSQL     | 15-alpine | Almacenamiento principal                    |
+| **Cache**         | Redis          | alpine    | Preparado pero no usado                     |
+| **Auth**          | Passport + JWT | -         | OAuth2 + Bearer tokens                      |
+| **Validation**    | Zod            | 3.24.x    | Schemas compartidos front/back              |
+| **Serialization** | superjson      | 2.2.6     | Serialización de Date/BigInt en tRPC        |
 
 ---
 
@@ -208,12 +208,14 @@ components/
 ```
 
 **Lo que está bien:**
+
 - Organización por feature.
 - Separación clara entre UI base y componentes de feature.
 - Route groups de Next.js para layouts diferenciados.
 - Motor de preguntas extensible mediante registry.
 
 **Problemas:**
+
 - Layouts `(app)` son `'use client'` (pierde SSR benefits).
 - No hay `middleware.ts` de autenticación server-side; protección solo cliente (`AuthGuard`).
 - Datos mock dispersos (`useDashboardData`, `/shop`).
@@ -278,6 +280,7 @@ AppModule
 ```
 
 **Lo que funciona bien:**
+
 - Simplicidad de un solo módulo para un solo dev.
 - tRPC proporciona type-safety sin overhead de REST.
 - `QuestionGraderService` / `QuestionViewService` centralizan calificación y vistas.
@@ -285,6 +288,7 @@ AppModule
 - `RatingService` + `LeaderboardService` + `SeasonService` implementan ranking competitivo.
 
 **Problemas:**
+
 - Lógica de negocio aún vive en muchos routers (especialmente `simulacro`, `profile`, `learning`).
 - Dead code: `AppController`, `AppService` y sus tests.
 - `hello` router de prueba sigue en producción.
@@ -372,11 +376,13 @@ domain/src/lib/
 ```
 
 **Bien:**
+
 - Schemas Zod compartidos eliminan duplicación de validación.
 - Tipos centralizados evitan drift.
 - `QuestionType` y uniones bien diseñadas para extensibilidad.
 
 **Problemas:**
+
 - Mock data en la librería de dominio (debería estar en `apps/web` solo).
 - `LucideIcon` como dependencia en tipos del dominio.
 - `UserStats` del domain usa nombres antiguos (`vidas`, `gemas`) que difieren del backend.
@@ -396,10 +402,12 @@ ui/src/lib/
 ```
 
 **Bien:**
+
 - Design system cohesivo.
 - Componentes reutilizables.
 
 **Problemas:**
+
 - No tiene Storybook ni documentación visual.
 - Duplicación con `ChunkyButton` en `apps/web/components/ui`.
 
@@ -478,8 +486,8 @@ LeaderboardService            → rankings por división/global/área/carrera
 
 ```yaml
 services:
-  postgres:   # PostgreSQL 15 Alpine → Puerto 5433
-  redis:      # Redis Alpine → Puerto 6379 (NO usado aún)
+  postgres: # PostgreSQL 15 Alpine → Puerto 5433
+  redis: # Redis Alpine → Puerto 6379 (NO usado aún)
 ```
 
 ### 7.2 Environment Variables
@@ -508,34 +516,34 @@ NODE_ENV        → production / development
 
 ### 8.1 Deuda Crítica (Seguridad)
 
-| # | Problema | Impacto | Esfuerzo |
-|---|----------|---------|----------|
-| 1 | JWT secret débil + fallback `'secret'` | Tokens forjables | Bajo |
-| 2 | CORS abierto | Cualquier origen puede llamar | Bajo |
-| 3 | Token OAuth en URL parameter | Historial del navegador expone token | Medio |
-| 4 | Sin rate limiting | Vulnerable a brute force | Medio |
-| 5 | Middleware spy loggea requests en producción | Data leak | Bajo |
-| 6 | `subExpiresAt` no se valida en runtime | Premium no expira | Bajo |
+| #   | Problema                                     | Impacto                              | Esfuerzo |
+| --- | -------------------------------------------- | ------------------------------------ | -------- |
+| 1   | JWT secret débil + fallback `'secret'`       | Tokens forjables                     | Bajo     |
+| 2   | CORS abierto                                 | Cualquier origen puede llamar        | Bajo     |
+| 3   | Token OAuth en URL parameter                 | Historial del navegador expone token | Medio    |
+| 4   | Sin rate limiting                            | Vulnerable a brute force             | Medio    |
+| 5   | Middleware spy loggea requests en producción | Data leak                            | Bajo     |
+| 6   | `subExpiresAt` no se valida en runtime       | Premium no expira                    | Bajo     |
 
 ### 8.2 Deuda Funcional
 
-| # | Problema | Impacto | Esfuerzo |
-|---|----------|---------|----------|
-| 7 | `/shop` no conecta a `shop.*` y vende gemas por dinero real sin backend | Riesgo comercial | Medio |
-| 8 | `stats.getDashboard` no se consume en frontend | Endpoint muerto | Bajo |
-| 9 | Progreso hardcoded en `/cursos` y `CourseProgressList` | UX inconsistente | Bajo |
-| 10 | Modos arcade sin lógica real | Feature vacía | Medio |
-| 11 | Tienda real vende protectores de rating pero no se usa en simulacros | Feature incompleta | Medio |
+| #   | Problema                                                                | Impacto            | Esfuerzo |
+| --- | ----------------------------------------------------------------------- | ------------------ | -------- |
+| 7   | `/shop` no conecta a `shop.*` y vende gemas por dinero real sin backend | Riesgo comercial   | Medio    |
+| 8   | `stats.getDashboard` no se consume en frontend                          | Endpoint muerto    | Bajo     |
+| 9   | Progreso hardcoded en `/cursos` y `CourseProgressList`                  | UX inconsistente   | Bajo     |
+| 10  | Modos arcade sin lógica real                                            | Feature vacía      | Medio    |
+| 11  | Tienda real vende protectores de rating pero no se usa en simulacros    | Feature incompleta | Medio    |
 
 ### 8.3 Deuda Estructural
 
-| # | Problema | Impacto | Esfuerzo |
-|---|----------|---------|----------|
-| 12 | Lógica en routers (no services) | Difícil de testear | Medio |
-| 13 | Tipos duplicados (domain vs local) | Drift | Bajo |
-| 14 | Mock data en `libs/domain` | Contamina librería | Bajo |
-| 15 | Dead code (`AppController`, `AppService`, `BasicQuizEngine`) | Ruido | Bajo |
-| 16 | Single Module para todo el backend | Escala mal | Alto |
+| #   | Problema                                                     | Impacto            | Esfuerzo |
+| --- | ------------------------------------------------------------ | ------------------ | -------- |
+| 12  | Lógica en routers (no services)                              | Difícil de testear | Medio    |
+| 13  | Tipos duplicados (domain vs local)                           | Drift              | Bajo     |
+| 14  | Mock data en `libs/domain`                                   | Contamina librería | Bajo     |
+| 15  | Dead code (`AppController`, `AppService`, `BasicQuizEngine`) | Ruido              | Bajo     |
+| 16  | Single Module para todo el backend                           | Escala mal         | Alto     |
 
 ---
 
@@ -570,17 +578,17 @@ NODE_ENV        → production / development
 
 ## Calificación General de la Arquitectura
 
-| Aspecto | Nota | Comentario |
-|---------|------|-----------|
-| **Elección de stack** | ⭐⭐⭐⭐⭐ | Moderno y productivo |
-| **Estructura de carpetas** | ⭐⭐⭐⭐ | Bien organizada, algunos duplicados |
-| **Type safety** | ⭐⭐⭐⭐⭐ | tRPC + Zod + TypeScript |
-| **Calidad de UI** | ⭐⭐⭐⭐⭐ | Duolingo-tier |
-| **Calidad del backend** | ⭐⭐⭐⭐ | Funcional, nuevos services layer ayudan |
-| **Testing** | ⭐⭐ | Tests pasan, pero cobertura baja |
-| **Seguridad** | ⭐⭐ | Vulnerabilidades críticas por resolver |
-| **Integración Front↔Back** | ⭐⭐⭐⭐ | ~90% conectado |
-| **DevOps/CI** | ⭐⭐⭐⭐ | Docker + CI con prisma generate |
-| **Documentación** | ⭐⭐⭐⭐ | Actualizada, requiere mantenimiento |
+| Aspecto                    | Nota       | Comentario                              |
+| -------------------------- | ---------- | --------------------------------------- |
+| **Elección de stack**      | ⭐⭐⭐⭐⭐ | Moderno y productivo                    |
+| **Estructura de carpetas** | ⭐⭐⭐⭐   | Bien organizada, algunos duplicados     |
+| **Type safety**            | ⭐⭐⭐⭐⭐ | tRPC + Zod + TypeScript                 |
+| **Calidad de UI**          | ⭐⭐⭐⭐⭐ | Duolingo-tier                           |
+| **Calidad del backend**    | ⭐⭐⭐⭐   | Funcional, nuevos services layer ayudan |
+| **Testing**                | ⭐⭐       | Tests pasan, pero cobertura baja        |
+| **Seguridad**              | ⭐⭐       | Vulnerabilidades críticas por resolver  |
+| **Integración Front↔Back** | ⭐⭐⭐⭐   | ~90% conectado                          |
+| **DevOps/CI**              | ⭐⭐⭐⭐   | Docker + CI con prisma generate         |
+| **Documentación**          | ⭐⭐⭐⭐   | Actualizada, requiere mantenimiento     |
 
 **Nota global: 3.7/5 — Base sólida, conectada y en producción, pero necesita seguridad y limpieza.**

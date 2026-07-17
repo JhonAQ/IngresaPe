@@ -10,7 +10,7 @@ export const metadata = {
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
+    statusBarStyle: 'default',
     title: 'Ingresa.pe',
   },
   icons: {
@@ -40,7 +40,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#b91c1c',
+  themeColor: '#ffffff',
 };
 
 export default function RootLayout({
