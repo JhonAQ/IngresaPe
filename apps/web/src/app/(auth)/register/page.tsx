@@ -2,7 +2,15 @@
 
 import { useState, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, User, ChevronRight, Loader2 } from 'lucide-react';
+import {
+  Mail,
+  Lock,
+  User,
+  ChevronRight,
+  Loader2,
+  Eye,
+  EyeOff,
+} from 'lucide-react';
 import Link from 'next/link';
 import { ChunkyButton } from '../../../components/ui/ChunkyButton';
 import { trpc } from '../../../utils/trpc';
@@ -15,6 +23,8 @@ function RegisterContent() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -125,12 +135,24 @@ function RegisterContent() {
               />
               <input
                 name="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 required
                 minLength={6}
-                className="w-full bg-slate-50 border-2 border-slate-200 text-slate-700 font-bold focus:bg-white focus:border-blue-500 focus:outline-none transition-all rounded-2xl h-14 sm:h-16 pl-11 sm:pl-14 text-sm sm:text-base"
+                className="w-full bg-slate-50 border-2 border-slate-200 text-slate-700 font-bold focus:bg-white focus:border-blue-500 focus:outline-none transition-all rounded-2xl h-14 sm:h-16 pl-11 sm:pl-14 pr-11 sm:pr-14 text-sm sm:text-base"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.5} />
+                ) : (
+                  <Eye className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.5} />
+                )}
+              </button>
             </div>
           </div>
 
@@ -145,12 +167,26 @@ function RegisterContent() {
               />
               <input
                 name="confirmPassword"
-                type="password"
+                type={showConfirmPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 required
                 minLength={6}
-                className="w-full bg-slate-50 border-2 border-slate-200 text-slate-700 font-bold focus:bg-white focus:border-blue-500 focus:outline-none transition-all rounded-2xl h-14 sm:h-16 pl-11 sm:pl-14 text-sm sm:text-base"
+                className="w-full bg-slate-50 border-2 border-slate-200 text-slate-700 font-bold focus:bg-white focus:border-blue-500 focus:outline-none transition-all rounded-2xl h-14 sm:h-16 pl-11 sm:pl-14 pr-11 sm:pr-14 text-sm sm:text-base"
               />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                className="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                aria-label={
+                  showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                }
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.5} />
+                ) : (
+                  <Eye className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.5} />
+                )}
+              </button>
             </div>
           </div>
 

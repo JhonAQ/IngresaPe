@@ -294,8 +294,8 @@ export function CompletionScreen({
   }, []);
 
   return (
-    <div className="w-full max-w-md mx-auto relative bg-[#fcfcfc] min-h-[100dvh] flex flex-col font-sans border-x border-[#e5e5e5] overflow-hidden">
-      <div className="flex-1 flex flex-col justify-center items-center px-5 py-8">
+    <div className="w-full max-w-md mx-auto relative bg-[#fcfcfc] h-[100dvh] flex flex-col font-sans border-x border-[#e5e5e5] overflow-hidden">
+      <div className="flex-1 overflow-y-auto hide-scrollbar px-5 py-8 flex flex-col justify-center items-center">
         {/* Hero */}
         <div className="relative flex flex-col items-center justify-center mb-6">
           <motion.div
@@ -387,7 +387,7 @@ export function CompletionScreen({
             initial={{ y: 100 }}
             animate={{ y: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            className="px-5 py-6 bg-white border-t-2 border-[#e5e5e5]"
+            className="px-5 py-6 bg-white border-t-2 border-[#e5e5e5] shrink-0"
           >
             <button
               onClick={onClose}

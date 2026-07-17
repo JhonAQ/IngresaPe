@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ADMISSION_PHASES,
   formatCountdown,
@@ -13,30 +13,43 @@ function pad(n: number): string {
   return n.toString().padStart(2, '0');
 }
 
-interface CountdownBlockProps {
+interface FlipTileProps {
   value: number;
   label: string;
 }
 
-function CountdownBlock({ value, label }: CountdownBlockProps) {
+function FlipTile({ value, label }: FlipTileProps) {
   const display = pad(value);
+
   return (
     <div className="flex flex-col items-center gap-1">
-      <motion.div
-        key={display}
-        initial={{ y: -8, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.25, ease: 'easeOut' }}
-        className="relative w-full aspect-square min-w-[58px] max-w-[72px] rounded-xl bg-[#15192B] flex items-center justify-center overflow-hidden border-b-4 border-[#0a0c14]"
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
-        <span
-          className="relative z-10 font-black text-[28px] sm:text-[32px] leading-none tracking-tight text-[#F2F0EC]"
-          style={{ fontVariantNumeric: 'tabular-nums' }}
-        >
-          {display}
-        </span>
-      </motion.div>
+      <div className="relative w-full aspect-square min-w-[58px] max-w-[72px] rounded-xl bg-[#15192B] flex items-center justify-center overflow-hidden border-b-4 border-[#0a0c14] perspective-[400px]">
+        <AnimatePresence mode="sync">
+          <motion.div
+            key={display}
+            initial={{ rotateX: -90 }}
+            animate={{ rotateX: 0 }}
+            exit={{ rotateX: 90 }}
+            transition={{ duration: 0.35, ease: 'easeInOut' }}
+            style={{
+              transformOrigin: 'bottom',
+              backfaceVisibility: 'hidden',
+            }}
+            className="absolute inset-0 bg-[#15192B] flex items-center justify-center"
+          >
+            <span
+              className="relative z-10 font-black text-[28px] sm:text-[32px] leading-none tracking-tight text-[#F2F0EC]"
+              style={{ fontVariantNumeric: 'tabular-nums' }}
+            >
+              {display}
+            </span>
+          </motion.div>
+        </AnimatePresence>
+
+        <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none z-20" />
+        <div className="absolute top-1/2 left-0 right-0 h-[1px] bg-black/20 z-20" />
+      </div>
+
       <span className="text-[10px] font-black uppercase tracking-widest text-[#F2F0EC]/80">
         {label}
       </span>
@@ -109,13 +122,13 @@ export function AdmisionHero() {
 
           {/* Cuenta regresiva */}
           <div className="flex justify-center gap-2 sm:gap-3 mb-5">
-            <CountdownBlock value={countdown.days} label="Días" />
+            <FlipTile value={countdown.days} label="Días" />
             <span className="self-start mt-4 text-[20px] font-black text-white/60">:</span>
-            <CountdownBlock value={countdown.hours} label="Hrs" />
+            <FlipTile value={countdown.hours} label="Hrs" />
             <span className="self-start mt-4 text-[20px] font-black text-white/60">:</span>
-            <CountdownBlock value={countdown.minutes} label="Min" />
+            <FlipTile value={countdown.minutes} label="Min" />
             <span className="self-start mt-4 text-[20px] font-black text-white/60">:</span>
-            <CountdownBlock value={countdown.seconds} label="Seg" />
+            <FlipTile value={countdown.seconds} label="Seg" />
           </div>
 
           {/* Título dinámico */}
