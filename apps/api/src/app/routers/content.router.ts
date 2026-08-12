@@ -257,16 +257,20 @@ export class ContentRouter {
           create: { userId, topicId, nodeIndex },
         });
 
-        const gemResult = await this.activityService.awardNodeCompletionGems(userId);
-
-        await this.activityService.log({
+        const activityResult = await this.activityService.recordActivity({
           userId,
+          type: 'NODE_COMPLETED',
+          topicId,
+          nodeIndex,
+          baseGems: 10,
           nodesCompleted: 1,
         });
 
-        await this.activityService.recalculateStreak(userId);
-
-        return { success: true, completedNodeIndex: nodeIndex, gemsEarned: gemResult.total };
+        return {
+          success: true,
+          completedNodeIndex: nodeIndex,
+          gemsEarned: activityResult.totalGems,
+        };
       }),
   });
 

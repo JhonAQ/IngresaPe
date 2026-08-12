@@ -32,8 +32,12 @@ function LoginContent() {
     setIsLoadingGoogle(true);
     setAuthError(null);
     // Redirige al API Backend (Nest) que hace el Auth Guard.
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/trpc', '') ??
-      (typeof window !== 'undefined' ? `https://${window.location.host}` : 'https://api.ingresa.jhonaq.me');
+    // Mismo criterio que getApiUrl() en providers.tsx: mismo host, puerto 3000.
+    const apiUrl =
+      process.env.NEXT_PUBLIC_API_URL?.replace('/trpc', '') ??
+      (typeof window !== 'undefined'
+        ? `${window.location.protocol}//${window.location.hostname}:3000`
+        : 'https://api.ingresa.jhonaq.me');
     window.location.href = `${apiUrl}/api/auth/google`;
   };
 

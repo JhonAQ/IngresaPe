@@ -50,6 +50,9 @@ export class ProfileRouter {
 
   public router = this.trpc.router({
     getMe: this.trpc.protectedProcedure.query(async ({ ctx }) => {
+      // Sincroniza la racha antes de leer (lazy sync O(1))
+      await this.activityService.getStreakStatus(ctx.user.userId);
+
       const user = await this.prisma.user.findUnique({
         where: { id: ctx.user.userId },
         select: {
@@ -75,6 +78,8 @@ export class ProfileRouter {
           inventory: true,
           lastRefill: true,
           streak: true,
+          lastActivityDate: true,
+          streakFreezes: true,
           lastInteraction: true,
           isPremium: true,
           subExpiresAt: true,

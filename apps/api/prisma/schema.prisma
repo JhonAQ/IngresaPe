@@ -118,8 +118,10 @@ model User {
   inventory       String[]  @default(["default"]) // Lista de IDs de items comprados (legacy)
   lastRefill      DateTime  @default(now()) // Hora de última recarga automática
   totalXp         Int       @default(0) // Puntaje total (Leaderboard)
-  streak          Int       @default(0) // Racha de días consecutivos
-  lastInteraction DateTime  @default(now()) // Para comparar si jugó ayer u hoy
+  streak          Int       @default(0) // Racha de días consecutivos (cache O(1))
+  lastActivityDate DateTime? @db.Date // Último día con actividad (medianoche local)
+  streakFreezes   Int       @default(0) // Protectores de racha disponibles
+  lastInteraction DateTime  @default(now()) // Última interacción genérica (no usado para racha)
 
   // --- Sistema de Rating Competitivo ---
   rating              Int       @default(400)
@@ -436,6 +438,10 @@ model ActivityLog {
   loginBonusGems      Int @default(0)
   streakMilestoneGems Int @default(0)
   energyRefillsUsed   Int @default(0)
+
+  // Cache de la racha al finalizar ese día (para histórico y debugging)
+  streakAtEndOfDay    Int?
+  usedStreakFreeze    Boolean @default(false)
 
   @@unique([userId, date])
   @@index([userId, date])
