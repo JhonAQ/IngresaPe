@@ -1,5 +1,4 @@
 export * from './SharedEngineUI';
-export * from './BasicQuizEngine';
 export * from './Engine';
 export * from './useEngine';
 export * from './registry';

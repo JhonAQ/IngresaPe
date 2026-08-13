@@ -5,8 +5,19 @@ import { AppRouter } from './app/app.router';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { createContext } from './app/trpc.context';
 import { json, urlencoded, Request, Response, NextFunction } from 'express'; 
+import * as path from 'path';
 import * as dotenv from 'dotenv';
-dotenv.config({ override: true }); // Ignora las variables globales del sistema si cruzan
+
+// Cargar el .env de apps/api sin importar desde dónde se lance el proceso:
+// - cwd = raíz del monorepo  -> apps/api/.env
+// - cwd = apps/api           -> .env
+dotenv.config({
+  path: [
+    path.resolve(process.cwd(), 'apps/api/.env'),
+    path.resolve(process.cwd(), '.env'),
+  ],
+  override: true, // Ignora las variables globales del sistema si cruzan
+});
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -49,6 +60,11 @@ async function bootstrap() {
   );
   Logger.log(
     `🔌 tRPC is running on: http://localhost:${port}/trpc`
+  );
+  Logger.log(
+    process.env.GOOGLE_CLIENT_ID
+      ? `🔑 Google OAuth: configurado (client ...${process.env.GOOGLE_CLIENT_ID.slice(-12)})`
+      : '⚠️  Google OAuth: GOOGLE_CLIENT_ID no encontrado. Revisa apps/api/.env'
   );
 }
 

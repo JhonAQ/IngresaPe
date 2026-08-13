@@ -52,43 +52,18 @@ export class GameService {
 
     // 4. Calcular recompensas en gemas
     const rewards = this.grader.computeRewards(question.difficulty, isCorrect);
-    const baseGems = rewards.gems;
 
-    // Guardamos la racha previa para detectar si incrementó con esta acción
-    const previousStreak = user.streak;
-
-    // 5. Guardar intento y registrar actividad
-    const updatedUser = await this.prisma.$transaction(async (tx) => {
-      const userRow = await tx.user.update({
-        where: { id: userId },
-        data: {
-          lastInteraction: new Date(),
-        },
-      });
-
-      await tx.answerLog.create({
-        data: {
-          userId,
-          questionId: question.id,
-          isCorrect,
-          answer: answer as any, // Prisma Json acepta object
-        },
-      });
-
-      return userRow;
-    });
-
-    // 6. Otorgar gemas con tope diario/login bonus, luego métricas y racha
-    const gemResult = await this.activityService.awardGems(userId, baseGems);
-
-    await this.activityService.log({
+    // 5. Registrar actividad (AnswerLog + ActivityLog + racha + gemas)
+    const activityResult = await this.activityService.recordActivity({
       userId,
+      type: 'QUESTION_ANSWERED',
+      questionId: question.id,
+      answer,
+      isCorrect,
+      baseGems: rewards.gems,
       questionsAnswered: 1,
       questionsCorrect: isCorrect ? 1 : 0,
     });
-
-    const newStreak = await this.activityService.recalculateStreak(userId);
-    const streakIncremented = newStreak > previousStreak;
 
     return {
       success: true,
@@ -96,12 +71,12 @@ export class GameService {
       correctAnswerText,
       correctOrder,
       explanation: explanation ?? question.explanation,
-      rewards: { gems: gemResult.capped },
-      streakIncremented,
+      rewards: { gems: activityResult.gemsAwarded },
+      streakIncremented: activityResult.streakIncremented,
       userStats: {
-        energy: updatedUser.energy,
-        streak: newStreak,
-        gems: updatedUser.gems + gemResult.total,
+        energy: activityResult.user.energy,
+        streak: activityResult.streak,
+        gems: activityResult.user.gems,
       },
     };
   }

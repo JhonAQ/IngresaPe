@@ -1,10 +1,33 @@
 import { ActivityService } from './activity.service';
 
-const mockPrisma = {
+const mockTx = {
+  user: {
+    findUnique: jest.fn(),
+    update: jest.fn(),
+  },
+  answerLog: {
+    create: jest.fn(),
+    createMany: jest.fn(),
+  },
   activityLog: {
+    findUnique: jest.fn(),
     upsert: jest.fn(),
+    update: jest.fn(),
+  },
+  userItem: {
+    findFirst: jest.fn(),
+  },
+};
+
+const mockPrisma = {
+  $transaction: jest.fn((callback) => callback(mockTx)),
+  activityLog: {
     findMany: jest.fn(),
     aggregate: jest.fn(),
+  },
+  user: {
+    findUnique: jest.fn(),
+    update: jest.fn(),
   },
 };
 
@@ -18,22 +41,182 @@ describe('ActivityService', () => {
     );
   });
 
-  describe('log', () => {
-    it('registra actividad diaria de un usuario ficticio', async () => {
-      await service.log({
-        userId: 'user-ficticio-1',
-        questionsAnswered: 5,
-        questionsCorrect: 3,
-        nodesCompleted: 2,
-        gemsEarned: 10,
-        simulacrosCompleted: 1,
+  describe('recordActivity', () => {
+    it('registra actividad, gemas y racha en una transacción', async () => {
+      const user = {
+        id: 'user-1',
+        streak: 3,
+        lastActivityDate: new Date('2026-08-08T00:00:00.000Z'),
+        streakFreezes: 0,
+        gems: 100,
+        coins: 50,
+        energy: 20,
+      };
+
+      mockTx.user.findUnique.mockResolvedValue(user);
+      mockTx.activityLog.findUnique.mockResolvedValue(null);
+      mockTx.activityLog.upsert.mockResolvedValue({
+        id: 'log-1',
+        userId: 'user-1',
+        date: new Date('2026-08-09T00:00:00.000Z'),
+        questionsAnswered: 1,
+        questionsCorrect: 1,
+        nodesCompleted: 0,
+        simulacrosCompleted: 0,
+        gemsEarned: 0,
+        loginBonusGems: 0,
+        streakMilestoneGems: 0,
+      });
+      mockTx.userItem.findFirst.mockResolvedValue(null);
+      mockTx.user.update.mockResolvedValue({
+        ...user,
+        gems: 115,
+        streak: 4,
       });
 
-      expect(mockPrisma.activityLog.upsert).toHaveBeenCalledTimes(1);
-      const call = mockPrisma.activityLog.upsert.mock.calls[0][0];
-      expect(call.where.userId_date.userId).toBe('user-ficticio-1');
-      expect(call.update.questionsAnswered.increment).toBe(5);
-      expect(call.update.gemsEarned.increment).toBe(10);
+      const result = await service.recordActivity({
+        userId: 'user-1',
+        type: 'QUESTION_ANSWERED',
+        questionId: 'q-1',
+        answer: { selectedOptionId: 'a' },
+        isCorrect: true,
+        baseGems: 10,
+        questionsAnswered: 1,
+        questionsCorrect: 1,
+      });
+
+      expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(mockTx.user.findUnique).toHaveBeenCalledWith({
+        where: { id: 'user-1' },
+        select: expect.any(Object),
+      });
+      expect(mockTx.answerLog.create).toHaveBeenCalledTimes(1);
+      expect(mockTx.activityLog.upsert).toHaveBeenCalledTimes(1);
+      expect(mockTx.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'user-1' },
+          data: expect.objectContaining({
+            streak: 4,
+          }),
+        })
+      );
+      expect(result.streak).toBe(4);
+      expect(result.streakIncremented).toBe(true);
+      expect(result.user.gems).toBe(115);
+    });
+
+    it('usa freeze cuando se perdió un día y hay freeze disponible', async () => {
+      const user = {
+        id: 'user-1',
+        streak: 5,
+        lastActivityDate: new Date('2026-08-07T00:00:00.000Z'),
+        streakFreezes: 1,
+        gems: 100,
+        coins: 50,
+        energy: 20,
+      };
+
+      mockTx.user.findUnique.mockResolvedValue(user);
+      mockTx.activityLog.findUnique.mockResolvedValue(null);
+      mockTx.activityLog.upsert.mockResolvedValue({
+        id: 'log-1',
+        userId: 'user-1',
+        date: new Date('2026-08-09T00:00:00.000Z'),
+        questionsAnswered: 0,
+        questionsCorrect: 0,
+        nodesCompleted: 1,
+        simulacrosCompleted: 0,
+        gemsEarned: 0,
+        loginBonusGems: 0,
+        streakMilestoneGems: 0,
+      });
+      mockTx.userItem.findFirst.mockResolvedValue(null);
+      mockTx.user.update.mockResolvedValue({
+        ...user,
+        gems: 110,
+        streak: 6,
+        streakFreezes: 0,
+      });
+
+      const result = await service.recordActivity({
+        userId: 'user-1',
+        type: 'NODE_COMPLETED',
+        topicId: 'topic-1',
+        nodeIndex: 0,
+        baseGems: 10,
+        nodesCompleted: 1,
+      });
+
+      expect(result.streak).toBe(6);
+      expect(result.freezesUsed).toBe(1);
+      expect(mockTx.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            streakFreezes: { decrement: 1 },
+          }),
+        })
+      );
+    });
+  });
+
+  describe('getStreakStatus', () => {
+    it('devuelve la racha sin sincronizar cuando está vigente', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({
+        streak: 5,
+        lastActivityDate: new Date('2026-08-08T00:00:00.000Z'),
+        streakFreezes: 0,
+      });
+
+      const result = await service.getStreakStatus('user-1');
+
+      expect(result.streak).toBe(5);
+      expect(result.needsSync).toBe(false);
+      expect(mockPrisma.user.update).not.toHaveBeenCalled();
+    });
+
+    it('consume freezes y sincroniza cuando hay días perdidos', async () => {
+      const today = new Date();
+      const threeDaysAgo = new Date(today);
+      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
+      mockPrisma.user.findUnique.mockResolvedValue({
+        streak: 5,
+        lastActivityDate: threeDaysAgo,
+        streakFreezes: 2,
+      });
+      mockPrisma.user.update.mockResolvedValue({});
+
+      const result = await service.getStreakStatus('user-1');
+
+      expect(result.streak).toBe(5);
+      expect(result.needsSync).toBe(true);
+      expect(mockPrisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'user-1' },
+          data: expect.objectContaining({
+            streakFreezes: expect.any(Number),
+            lastActivityDate: expect.any(Date),
+          }),
+        })
+      );
+    });
+
+    it('resetea la racha cuando no hay freezes suficientes', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({
+        streak: 5,
+        lastActivityDate: new Date('2026-08-06T00:00:00.000Z'),
+        streakFreezes: 1,
+      });
+      mockPrisma.user.update.mockResolvedValue({});
+
+      const result = await service.getStreakStatus('user-1');
+
+      expect(result.streak).toBe(0);
+      expect(result.needsSync).toBe(true);
+      expect(mockPrisma.user.update).toHaveBeenCalledWith({
+        where: { id: 'user-1' },
+        data: { streak: 0 },
+      });
     });
   });
 

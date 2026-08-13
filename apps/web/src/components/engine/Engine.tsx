@@ -246,6 +246,3 @@ export function Engine() {
     </div>
   );
 }
-
-// Mantener compatibilidad con import antiguo si alguien sigue usando BasicQuizEngine.
-export { BasicQuizEngine } from './BasicQuizEngine';

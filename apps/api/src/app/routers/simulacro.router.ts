@@ -561,49 +561,42 @@ export class SimulacroRouter {
         const correctGems = correctCount * GEMS_PER_SIMULACRO_CORRECT;
         const baseGems = participationGems + correctGems;
 
-        const gemResult = await this.activityService.awardGems(
-          ctx.user.userId,
-          baseGems
-        );
-
-        await this.prisma.$transaction(async (tx) => {
-          await tx.examAttempt.update({
-            where: { id: attempt.id },
-            data: {
-              status: 'COMPLETED',
-              submittedAt: new Date(),
-              serverSubmittedAt: new Date(),
-              timeUsedSeconds,
-              correctCount,
-              incorrectCount,
-              blankCount,
-              score,
-              answers: gradedAnswers as any,
-              totalXpEarned: xpEarned,
-              totalCoinsEarned: coinsEarned,
-              totalGemsEarned: gemResult.total,
-            },
-          });
-
-          for (const log of answerLogs) {
-            await tx.answerLog.create({ data: log as any });
-          }
-
-          if (!attempt.isOfficial) {
-            await tx.user.update({
-              where: { id: ctx.user.userId },
-              data: {
-                coins: { increment: coinsEarned },
-                lastExamScore: score,
-              },
-            });
-          }
-        });
-
-        await this.activityService.log({
+        const activityResult = await this.activityService.recordActivity({
           userId: ctx.user.userId,
+          type: 'SIMULACRO_COMPLETED',
+          examAttemptId: attempt.id,
+          answerLogs,
+          baseGems,
+          coinsEarned: attempt.isOfficial ? 0 : coinsEarned,
           simulacrosCompleted: 1,
+          questionsAnswered: totalAnswered,
+          questionsCorrect: correctCount,
         });
+
+        await this.prisma.examAttempt.update({
+          where: { id: attempt.id },
+          data: {
+            status: 'COMPLETED',
+            submittedAt: new Date(),
+            serverSubmittedAt: new Date(),
+            timeUsedSeconds,
+            correctCount,
+            incorrectCount,
+            blankCount,
+            score,
+            answers: gradedAnswers as any,
+            totalXpEarned: xpEarned,
+            totalCoinsEarned: coinsEarned,
+            totalGemsEarned: activityResult.totalGems,
+          },
+        });
+
+        if (!attempt.isOfficial) {
+          await this.prisma.user.update({
+            where: { id: ctx.user.userId },
+            data: { lastExamScore: score },
+          });
+        }
 
         if (attempt.isOfficial) {
           return {
@@ -623,7 +616,7 @@ export class SimulacroRouter {
           totalAnswered,
           timeUsedSeconds,
           coinsEarned,
-          gemsEarned: gemResult.total,
+          gemsEarned: activityResult.totalGems,
         };
       }),
   });

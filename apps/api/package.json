@@ -99,5 +99,8 @@
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
+  },
+  "scripts": {
+    "migrate:streak-data": "npx tsx scripts/migrate-streak-data.ts"
   }
 }

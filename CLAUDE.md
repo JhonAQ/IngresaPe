@@ -143,9 +143,9 @@ Schema in `apps/api/prisma/schema.prisma` includes:
 - **Competitive/ranking models**: `Season`, `RatingHistory`, `SeasonStanding`, `ActivityLog`, `UserItem`, `ShopItem`
 - **Exam models**: `Exam`, `ExamQuestion`, `ExamAttempt`, `UserTopicNodeCompletion`
 - **Enums**: `Role`, `Area`, `Difficulty`, `PlanType`, `PaymentStatus`, `Division`
-- **Gamification fields on User**: `energy` (max 25), `coins`, `gems`, `streak`, `inventory` (String[]), `isPremium`, `lastRefill`, `lastInteraction`, `rating`, `division`, `highestRating`
+- **Gamification fields on User**: `energy` (max 25), `coins`, `gems`, `streak`, `streakFreezes`, `lastActivityDate`, `inventory` (String[]), `isPremium`, `lastRefill`, `lastInteraction`, `rating`, `division`, `highestRating`
 - **Questions use JSONB** for content array.
-- **Streak source of truth**: `user.streak` is recalculated from `ActivityLog` via `ActivityService.recalculateStreak()` after each meaningful action.
+- **Streak source of truth**: `user.streak` + `user.lastActivityDate` + `user.streakFreezes` (O(1) algorithm). `ActivityLog` is only for daily metrics, not streak calculation.
 - **Seed data**: 47 careers, 8 courses, ~20 topics, ~37+ questions in `prisma/seed.ts`; competitive ranking seed in `prisma/seed-competitors.ts`; demo users seed in `prisma/seed-demo-users.ts`.
 
 ### Authentication Flow
@@ -173,6 +173,15 @@ XP/EXP was removed from the product surface and backend contracts. Rewards are n
 ### Streak Synchronization
 
 `user.streak` is derived from `ActivityLog` by `ActivityService.recalculateStreak()`. It is called from `GameService.submitAnswer`, `LearningRouter.submitAnswer`, `ContentRouter.completeNode`, and `SimulacroRouter.submit`.
+
+**New architecture (2026-08-09):**
+
+- `ActivityService.recordActivity()` is the single entry point for any user action that generates activity, rewards, or streak changes.
+- It runs inside a single Prisma transaction to guarantee consistency.
+- Streak is calculated in O(1) using `user.streak`, `user.lastActivityDate`, and `user.streakFreezes`.
+- `profile.getMe` and `stats.getDashboard` call `ActivityService.getStreakStatus()` before reading to perform lazy sync (consume freezes or reset streak if days were missed).
+- `ActivityLog` is now only for daily metrics (heatmap, weekly streak, stats), not for streak calculation.
+- `streak.utils.ts` and `BasicQuizEngine.tsx` were removed as dead code.
 
 ### Energy System
 

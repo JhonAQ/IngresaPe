@@ -1,19 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { TrpcService } from '../trpc.service';
 import { PrismaService } from '../prisma.service';
+import { ActivityService } from '../services/activity.service';
 
 @Injectable()
 export class StatsRouter {
   constructor(
     private readonly trpc: TrpcService,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
+    private readonly activityService: ActivityService
   ) {}
 
   router = this.trpc.router({
-    
+
     // 📊 DASHBOARD PRINCIPAL
     getDashboard: this.trpc.protectedProcedure.query(async ({ ctx }) => {
       const userId = ctx.user.userId;
+
+      // Sincroniza la racha antes de leer (lazy sync O(1))
+      await this.activityService.getStreakStatus(userId);
 
       // 1. Datos del Usuario
       const user = await this.prisma.user.findUnique({

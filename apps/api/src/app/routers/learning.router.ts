@@ -79,54 +79,24 @@ export class LearningRouter {
           isCorrect
         );
 
-        const user = await this.prisma.user.findUnique({
-          where: { id: ctx.user.userId },
-        });
-
-        if (!user) {
-          throw new TRPCError({
-            code: 'UNAUTHORIZED',
-            message: 'Usuario no encontrado',
-          });
-        }
-
-        const previousStreak = user.streak;
-
-        await this.prisma.user.update({
-          where: { id: ctx.user.userId },
-          data: { lastInteraction: new Date() },
-        });
-
-        await this.prisma.answerLog.create({
-          data: {
-            userId: ctx.user.userId,
-            questionId: question.id,
-            isCorrect: isCorrect,
-            answer: answer as any,
-          },
-        });
-
-        const gemResult = await this.activityService.awardGems(
-          ctx.user.userId,
-          baseGems
-        );
-
-        await this.activityService.log({
+        const activityResult = await this.activityService.recordActivity({
           userId: ctx.user.userId,
+          type: 'QUESTION_ANSWERED',
+          questionId: question.id,
+          answer,
+          isCorrect,
+          baseGems,
           questionsAnswered: 1,
           questionsCorrect: isCorrect ? 1 : 0,
         });
-
-        const newStreak = await this.activityService.recalculateStreak(ctx.user.userId);
-        const streakIncremented = newStreak > previousStreak;
 
         return {
           correct: isCorrect,
           correctAnswerText,
           explanation: explanation ?? question.explanation,
-          rewards: { gems: gemResult.capped },
-          streakIncremented,
-          newTotalGems: user.gems + gemResult.total,
+          rewards: { gems: activityResult.gemsAwarded },
+          streakIncremented: activityResult.streakIncremented,
+          newTotalGems: activityResult.user.gems,
         };
       }),
   });
