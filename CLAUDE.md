@@ -182,6 +182,8 @@ XP/EXP was removed from the product surface and backend contracts. Rewards are n
 - `profile.getMe` and `stats.getDashboard` call `ActivityService.getStreakStatus()` before reading to perform lazy sync (consume freezes or reset streak if days were missed).
 - `ActivityLog` is now only for daily metrics (heatmap, weekly streak, stats), not for streak calculation.
 - `streak.utils.ts` and `BasicQuizEngine.tsx` were removed as dead code.
+- **Day convention**: a "day" is the civil day in America/Lima (fixed UTC-5, no DST). `toDateOnly()` in `activity.service.ts` converts an instant to the UTC midnight of the Lima civil day. Day values are never re-normalized; day arithmetic (`diffInDays`, `addDays`) is pure millisecond math. `ShopService` reuses the same `toDateOnly`.
+- Buying `STREAK_FREEZE_1D` in the shop increments `user.streakFreezes` directly (the source of truth), besides recording the `UserItem` for inventory display.
 
 ### Energy System
 

@@ -1,4 +1,4 @@
-import { ActivityService } from './activity.service';
+import { ActivityService, toDateOnly } from './activity.service';
 
 const mockTx = {
   user: {
@@ -31,6 +31,13 @@ const mockPrisma = {
   },
 };
 
+// Valor de día (medianoche UTC del día civil de Lima) hace n días.
+// Misma convención que usa la BD, para que los tests no dependan del día
+// en que se ejecutan.
+function daysAgo(n: number): Date {
+  return new Date(toDateOnly(new Date()).getTime() - n * 86_400_000);
+}
+
 describe('ActivityService', () => {
   let service: ActivityService;
 
@@ -46,7 +53,7 @@ describe('ActivityService', () => {
       const user = {
         id: 'user-1',
         streak: 3,
-        lastActivityDate: new Date('2026-08-08T00:00:00.000Z'),
+        lastActivityDate: daysAgo(1),
         streakFreezes: 0,
         gems: 100,
         coins: 50,
@@ -109,7 +116,7 @@ describe('ActivityService', () => {
       const user = {
         id: 'user-1',
         streak: 5,
-        lastActivityDate: new Date('2026-08-07T00:00:00.000Z'),
+        lastActivityDate: daysAgo(2),
         streakFreezes: 1,
         gems: 100,
         coins: 50,
@@ -163,7 +170,7 @@ describe('ActivityService', () => {
     it('devuelve la racha sin sincronizar cuando está vigente', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({
         streak: 5,
-        lastActivityDate: new Date('2026-08-08T00:00:00.000Z'),
+        lastActivityDate: daysAgo(1),
         streakFreezes: 0,
       });
 
@@ -204,7 +211,7 @@ describe('ActivityService', () => {
     it('resetea la racha cuando no hay freezes suficientes', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({
         streak: 5,
-        lastActivityDate: new Date('2026-08-06T00:00:00.000Z'),
+        lastActivityDate: daysAgo(3),
         streakFreezes: 1,
       });
       mockPrisma.user.update.mockResolvedValue({});

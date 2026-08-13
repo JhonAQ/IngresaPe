@@ -110,24 +110,38 @@ export interface GemAwardResult {
 // Helpers puros
 // ============================================================================
 
-function toDateOnly(date: Date): Date {
-  // Usamos la fecha local del servidor para que el día de hoy en Perú
-  // no se guarde como mañana por el desfase UTC.
+// America/Lima no tiene horario de verano: offset fijo UTC-5.
+// Lo fijamos explícitamente para que el "día de hoy" sea el día civil peruano
+// sin importar la zona horaria del servidor (local, Docker, Coolify, etc.).
+const LIMA_OFFSET_MS = -5 * 60 * 60 * 1000;
+
+/**
+ * Convierte un instante a la medianoche UTC del día civil de Lima.
+ * Los valores de día se guardan así en la BD (@db.Date → medianoche UTC).
+ *
+ * IMPORTANTE: no es idempotente por diseño. Solo se aplica a instantes crudos
+ * (ej. `new Date()`), nunca a valores de día ya normalizados.
+ */
+export function toDateOnly(date: Date): Date {
+  const lima = new Date(date.getTime() + LIMA_OFFSET_MS);
   return new Date(
-    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+    Date.UTC(lima.getUTCFullYear(), lima.getUTCMonth(), lima.getUTCDate())
   );
 }
 
+/**
+ * Diferencia en días entre dos VALORES DE DÍA (medianoches UTC).
+ * No normaliza: asume que ambas fechas ya son valores de día.
+ */
 function diffInDays(later: Date, earlier: Date): number {
-  const laterTime = toDateOnly(later).getTime();
-  const earlierTime = toDateOnly(earlier).getTime();
-  return Math.round((laterTime - earlierTime) / 86_400_000);
+  return Math.round((later.getTime() - earlier.getTime()) / 86_400_000);
 }
 
+/**
+ * Suma días a un VALOR DE DÍA (medianoche UTC). Aritmética pura, sin TZ.
+ */
 function addDays(date: Date, days: number): Date {
-  const result = new Date(date);
-  result.setDate(result.getDate() + days);
-  return toDateOnly(result);
+  return new Date(date.getTime() + days * 86_400_000);
 }
 
 /**

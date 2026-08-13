@@ -109,6 +109,7 @@ interface TestUser {
   rating: number;
   highestRating: number;
   streak: number;
+  streakFreezes: number;
   coins: number;
   gems: number;
   totalXp: number;
@@ -124,6 +125,7 @@ function baseUser(
   return {
     highestRating: overrides.rating,
     streak: 0,
+    streakFreezes: 0,
     coins: 100,
     gems: 0,
     totalXp: 0,
@@ -444,6 +446,15 @@ async function main() {
     const division = getDivisionByRating(u.rating);
     const highestDivision = getDivisionByRating(u.highestRating);
 
+    // Día más reciente con actividad: la racha llega hasta hoy (offset 0),
+    // y la actividad explícita puede tener otros offsets.
+    const activityOffsets = u.activity.map((a) => a.dateOffset);
+    if (u.streak > 0) activityOffsets.push(0);
+    const lastActivityDate =
+      activityOffsets.length > 0
+        ? startOfDayLocal(addDays(today(), Math.max(...activityOffsets)))
+        : null;
+
     const user = await prisma.user.upsert({
       where: { email: u.email.toLowerCase() },
       create: {
@@ -458,6 +469,8 @@ async function main() {
         gems: u.gems,
         totalXp: u.totalXp,
         streak: u.streak,
+        streakFreezes: u.streakFreezes,
+        lastActivityDate,
         lastInteraction: now,
         lastRefill: now,
         rating: u.rating,
@@ -477,6 +490,8 @@ async function main() {
         gems: u.gems,
         totalXp: u.totalXp,
         streak: u.streak,
+        streakFreezes: u.streakFreezes,
+        lastActivityDate,
         lastInteraction: now,
         lastRefill: now,
         rating: u.rating,

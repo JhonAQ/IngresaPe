@@ -101,6 +101,10 @@
     "seed": "npx tsx prisma/seed.ts"
   },
   "scripts": {
-    "migrate:streak-data": "npx tsx scripts/migrate-streak-data.ts"
+    "migrate:streak-data": "npx tsx scripts/migrate-streak-data.ts",
+    "seed:shop": "npx tsx prisma/seed-shop-items.ts",
+    "seed:demo-users": "npx tsx prisma/seed-demo-users.ts",
+    "seed:test-users": "npx tsx prisma/seed-test-users.ts",
+    "seed:competitors": "npx tsx prisma/seed-competitors.ts"
   }
 }

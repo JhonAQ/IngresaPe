@@ -190,6 +190,45 @@ async function main() {
     const coins = randomInt(100, 3000);
     const gems = randomInt(0, 100);
     const streak = randomInt(0, 30);
+    const streakFreezes = randomInt(0, 2);
+
+    // --- Plan de actividad de los últimos 84 días (en memoria) ---
+    // Clave: offset de día (0 = hoy, -1 = ayer, ...).
+    const activityPlan = new Map<number, { nodes: number; simulacros: number }>();
+
+    // 1) Racha vigente: un nodo por cada día de la racha, terminando hoy.
+    //    Así la racha guardada en el usuario es coherente con ActivityLog.
+    if (streak > 0) {
+      for (let offset = -(streak - 1); offset <= 0; offset++) {
+        activityPlan.set(offset, { nodes: 1, simulacros: 0 });
+      }
+    }
+
+    // 2) Actividad histórica aleatoria. Si no hay racha, evitamos hoy y ayer
+    //    para que la racha real siga siendo 0 al leerla.
+    for (let offset = -83; offset <= 0; offset++) {
+      if (activityPlan.has(offset)) continue;
+      if (streak === 0 && offset >= -1) continue;
+
+      const roll = Math.random();
+      if (roll > divisionConfig.activityProbability) continue;
+
+      const nodes = randomInt(0, 3);
+      const simulacros = Math.random() > 0.85 ? 1 : 0;
+      if (nodes === 0 && simulacros === 0) continue;
+
+      activityPlan.set(offset, { nodes, simulacros });
+    }
+
+    // lastActivityDate = día más reciente con actividad (coherente con racha).
+    const lastOffset =
+      activityPlan.size > 0
+        ? Math.max(...Array.from(activityPlan.keys()))
+        : null;
+    const lastActivityDate =
+      lastOffset !== null
+        ? startOfDayLocal(addDays(today(), lastOffset))
+        : null;
 
     const user = await prisma.user.upsert({
       where: { email },
@@ -205,6 +244,8 @@ async function main() {
         gems,
         totalXp,
         streak,
+        streakFreezes,
+        lastActivityDate,
         lastInteraction: now,
         lastRefill: now,
         rating,
@@ -223,6 +264,8 @@ async function main() {
         gems,
         totalXp,
         streak,
+        streakFreezes,
+        lastActivityDate,
         lastInteraction: now,
         lastRefill: now,
         rating,
@@ -239,28 +282,24 @@ async function main() {
     await prisma.activityLog.deleteMany({ where: { userId: user.id } });
     await prisma.ratingHistory.deleteMany({ where: { userId: user.id } });
 
-    // Generar actividad de los últimos 84 días.
-    const activityData: Prisma.ActivityLogCreateManyInput[] = [];
-    for (let offset = -83; offset <= 0; offset++) {
-      const roll = Math.random();
-      if (roll > divisionConfig.activityProbability) continue;
-
-      const nodes = randomInt(0, 3);
-      const simulacros = Math.random() > 0.85 ? 1 : 0;
-      if (nodes === 0 && simulacros === 0) continue;
-
-      const questions = nodes * 7 + simulacros * 100;
-      activityData.push({
+    // Materializar el plan de actividad.
+    const activityData: Prisma.ActivityLogCreateManyInput[] = Array.from(
+      activityPlan.entries()
+    ).map(([offset, a]) => {
+      const questions = a.nodes * 7 + a.simulacros * 100;
+      return {
         userId: user.id,
         date: startOfDayLocal(addDays(today(), offset)),
-        nodesCompleted: nodes,
-        simulacrosCompleted: simulacros,
+        nodesCompleted: a.nodes,
+        simulacrosCompleted: a.simulacros,
         questionsAnswered: questions,
-        questionsCorrect: Math.round(questions * clamp(0.4, 0.5 + Math.random() * 0.3, 0.95)),
-        xpEarned: nodes * 20 + simulacros * 150,
-        gemsEarned: simulacros * 3,
-      });
-    }
+        questionsCorrect: Math.round(
+          questions * clamp(0.4, 0.5 + Math.random() * 0.3, 0.95)
+        ),
+        xpEarned: a.nodes * 20 + a.simulacros * 150,
+        gemsEarned: a.simulacros * 3,
+      };
+    });
     if (activityData.length > 0) {
       await prisma.activityLog.createMany({ data: activityData });
     }

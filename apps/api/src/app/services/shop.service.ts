@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma, ShopItemCategory } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
 import { TRPCError } from '@trpc/server';
+import { toDateOnly } from './activity.service';
 
 export interface ShopItemDto {
   key: string;
@@ -94,9 +95,19 @@ export class ShopService {
         await this.applyEnergyRefill(tx, userId, quantity);
       }
 
+      const userUpdate: Prisma.UserUpdateInput = {
+        gems: { decrement: totalPrice },
+      };
+
+      // Los protectores de racha viven en user.streakFreezes (fuente de verdad
+      // del sistema de rachas), no solo en el inventario.
+      if (item.key === 'STREAK_FREEZE_1D') {
+        userUpdate.streakFreezes = { increment: quantity };
+      }
+
       await tx.user.update({
         where: { id: userId },
-        data: { gems: { decrement: totalPrice } },
+        data: userUpdate,
       });
 
       await tx.userItem.upsert({
@@ -194,7 +205,7 @@ export class ShopService {
     userId: string,
     quantity: number
   ) {
-    const date = this.toDate(new Date());
+    const date = toDateOnly(new Date());
     const log = await tx.activityLog.upsert({
       where: { userId_date: { userId, date } },
       update: {},
@@ -356,11 +367,5 @@ export class ShopService {
         create: item,
       });
     }
-  }
-
-  private toDate(date: Date): Date {
-    return new Date(
-      Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
-    );
   }
 }
