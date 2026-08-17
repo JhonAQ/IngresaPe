@@ -11,6 +11,7 @@ import { ShopRouter } from './routers/shop.router';
 import { LearningRouter } from './routers/learning.router';
 import { SubscriptionRouter } from './routers/subscription.router';
 import { SimulacroRouter } from './routers/simulacro.router';
+import { SocialRouter } from './routers/social.router';
 
 @Injectable()
 export class AppRouter {
@@ -26,7 +27,8 @@ export class AppRouter {
     private readonly shop: ShopRouter,
     private readonly learning: LearningRouter,
     private readonly subscription: SubscriptionRouter,
-    private readonly simulacro: SimulacroRouter
+    private readonly simulacro: SimulacroRouter,
+    private readonly social: SocialRouter
   ) {}
 
   appRouter = this.trpc.router({
@@ -55,6 +57,7 @@ export class AppRouter {
     learning: this.learning.router, // Acceso: client.learning.getRandomQuestion
     subscription: this.subscription.router, // Acceso: client.subscription.requestSubscription
     simulacro: this.simulacro.router, // Acceso: client.simulacro.getStats
+    social: this.social.router,       // Acceso: client.social.follow
   });
 }
 

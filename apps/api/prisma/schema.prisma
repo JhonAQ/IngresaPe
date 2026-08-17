@@ -152,6 +152,10 @@ model User {
   seasonStandings SeasonStanding[]
   activityLogs    ActivityLog[]
   userItems       UserItem[]
+
+  // --- Social (Follows) ---
+  following  Follow[] @relation("Following")  // Gente que yo sigo
+  followers  Follow[] @relation("Followers")  // Gente que me sigue
 }
 
 // =========================================================
@@ -505,4 +509,25 @@ model Subscription {
   proofUrl String? // Foto del voucher (Yape/Plin)
 
   status PaymentStatus @default(PENDING) // Pendiente -> Aprobado
+}
+
+// =========================================================
+// 7. SOCIAL (Sistema de Follows)
+// =========================================================
+
+model Follow {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  // Quien sigue
+  followerId String
+  follower   User @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+
+  // A quien sigue
+  followingId String
+  following   User @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId]) // No duplicar follows
+  @@index([followerId])               // "¿A quién sigo?"
+  @@index([followingId])              // "¿Quién me sigue?"
 }

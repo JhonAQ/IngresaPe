@@ -7,3 +7,4 @@ export * from './question';
 export * from './simulacro';
 export * from './academic-dna';
 export * from './ranking';
+export * from './social';

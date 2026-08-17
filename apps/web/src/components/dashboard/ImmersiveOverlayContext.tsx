@@ -10,7 +10,13 @@ import React, {
   useRef,
 } from 'react';
 
-export type ImmersiveOverlayMode = 'courseSelector' | 'summary' | 'academicDna' | 'attemptsHistory' | 'archive';
+export type ImmersiveOverlayMode =
+  | 'courseSelector'
+  | 'summary'
+  | 'academicDna'
+  | 'attemptsHistory'
+  | 'archive'
+  | 'friendsList';
 
 interface ImmersiveOverlayContextValue {
   mode: ImmersiveOverlayMode | null;

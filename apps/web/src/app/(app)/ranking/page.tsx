@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { TrendingUp } from 'lucide-react';
+import { Shield, Crown, Zap } from 'lucide-react';
 import { trpc } from '../../../utils/trpc';
+import { UserPreviewModal } from '../../../components/social/UserPreviewModal';
 import {
   RankingTabs,
   RankingAccordion,
@@ -17,7 +18,7 @@ import {
   type Area,
 } from '@ingresa-pe/domain';
 
-type Tab = 'league' | 'career' | 'area' | 'global';
+type Tab = 'career' | 'area' | 'global';
 
 function formatScore(score: number): string {
   return score.toFixed(1);
@@ -27,10 +28,14 @@ function DivisionBadge({ division }: { division: keyof typeof leagueConfig }) {
   const cfg = leagueConfig[division];
   return (
     <span
-      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider"
-      style={{ backgroundColor: cfg.hex + '20', color: cfg.hex }}
+      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border"
+      style={{
+        backgroundColor: cfg.hex + '18',
+        color: cfg.hex,
+        borderColor: cfg.hex + '30',
+      }}
     >
-      <span>{cfg.emoji}</span>
+      <Shield size={12} strokeWidth={3} />
       {cfg.label}
     </span>
   );
@@ -46,11 +51,12 @@ function MoreRow({ count }: { count: number }) {
 }
 
 export default function RankingPage() {
-  const [activeTab, setActiveTab] = useState<Tab>('league');
+  const [activeTab, setActiveTab] = useState<Tab>('career');
   const [expandedSections, setExpandedSections] = useState<
     Record<string, boolean>
   >({});
   const [meKey, setMeKey] = useState(0);
+  const [previewUserId, setPreviewUserId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const meRef = useRef<HTMLDivElement | null>(null);
 
@@ -67,10 +73,6 @@ export default function RankingPage() {
   const { data: myStats } = trpc.ranking.getMyStats.useQuery();
   const { data: seasonStatus } = trpc.ranking.getCurrentSeasonStatus.useQuery();
 
-  const { data: leagueData, isLoading: isLeagueLoading } =
-    trpc.ranking.getWeeklyLeague.useQuery(undefined, {
-      enabled: activeTab === 'league',
-    });
   const { data: careersData, isLoading: isCareersLoading } =
     trpc.ranking.getAllCareersLeaderboard.useQuery(undefined, {
       enabled: activeTab === 'career',
@@ -85,7 +87,6 @@ export default function RankingPage() {
     });
 
   const isLoading =
-    (activeTab === 'league' && isLeagueLoading) ||
     (activeTab === 'career' && isCareersLoading) ||
     (activeTab === 'area' && isAreasLoading) ||
     (activeTab === 'global' && isGlobalLoading);
@@ -94,7 +95,7 @@ export default function RankingPage() {
     setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const renderStudents = (students: RankingUserDto[], showDelta = false) => {
+  const renderStudents = (students: RankingUserDto[]) => {
     if (students.length === 0) {
       return (
         <div className="py-4 text-center text-slate-400 font-bold text-[12px]">
@@ -107,18 +108,18 @@ export default function RankingPage() {
         key={student.id}
         user={student}
         index={idx}
-        showDelta={showDelta}
         targetRef={student.isMe ? setMeRef : undefined}
+        onUserClick={(id) => setPreviewUserId(id)}
       />
     ));
   };
 
-  const renderUserRow = (user: RankingUserDto, showDelta = false) => (
+  const renderUserRow = (user: RankingUserDto) => (
     <RankingTableRow
       user={user}
       index={0}
-      showDelta={showDelta}
       targetRef={setMeRef}
+      onUserClick={(id) => setPreviewUserId(id)}
     />
   );
 
@@ -150,33 +151,69 @@ export default function RankingPage() {
     ? 'Finde de ranking abierto'
     : 'Finde de ranking cerrado';
 
+  const divisionColor =
+    leagueConfig[myStats?.division ?? 'HUEVITO']?.hex ?? '#9CA3AF';
+
   return (
     <main className="flex-1 overflow-hidden flex flex-col bg-white">
       <div className="shrink-0 px-4 pt-4 pb-3 bg-white z-20">
-        <div className="rounded-2xl border-2 border-slate-200 border-b-[4px] border-b-slate-300 p-4 mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <div>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                Tu puntaje de admisión
-              </p>
-              <p className="font-black text-[28px] leading-none text-slate-800">
-                {formatScore(myStats?.score ?? 0)}
-              </p>
+        {/* User score card */}
+        <div
+          className="relative overflow-hidden rounded-[1.5rem] border-b-[5px] p-4 mb-4 shadow-md"
+          style={{
+            background: `linear-gradient(135deg, ${divisionColor}15 0%, ${divisionColor}08 100%)`,
+            borderColor: divisionColor + '40',
+          }}
+        >
+          <div
+            className="absolute -right-4 -top-4 h-24 w-24 rounded-full opacity-20"
+            style={{ backgroundColor: divisionColor }}
+          />
+          <div
+            className="absolute -bottom-6 -left-6 h-20 w-20 rounded-full opacity-15"
+            style={{ backgroundColor: divisionColor }}
+          />
+
+          <div className="relative flex items-start justify-between mb-3">
+            <div
+              className="w-10 h-10 rounded-2xl flex items-center justify-center border-2 bg-white/60 backdrop-blur-sm"
+              style={{ borderColor: divisionColor + '40' }}
+            >
+              <Shield
+                size={20}
+                strokeWidth={2.5}
+                style={{ color: divisionColor }}
+              />
             </div>
             <DivisionBadge division={myStats?.division ?? 'HUEVITO'} />
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-500">
-              Peak: {formatScore(myStats?.highestScore ?? 0)}
-            </span>
-            <span className="text-[10px] font-black px-2 py-1 rounded-lg bg-slate-100 text-slate-600">
-              {seasonText}
-            </span>
+
+          <div className="relative mb-3">
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">
+              Tu puntaje de admisión
+            </p>
+            <p
+              className="font-black text-[36px] leading-none tracking-tight"
+              style={{ color: divisionColor }}
+            >
+              {formatScore(myStats?.score ?? 0)}
+            </p>
+          </div>
+
+          <div className="relative flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-[11px] font-black text-slate-500">
+              <Crown size={14} className="text-amber-500" fill="#f59e0b" />
+              <span>Peak {formatScore(myStats?.highestScore ?? 0)}</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-600 bg-white/60 backdrop-blur-sm px-2.5 py-1 rounded-xl border border-slate-200/60">
+              <Zap size={12} className="text-amber-500" fill="#f59e0b" />
+              <span>{seasonText}</span>
+            </div>
           </div>
         </div>
 
         <RankingTabs active={activeTab} onChange={handleTabChange} />
-        <RankingTableHeader showDelta={activeTab === 'league'} />
+        <RankingTableHeader />
       </div>
 
       <div
@@ -192,24 +229,6 @@ export default function RankingPage() {
               />
             ))}
           </div>
-        ) : activeTab === 'league' ? (
-          leagueData?.top.length ? (
-            <RankingAccordion
-              title="LIGA SEMANAL"
-              isOpen={expandedSections['Liga semanal'] ?? true}
-              onToggle={() => toggleSection('Liga semanal')}
-            >
-              {renderStudents(leagueData.top, true)}
-              <MoreRow
-                count={leagueData.totalInLeague - leagueData.top.length}
-              />
-              {leagueData.me &&
-                !leagueData.top.some((s) => s.isMe) &&
-                renderUserRow(leagueData.me, true)}
-            </RankingAccordion>
-          ) : (
-            <EmptyState />
-          )
         ) : activeTab === 'career' ? (
           careersData?.groups.length ? (
             careersData.groups.map((group) => {
@@ -277,6 +296,12 @@ export default function RankingPage() {
         scrollContainerRef={scrollRef}
         targetRef={meRef}
       />
+
+      {/* User Preview Modal */}
+      <UserPreviewModal
+        userId={previewUserId}
+        onClose={() => setPreviewUserId(null)}
+      />
     </main>
   );
 }
@@ -284,7 +309,7 @@ export default function RankingPage() {
 function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
-      <TrendingUp size={40} className="text-slate-300 mb-3" />
+      <Crown size={40} className="text-slate-300 mb-3" />
       <p className="text-slate-400 font-bold text-[14px]">
         Aún no hay datos para este ranking.
       </p>

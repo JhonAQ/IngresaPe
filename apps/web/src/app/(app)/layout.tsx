@@ -17,6 +17,7 @@ import {
 } from '../../components/dashboard/DashboardCourseContext';
 import { AttemptsHistoryOverlay } from '../../components/simulacros/AttemptsHistoryOverlay';
 import { ArchiveOverlay } from '../../components/simulacros';
+import { FriendsOverlay } from '../../components/social/FriendsOverlay';
 import { PWAInstallManager } from '../../components/pwa/PWAInstallManager';
 
 function LayoutContent({ children }: { children: React.ReactNode }) {
@@ -52,6 +53,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 
           <AttemptsHistoryOverlay />
           <ArchiveOverlay />
+          <FriendsOverlay />
           <PWAInstallManager />
 
           {!isOpen && <BottomNav />}

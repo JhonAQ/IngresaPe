@@ -16,6 +16,7 @@ import { SeasonService } from './services/season.service';
 import { LeaderboardService } from './services/leaderboard.service';
 import { ActivityService } from './services/activity.service';
 import { ShopService } from './services/shop.service';
+import { SocialService } from './services/social.service';
 
 // Routers (tRPC)
 import { AuthRouter } from './routers/auth.router';
@@ -29,6 +30,7 @@ import { ShopRouter } from './routers/shop.router';
 import { LearningRouter } from './routers/learning.router';
 import { SubscriptionRouter } from './routers/subscription.router';
 import { SimulacroRouter } from './routers/simulacro.router';
+import { SocialRouter } from './routers/social.router';
 
 // Auth Components (REST & Strategies)
 import { AuthController } from './controllers/auth.controller';
@@ -65,6 +67,7 @@ import { RankingCronService } from './ranking-cron.service';
     LeaderboardService,
     ActivityService,
     ShopService,
+    SocialService,
     RankingCronService,
 
     // Routers tRPC (Inyectables)
@@ -80,6 +83,7 @@ import { RankingCronService } from './ranking-cron.service';
     LearningRouter,
     SubscriptionRouter,
     SimulacroRouter,
+    SocialRouter,
 
     // Lógica de Negocio Auth
     AuthService,

@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-export type RankingTab = 'league' | 'career' | 'area' | 'global';
+export type RankingTab = 'career' | 'area' | 'global';
 
 interface RankingTabsProps {
   active: RankingTab;
@@ -11,7 +11,6 @@ interface RankingTabsProps {
 }
 
 const tabs: { key: RankingTab; label: string }[] = [
-  { key: 'league', label: 'Liga' },
   { key: 'career', label: 'Carrera' },
   { key: 'area', label: 'Área' },
   { key: 'global', label: 'Global' },

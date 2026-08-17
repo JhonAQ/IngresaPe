@@ -20,10 +20,12 @@ import { WeeklyStreakCard } from '../../../components/perfil/WeeklyStreakCard';
 import { ProfileSkeleton } from '../../../components/ui/skeleton';
 import { InstallTag } from '../../../components/pwa/InstallTag';
 import { ChunkyButton } from '../../../components/ui/ChunkyButton';
+import { useImmersiveOverlay } from '../../../components/dashboard/ImmersiveOverlayContext';
 import { trpc } from '../../../utils/trpc';
 
 export default function PerfilPage() {
   const { logout } = useAuth();
+  const { open } = useImmersiveOverlay();
   const { user, isLoading, score, highestScore, division } = useProfileData();
 
   const { data: stats } = trpc.profile.getStats.useQuery(undefined, {
@@ -40,6 +42,10 @@ export default function PerfilPage() {
     {
       retry: false,
     }
+  );
+  const { data: followCounts } = trpc.social.getFollowCounts.useQuery(
+    { userId: user?.id ?? '' },
+    { enabled: !!user?.id }
   );
 
   // Datos reales del backend (sin fallback de demo en campos disponibles).
@@ -128,12 +134,24 @@ export default function PerfilPage() {
             @{username}
           </p>
 
-          <div className="inline-flex items-center gap-1.5 bg-white border border-slate-200 border-b-2 px-3 py-1.5 rounded-xl w-max shadow-sm">
+          <div className="inline-flex items-center gap-1.5 bg-white border border-slate-200 border-b-2 px-3 py-1.5 rounded-xl w-max shadow-sm mb-2">
             <Target size={14} className="text-slate-400" strokeWidth={3} />
             <span className="font-black text-slate-600 text-[11px] uppercase tracking-widest">
               {career}
             </span>
           </div>
+
+          {user?.id && (
+            <button
+              onClick={() => open('friendsList', { userId: user.id })}
+              className="text-left w-max group"
+            >
+              <span className="text-[12px] font-bold text-slate-400 group-hover:text-emerald-500 transition-colors">
+                Siguiendo a {followCounts?.followingCount ?? 0} ·{' '}
+                {followCounts?.followersCount ?? 0} seguidores
+              </span>
+            </button>
+          )}
         </div>
       </div>
 
