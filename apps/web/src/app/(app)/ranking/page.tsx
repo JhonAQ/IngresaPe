@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Crown, Zap } from 'lucide-react';
+import { Crown } from 'lucide-react';
 import { trpc } from '../../../utils/trpc';
 import { UserPreviewModal } from '../../../components/social/UserPreviewModal';
 import {
@@ -54,7 +54,6 @@ export default function RankingPage() {
   }, []);
 
   const { data: myStats } = trpc.ranking.getMyStats.useQuery();
-  const { data: seasonStatus } = trpc.ranking.getCurrentSeasonStatus.useQuery();
 
   const { data: careersData, isLoading: isCareersLoading } =
     trpc.ranking.getAllCareersLeaderboard.useQuery(undefined, {
@@ -128,12 +127,6 @@ export default function RankingPage() {
     return () => clearTimeout(timer);
   }, [activeTab, isLoading]);
 
-  const seasonText = seasonStatus?.isRevealed
-    ? 'Resultados revelados'
-    : seasonStatus?.isEventOpen
-    ? 'Finde de ranking abierto'
-    : 'Finde de ranking cerrado';
-
   const divisionColor =
     leagueConfig[myStats?.division ?? 'HUEVITO']?.hex ?? '#9CA3AF';
 
@@ -142,42 +135,53 @@ export default function RankingPage() {
       <div className="shrink-0 px-4 pt-4 pb-3 bg-white z-20">
         {/* User score card */}
         <div
-          className="relative overflow-hidden rounded-[1.25rem] border-b-[4px] p-3.5 mb-3"
+          className="relative overflow-hidden rounded-[1.5rem] border-2 border-slate-200 border-b-[4px] p-4 mb-3 shadow-sm"
           style={{
-            background: `linear-gradient(135deg, ${divisionColor}12 0%, ${divisionColor}05 100%)`,
-            borderColor: divisionColor + '35',
+            background: `linear-gradient(135deg, ${divisionColor}18 0%, ${divisionColor}08 100%)`,
+            borderBottomColor: divisionColor,
           }}
         >
           {/* Division watermark */}
           <span
-            className="absolute -right-2 -bottom-4 font-black text-[52px] uppercase tracking-tighter leading-none opacity-10 pointer-events-none select-none rotate-[-12deg]"
+            className="absolute -right-1 -bottom-5 font-black text-[64px] uppercase tracking-tighter leading-none opacity-[0.15] pointer-events-none select-none"
             style={{ color: divisionColor }}
           >
             {leagueConfig[myStats?.division ?? 'HUEVITO']?.label}
           </span>
 
-          <div className="relative flex items-end justify-between mb-2">
-            <div>
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">
-                Tu puntaje de admisión
-              </p>
-              <p
-                className="font-black text-[30px] leading-none tracking-tight"
-                style={{ color: divisionColor }}
-              >
-                {formatScore(myStats?.score ?? 0)}
-              </p>
-            </div>
-          </div>
+          <div className="relative">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              {/* Score */}
+              <div>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                  Tu puntaje
+                </p>
+                <p className="font-black text-[40px] leading-none tracking-tight text-slate-800">
+                  {formatScore(myStats?.score ?? 0)}
+                </p>
+              </div>
 
-          <div className="relative flex items-center justify-between">
-            <div className="flex items-center gap-1 text-[10px] font-black text-slate-500">
-              <Crown size={12} className="text-amber-500" fill="#f59e0b" />
-              <span>Peak {formatScore(myStats?.highestScore ?? 0)}</span>
+              {/* Career */}
+              <div className="text-right min-w-0 max-w-[55%]">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                  Carrera objetivo
+                </p>
+                <p className="font-black text-[14px] text-slate-800 leading-tight truncate">
+                  {myStats?.career?.name ?? 'Sin carrera'}
+                </p>
+                <p className="text-[11px] font-bold text-slate-500 mt-0.5">
+                  Mín. histórico:{' '}
+                  <span className="font-black text-slate-800">
+                    {formatScore(myStats?.career?.minimumScore ?? 0)}
+                  </span>
+                </p>
+              </div>
             </div>
-            <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-slate-500">
-              <Zap size={10} className="text-amber-500" fill="#f59e0b" />
-              <span>{seasonText}</span>
+
+            {/* Peak */}
+            <div className="flex items-center gap-1.5 text-[11px] font-black text-slate-500">
+              <Crown size={13} className="text-amber-500" fill="#f59e0b" />
+              <span>Peak histórico: {formatScore(myStats?.highestScore ?? 0)}</span>
             </div>
           </div>
         </div>
