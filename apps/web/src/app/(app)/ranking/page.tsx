@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Shield, Crown, Zap } from 'lucide-react';
+import { Crown, Zap } from 'lucide-react';
 import { trpc } from '../../../utils/trpc';
 import { UserPreviewModal } from '../../../components/social/UserPreviewModal';
 import {
@@ -22,23 +22,6 @@ type Tab = 'career' | 'area' | 'global';
 
 function formatScore(score: number): string {
   return score.toFixed(1);
-}
-
-function DivisionBadge({ division }: { division: keyof typeof leagueConfig }) {
-  const cfg = leagueConfig[division];
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border"
-      style={{
-        backgroundColor: cfg.hex + '18',
-        color: cfg.hex,
-        borderColor: cfg.hex + '30',
-      }}
-    >
-      <Shield size={12} strokeWidth={3} />
-      {cfg.label}
-    </span>
-  );
 }
 
 function MoreRow({ count }: { count: number }) {
@@ -159,54 +142,41 @@ export default function RankingPage() {
       <div className="shrink-0 px-4 pt-4 pb-3 bg-white z-20">
         {/* User score card */}
         <div
-          className="relative overflow-hidden rounded-[1.5rem] border-b-[5px] p-4 mb-4 shadow-md"
+          className="relative overflow-hidden rounded-[1.25rem] border-b-[4px] p-3.5 mb-3"
           style={{
-            background: `linear-gradient(135deg, ${divisionColor}15 0%, ${divisionColor}08 100%)`,
-            borderColor: divisionColor + '40',
+            background: `linear-gradient(135deg, ${divisionColor}12 0%, ${divisionColor}05 100%)`,
+            borderColor: divisionColor + '35',
           }}
         >
-          <div
-            className="absolute -right-4 -top-4 h-24 w-24 rounded-full opacity-20"
-            style={{ backgroundColor: divisionColor }}
-          />
-          <div
-            className="absolute -bottom-6 -left-6 h-20 w-20 rounded-full opacity-15"
-            style={{ backgroundColor: divisionColor }}
-          />
+          {/* Division watermark */}
+          <span
+            className="absolute -right-2 -bottom-4 font-black text-[52px] uppercase tracking-tighter leading-none opacity-10 pointer-events-none select-none rotate-[-12deg]"
+            style={{ color: divisionColor }}
+          >
+            {leagueConfig[myStats?.division ?? 'HUEVITO']?.label}
+          </span>
 
-          <div className="relative flex items-start justify-between mb-3">
-            <div
-              className="w-10 h-10 rounded-2xl flex items-center justify-center border-2 bg-white/60 backdrop-blur-sm"
-              style={{ borderColor: divisionColor + '40' }}
-            >
-              <Shield
-                size={20}
-                strokeWidth={2.5}
+          <div className="relative flex items-end justify-between mb-2">
+            <div>
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">
+                Tu puntaje de admisión
+              </p>
+              <p
+                className="font-black text-[30px] leading-none tracking-tight"
                 style={{ color: divisionColor }}
-              />
+              >
+                {formatScore(myStats?.score ?? 0)}
+              </p>
             </div>
-            <DivisionBadge division={myStats?.division ?? 'HUEVITO'} />
-          </div>
-
-          <div className="relative mb-3">
-            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">
-              Tu puntaje de admisión
-            </p>
-            <p
-              className="font-black text-[36px] leading-none tracking-tight"
-              style={{ color: divisionColor }}
-            >
-              {formatScore(myStats?.score ?? 0)}
-            </p>
           </div>
 
           <div className="relative flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-[11px] font-black text-slate-500">
-              <Crown size={14} className="text-amber-500" fill="#f59e0b" />
+            <div className="flex items-center gap-1 text-[10px] font-black text-slate-500">
+              <Crown size={12} className="text-amber-500" fill="#f59e0b" />
               <span>Peak {formatScore(myStats?.highestScore ?? 0)}</span>
             </div>
-            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-600 bg-white/60 backdrop-blur-sm px-2.5 py-1 rounded-xl border border-slate-200/60">
-              <Zap size={12} className="text-amber-500" fill="#f59e0b" />
+            <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-slate-500">
+              <Zap size={10} className="text-amber-500" fill="#f59e0b" />
               <span>{seasonText}</span>
             </div>
           </div>
