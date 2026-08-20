@@ -5,3 +5,4 @@ export * from './ArchiveOverlay';
 export * from './HistoryArchive';
 export * from './RecentAttempts';
 export * from './CareerSelectorModal';
+export * from './WeeklyRankingCard';
