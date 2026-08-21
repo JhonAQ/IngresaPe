@@ -168,16 +168,16 @@ export const AIExamCard: React.FC<AIExamCardProps> = ({
           </div>
 
           <Button3D
-            variant="neon"
+            variant={isLocked ? 'locked' : 'neon'}
             className="!py-3.5 w-full"
-            disabled={isLoading || isLocked}
+            disabled={isLoading}
             onClick={() => onStart({ mode: 'AI' })}
           >
             {isLoading ? (
               <>Generando...</>
             ) : isLocked ? (
               <>
-                <Lock size={16} /> LÍMITE ALCANZADO
+                <Lock size={16} /> DESBLOQUEAR ILIMITADO
               </>
             ) : (
               <>

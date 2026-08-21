@@ -18,6 +18,7 @@ import {
 import { TopicDivider } from './TopicDivider';
 import { trpc } from '../../utils/trpc';
 import { getTopicTheme } from '../../lib/topicMeta';
+import { usePremiumUpsell } from '../premium/PremiumUpsellContext';
 
 export interface TopicFromApi {
   id: string;
@@ -196,6 +197,7 @@ export function TopicList({
 
   const router = useRouter();
   const utils = trpc.useUtils();
+  const upsell = usePremiumUpsell();
   const [pendingNode, setPendingNode] = useState<{
     topicId: string;
     nodeIndex: number;
@@ -215,9 +217,11 @@ export function TopicList({
     },
     onError: (err) => {
       setPendingNode(null);
-      alert(
-        err.message ?? 'No tienes suficiente energía para iniciar este nodo.'
-      );
+      if (err.data?.code === 'FORBIDDEN' || err.message.includes('energía')) {
+        upsell.triggerUpsell('ENERGY');
+      } else {
+        alert(err.message ?? 'No tienes suficiente energía para iniciar este nodo.');
+      }
     },
   });
 

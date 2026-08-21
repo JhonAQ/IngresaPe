@@ -25,10 +25,10 @@ export const ArchiveExamCard: React.FC<ArchiveExamCardProps> = ({
 
   return (
     <motion.div
-      whileTap={!isLocked && !isStarting && onClick ? { scale: 0.95 } : {}}
-      onClick={!isLocked && !isStarting ? onClick : undefined}
-      className={`snap-start shrink-0 ${sizeClasses} bg-white rounded-[1.5rem] border-2 border-slate-200 border-b-[6px] border-b-slate-300 p-3.5 flex flex-col shadow-sm group relative
-        ${isLocked || isStarting ? 'opacity-70 cursor-default' : 'cursor-pointer'}`}
+      whileTap={!isStarting && onClick ? { scale: 0.95 } : {}}
+      onClick={!isStarting ? onClick : undefined}
+      className={`snap-start shrink-0 ${sizeClasses} bg-white rounded-[1.5rem] border-2 border-slate-200 border-b-[6px] border-b-slate-300 p-3.5 flex flex-col shadow-sm group relative cursor-pointer
+        ${isStarting ? 'opacity-70 cursor-default' : ''} ${isLocked ? 'grayscale-[0.5]' : ''}`}
     >
       {isLocked && (
         <div className="absolute top-3 right-3 w-7 h-7 bg-slate-200 text-slate-500 rounded-full flex items-center justify-center z-10">

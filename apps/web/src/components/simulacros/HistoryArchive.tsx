@@ -21,7 +21,7 @@ export const HistoryArchive: React.FC<HistoryArchiveProps> = ({
   const { open } = useImmersiveOverlay();
 
   const handleStart = (examId: string, locked: boolean) => {
-    if (locked || !onStartExam || startingExamId === examId) return;
+    if (!onStartExam || startingExamId === examId) return;
     onStartExam(examId);
   };
 

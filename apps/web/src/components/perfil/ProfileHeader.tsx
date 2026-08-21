@@ -51,11 +51,11 @@ export function ProfileHeader({
             </div>
           </div>
 
-          {/* PRO Badge */}
+          {/* SUPER Badge */}
           {isPremium && (
-            <div className="absolute -bottom-1 -left-1 bg-gradient-to-r from-amber-400 to-amber-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-md flex items-center gap-0.5 border-2 border-white">
+            <div className="absolute -bottom-1 -left-1 bg-gradient-to-r from-cyan-400 to-purple-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-md flex items-center gap-0.5 border-2 border-white">
               <Crown size={10} strokeWidth={3} className="fill-white" />
-              PRO
+              SUPER
             </div>
           )}
         </div>

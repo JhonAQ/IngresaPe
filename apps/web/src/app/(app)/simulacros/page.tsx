@@ -13,9 +13,11 @@ import {
 } from '../../../components/simulacros';
 import { trpc } from '../../../utils/trpc';
 import { SimulacrosSkeleton } from '../../../components/ui/skeleton';
+import { usePremiumUpsell } from '../../../components/premium/PremiumUpsellContext';
 
 export default function SimulacroDashboardPage() {
   const router = useRouter();
+  const upsell = usePremiumUpsell();
   const [isLoaded, setIsLoaded] = useState(false);
   const [numQuestions, setNumQuestions] = useState(40);
   const [timeLimit, setTimeLimit] = useState(60);
@@ -36,7 +38,11 @@ export default function SimulacroDashboardPage() {
       router.push(`/simulator?attemptId=${data.attemptId}`);
     },
     onError: (err) => {
-      setStartError(err.message ?? 'No se pudo generar el simulacro');
+      if (err.data?.code === 'FORBIDDEN' && err.message.includes('gratuito')) {
+        upsell.triggerUpsell('SIMULACRO_LIMIT');
+      } else {
+        setStartError(err.message ?? 'No se pudo generar el simulacro');
+      }
     },
   });
 
@@ -46,7 +52,11 @@ export default function SimulacroDashboardPage() {
       router.push(`/simulator?attemptId=${data.attemptId}`);
     },
     onError: (err) => {
-      setStartError(err.message ?? 'No se pudo iniciar el examen');
+      if (err.data?.code === 'FORBIDDEN' && err.message.includes('premium')) {
+        upsell.triggerUpsell('ARCHIVE_LOCKED');
+      } else {
+        setStartError(err.message ?? 'No se pudo iniciar el examen');
+      }
     },
   });
 

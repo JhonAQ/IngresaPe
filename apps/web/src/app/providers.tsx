@@ -9,6 +9,7 @@ import { getAuthToken } from '../lib/auth';
 import { AuthProvider } from '../hooks/useAuth';
 import { InstallPromptProvider } from '../components/pwa/InstallPromptContext';
 import { ServiceWorkerRegister } from '../components/pwa/ServiceWorkerRegister';
+import { PremiumUpsellProvider } from '../components/premium/PremiumUpsellContext';
 
 function getApiUrl() {
   if (process.env.NEXT_PUBLIC_API_URL) {
@@ -42,10 +43,12 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <InstallPromptProvider>
-            {children}
-            <ServiceWorkerRegister />
-          </InstallPromptProvider>
+          <PremiumUpsellProvider>
+            <InstallPromptProvider>
+              {children}
+              <ServiceWorkerRegister />
+            </InstallPromptProvider>
+          </PremiumUpsellProvider>
         </AuthProvider>
       </QueryClientProvider>
     </trpc.Provider>
