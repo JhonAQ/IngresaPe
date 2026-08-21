@@ -1,76 +1,71 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { FileDown, Link2, PlayCircle, BookOpen } from 'lucide-react';
+import { BookOpen, FileText, Link2, PlayCircle } from 'lucide-react';
 import { STUDY_MATERIALS } from './data';
 
 const formatIcons = {
-  PDF: FileDown,
+  PDF: FileText,
   LINK: Link2,
   VIDEO: PlayCircle,
 };
 
-const formatLabels = {
-  PDF: 'Descargar PDF',
-  LINK: 'Abrir recurso',
-  VIDEO: 'Ver video',
+const formatColors = {
+  PDF: 'text-red-500',
+  LINK: 'text-blue-500',
+  VIDEO: 'text-amber-500',
 };
 
-const formatColors = {
-  PDF: '#9B0F1C',
-  LINK: '#1CB0F6',
-  VIDEO: '#B8860B',
+const formatBadges = {
+  PDF: 'bg-red-500',
+  LINK: 'bg-blue-500',
+  VIDEO: 'bg-amber-500',
 };
 
 export function MaterialsSection() {
   return (
     <section className="px-5">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <BookOpen size={18} className="text-[#9B0F1C]" strokeWidth={2.5} />
-          <h2 className="font-black text-[16px] text-[#15192B]">
-            Material de estudio
+          <BookOpen size={20} className="text-[#9B0F1C]" strokeWidth={2.5} />
+          <h2 className="font-black text-[18px] text-slate-800 tracking-tight">
+            Tomos UNSA
           </h2>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        {STUDY_MATERIALS.map((material, idx) => {
-          const Icon = formatIcons[material.format];
-          const color = formatColors[material.format];
+      <div className="bg-slate-50/50 border border-slate-100 rounded-[2rem] p-5">
+        <div className="grid grid-cols-3 gap-x-3 gap-y-5">
+          {STUDY_MATERIALS.map((material, idx) => {
+            const Icon = formatIcons[material.format];
+            const textColor = formatColors[material.format];
+            const badgeBg = formatBadges[material.format];
 
-          return (
-            <motion.button
-              key={material.id}
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: idx * 0.05 }}
-              whileTap={{ scale: 0.97 }}
-              className="text-left bg-white rounded-[1.25rem] border-2 border-slate-100 border-b-[5px] p-4 active:border-b-2 active:translate-y-[3px] transition-all"
-            >
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
-                style={{ backgroundColor: `${color}12`, color }}
+            return (
+              <motion.button
+                key={material.id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: idx * 0.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex flex-col items-center text-center gap-2 cursor-pointer group outline-none"
               >
-                <Icon size={20} strokeWidth={2.5} />
-              </div>
-
-              <h3 className="font-black text-[14px] text-[#15192B] leading-tight">
-                {material.title}
-              </h3>
-              <p className="text-[11px] font-bold text-[#8B8F98] mt-1 leading-snug">
-                {material.subtitle}
-              </p>
-
-              <span
-                className="inline-block mt-3 text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-lg"
-                style={{ backgroundColor: `${color}12`, color }}
-              >
-                {formatLabels[material.format]}
-              </span>
-            </motion.button>
-          );
-        })}
+                <div className={`w-16 h-20 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col items-center justify-center ${textColor} group-hover:bg-blue-50 group-hover:border-blue-300 transition-colors relative`}>
+                  {/* Doblez del archivo */}
+                  <div className="absolute top-0 right-0 w-5 h-5 bg-slate-50/50 border-b border-l border-slate-200 rounded-bl-xl group-hover:bg-blue-100 group-hover:border-blue-300 transition-colors" />
+                  
+                  <Icon size={28} strokeWidth={1.5} />
+                  <span className={`text-[9px] font-black mt-1.5 ${badgeBg} text-white px-2 py-0.5 rounded`}>
+                    {material.format}
+                  </span>
+                </div>
+                <span className="text-[11px] font-bold leading-tight text-slate-700 group-hover:text-blue-600 line-clamp-3 px-1">
+                  {material.title}
+                </span>
+              </motion.button>
+            );
+          })}
+        </div>
       </div>
     </section>
   );

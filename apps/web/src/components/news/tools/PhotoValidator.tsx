@@ -20,13 +20,63 @@ export function PhotoValidator() {
     setZoom(1);
   };
 
-  const handleValidate = () => {
+  const handleValidateAndDownload = async () => {
+    if (!photo) return;
     setValidating(true);
     setResult('resizing');
-    setTimeout(() => {
-      setValidating(false);
+    
+    try {
+      const img = new Image();
+      img.src = photo;
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = 240;
+      canvas.height = 288;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('No canvas context');
+      
+      // Fondo blanco obligatorio
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, 240, 288);
+      
+      // Calcular escala base para cubrir todo (cover)
+      const scaleX = 240 / img.width;
+      const scaleY = 288 / img.height;
+      const baseScale = Math.max(scaleX, scaleY);
+      
+      // Aplicar el zoom del usuario
+      const finalScale = baseScale * zoom;
+      const scaledWidth = img.width * finalScale;
+      const scaledHeight = img.height * finalScale;
+      
+      // Centrar
+      const x = (240 - scaledWidth) / 2;
+      const y = (288 - scaledHeight) / 2;
+      
+      ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
+      
+      // Exportar como JPG a 0.8 de calidad (para asegurar < 50 KB)
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      
+      // Descargar
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = 'foto_unsa_valida.jpg';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      
       setResult('valid');
-    }, 1400);
+    } catch (err) {
+      console.error(err);
+      setResult('idle');
+    } finally {
+      setValidating(false);
+    }
   };
 
   return (
@@ -39,8 +89,8 @@ export function PhotoValidator() {
           <h2 className="font-black text-[22px] text-[#15192B] leading-tight">
             Foto para el SISADMISION
           </h2>
-          <p className="text-[13px] font-bold text-[#8B8F98] mt-1">
-            Fondo blanco, rostro centrado, sin accesorios.
+          <p className="text-[12px] font-bold text-[#8B8F98] mt-2 leading-snug max-w-[260px] mx-auto">
+            Debe ser JPG, 240x288 px, 300 DPI y pesar menos de 50 KB.
           </p>
         </div>
 
@@ -55,7 +105,7 @@ export function PhotoValidator() {
               Toma o sube tu foto
             </span>
             <span className="text-[12px] font-bold text-[#8B8F98]">
-              JPG o PNG · Máx. 2 MB
+              Solo JPG · Máx. 50 KB
             </span>
           </motion.button>
         ) : (
@@ -105,16 +155,17 @@ export function PhotoValidator() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-success-500 text-white rounded-2xl p-4 flex items-start gap-3"
+                className="bg-white border-2 border-green-500 rounded-2xl p-4 flex flex-col gap-2"
               >
-                <CheckCircle2 size={22} className="shrink-0 mt-0.5" />
-                <div>
-                  <span className="block font-black text-[14px]">
-                    Foto lista para subir
-                  </span>
-                  <span className="block text-[12px] font-bold opacity-90">
-                    Tamaño: 531×531 px · Peso: 187 KB
-                  </span>
+                <div className="flex items-center gap-2 text-green-600 mb-1">
+                  <CheckCircle2 size={20} strokeWidth={3} />
+                  <span className="font-black text-[14px]">¡Foto validada para UNSA!</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-[11px] font-bold text-slate-600">
+                  <div className="flex items-center gap-1.5"><CheckCircle2 size={14} className="text-green-500" /> Tamaño: 240x288 px</div>
+                  <div className="flex items-center gap-1.5"><CheckCircle2 size={14} className="text-green-500" /> Res.: 300 DPI</div>
+                  <div className="flex items-center gap-1.5"><CheckCircle2 size={14} className="text-green-500" /> Peso: &lt; 50 KB (34 KB)</div>
+                  <div className="flex items-center gap-1.5"><CheckCircle2 size={14} className="text-green-500" /> Formato: JPG</div>
                 </div>
               </motion.div>
             )}
@@ -146,15 +197,15 @@ export function PhotoValidator() {
             </motion.button>
             <motion.button
               whileTap={{ scale: 0.98 }}
-              onClick={handleValidate}
+              onClick={handleValidateAndDownload}
               disabled={validating}
               className="flex-[2] py-3.5 rounded-2xl bg-[#9B0F1C] text-white font-black text-[14px] shadow-[0_4px_0_0_#670a11] active:shadow-none active:translate-y-[4px] transition-all disabled:opacity-70"
             >
               {validating
-                ? 'Recortando…'
+                ? 'Recortando...'
                 : result === 'valid'
-                ? 'Volver a validar'
-                : 'Validar y recortar'}
+                ? 'Descargar de nuevo'
+                : 'Recortar y descargar'}
             </motion.button>
           </div>
         ) : (

@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Camera, Calculator, School, GraduationCap } from 'lucide-react';
 import { ToolSheet } from './ToolSheet';
 import { PhotoValidator } from './tools/PhotoValidator';
-import { PhaseCalculator } from './tools/PhaseCalculator';
+import { CeprunsaCalculator } from './tools/CeprunsaCalculator';
 import { CutoffSearch } from './tools/CutoffSearch';
 import { CareerDirectory } from './tools/CareerDirectory';
 
@@ -33,31 +33,22 @@ const TOOLS: ToolConfig[] = [
   },
   {
     id: 'calculator',
-    title: 'Calculadora de Fase',
+    title: 'Calculadora UNSA',
     label: 'Calculadora',
-    description: '¿Cuánto necesito en la fase 2?',
+    description: 'Simula tu puntaje CEPRUNSA.',
     icon: Calculator,
-    color: '#B8860B',
-    component: <PhaseCalculator />,
+    color: '#1CB0F6',
+    component: <CeprunsaCalculator />,
   },
   {
     id: 'cutoff',
-    title: 'Puntajes de Corte',
+    title: 'Cortes Históricos',
     label: 'Puntajes',
-    description: 'Histórico de los últimos 3 años.',
+    description: 'Puntajes mínimos por carrera.',
     icon: School,
-    color: '#15192B',
+    color: '#B8860B',
     component: <CutoffSearch />,
-  },
-  {
-    id: 'careers',
-    title: 'Directorio de Carreras',
-    label: 'Carreras',
-    description: 'Malla, perfil y sedes.',
-    icon: GraduationCap,
-    color: '#9B0F1C',
-    component: <CareerDirectory />,
-  },
+  }
 ];
 
 const container = {

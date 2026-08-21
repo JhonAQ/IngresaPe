@@ -3,7 +3,6 @@
 import { motion } from 'framer-motion';
 import { AdmisionHero } from './AdmisionHero';
 import { ToolGrid } from './ToolGrid';
-import { AlertFeed } from './AlertFeed';
 import { DocumentsSection } from './DocumentsSection';
 import { MaterialsSection } from './MaterialsSection';
 import { OfficialLinks } from './OfficialLinks';
@@ -36,10 +35,6 @@ export function NewsClient() {
 
         <motion.div variants={sectionItem}>
           <ToolGrid />
-        </motion.div>
-
-        <motion.div variants={sectionItem}>
-          <AlertFeed />
         </motion.div>
 
         <motion.div variants={sectionItem}>

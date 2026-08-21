@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertCircle } from 'lucide-react';
 import {
-  GoalCard,
   AIExamCard,
   HistoryArchive,
   RecentAttempts,
@@ -101,28 +100,7 @@ export default function SimulacroDashboardPage() {
 
   return (
     <main className="flex-1 overflow-y-auto pt-6 pb-32 hide-scrollbar relative">
-      {!career ? (
-        <div className="px-5 mb-6">
-          <div className="bg-amber-50 border-2 border-amber-200 rounded-[1.8rem] p-5 text-center">
-            <h2 className="font-black text-amber-800 text-[18px] mb-1">
-              Aún no tienes carrera
-            </h2>
-            <p className="text-amber-700 font-bold text-[13px] mb-4">
-              Selecciona tu carrera para ver tu meta de admisión.
-            </p>
-            <p className="text-amber-600/70 text-[11px] font-bold">
-              El selector aparecerá al continuar.
-            </p>
-          </div>
-        </div>
-      ) : (
-        <GoalCard
-          career={career.name}
-          currentScore={currentScore}
-          targetScore={targetScore}
-          isLoaded={isLoaded}
-        />
-      )}
+      {/* GoalCard and Career alerts removed for cleaner UI */}
 
       {season && (
         <WeeklyRankingCard

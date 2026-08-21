@@ -44,7 +44,13 @@ export const AIExamCard: React.FC<AIExamCardProps> = ({
   return (
     <div className="px-5 mb-8">
       <div className="relative bg-[#020617] rounded-[2rem] p-5 border-2 border-slate-800 border-b-[8px] border-b-black shadow-2xl overflow-hidden group">
-        {/* EFECTO BORDER BEAM (Haz de luz recorriendo el borde) */}
+        
+        {/* Glowing Background Effect */}
+        <div className={`absolute top-0 right-0 w-48 h-48 rounded-full blur-[60px] pointer-events-none transition-colors duration-700 ${
+          isLocked ? 'bg-purple-600/20' : 'bg-cyan-500/20'
+        }`} />
+
+        {/* EFECTO BORDER BEAM (Energy Ball) */}
         <div className="absolute inset-0 pointer-events-none rounded-[2rem] overflow-hidden">
           <svg className="absolute inset-0 w-full h-full">
             <motion.rect
@@ -53,16 +59,16 @@ export const AIExamCard: React.FC<AIExamCardProps> = ({
               rx="32"
               fill="none"
               stroke="url(#border-grad)"
-              strokeWidth="3"
-              strokeDasharray="100 400"
-              animate={{ strokeDashoffset: [-500, 0] }}
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeDasharray="15 1500"
+              animate={{ strokeDashoffset: [-1500, 0] }}
               transition={{ repeat: Infinity, duration: 4, ease: 'linear' }}
             />
             <defs>
               <linearGradient id="border-grad">
                 <stop offset="0%" stopColor="transparent" />
-                <stop offset="50%" stopColor="#22d3ee" />
-                <stop offset="100%" stopColor="transparent" />
+                <stop offset="100%" stopColor="#22d3ee" />
               </linearGradient>
             </defs>
           </svg>

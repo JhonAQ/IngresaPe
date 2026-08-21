@@ -1,8 +1,9 @@
-import { ChevronDown, Crown } from 'lucide-react';
+import { ChevronDown, Crown, Bell } from 'lucide-react';
 import { UserStats } from '@ingresa-pe/domain';
 import { StatBadge } from '@ingresa-pe/ui';
 import { trpc } from '../../utils/trpc';
 import { usePremiumUpsell } from '../premium/PremiumUpsellContext';
+import { usePathname } from 'next/navigation';
 
 interface SelectedCourse {
   id: string;
@@ -22,6 +23,8 @@ export function DashboardHeader({
 }: HeaderProps) {
   const { data: profile } = trpc.profile.getMe.useQuery();
   const upsell = usePremiumUpsell();
+  const pathname = usePathname();
+  const isDashboard = pathname === '/' || pathname === '/dashboard';
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-slate-100 px-4 py-2.5 shrink-0">
@@ -38,7 +41,7 @@ export function DashboardHeader({
             />
           </div>
 
-          {selectedCourse ? (
+          {isDashboard && selectedCourse ? (
             <button
               onClick={onOpenCourseSelector}
               className="flex items-center gap-1 min-w-0 px-2 py-1 rounded-lg hover:bg-slate-50 active:bg-slate-100 transition-colors"
@@ -57,7 +60,7 @@ export function DashboardHeader({
         </div>
 
         {/* Stats Panel */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2.5 shrink-0">
           {!profile?.isPremium ? (
             <button
               onClick={() => upsell.triggerUpsell('GENERIC')}

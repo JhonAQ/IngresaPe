@@ -8,6 +8,7 @@ import {
   formatPhaseTitle,
   getCurrentPhase,
 } from './data';
+import { NotificationBell } from '../dashboard/NotificationBell';
 
 function pad(n: number): string {
   return n.toString().padStart(2, '0');
@@ -27,12 +28,12 @@ function FlipTile({ value, label }: FlipTileProps) {
         <AnimatePresence mode="sync">
           <motion.div
             key={display}
-            initial={{ rotateX: -90 }}
+            initial={{ rotateX: 90 }}
             animate={{ rotateX: 0 }}
-            exit={{ rotateX: 90 }}
+            exit={{ rotateX: -90 }}
             transition={{ duration: 0.35, ease: 'easeInOut' }}
             style={{
-              transformOrigin: 'bottom',
+              transformOrigin: 'top',
               backfaceVisibility: 'hidden',
             }}
             className="absolute inset-0 bg-[#15192B] flex items-center justify-center"
@@ -87,17 +88,19 @@ export function AdmisionHero() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="relative overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-[#9B0F1C] to-[#670a11] px-5 pt-8 pb-6 border-b-[6px] border-[#670a11]"
+        className="relative rounded-[1.5rem] bg-gradient-to-br from-[#9B0F1C] to-[#670a11] border-b-[6px] border-[#670a11]"
       >
-        {/* Sello acuarelado de fondo */}
-        <div className="absolute -right-8 -top-8 w-40 h-40 rounded-full border-[12px] border-white/10 pointer-events-none" />
-        <div className="absolute right-6 top-1/2 -translate-y-1/2 w-28 h-28 rounded-full border-[6px] border-white/5 pointer-events-none flex items-center justify-center">
-          <span className="font-black text-[11px] uppercase tracking-widest text-white/10 rotate-[-12deg]">
-            UNSA 2026
-          </span>
+        {/* Envoltorio para sellos de fondo con overflow-hidden */}
+        <div className="absolute inset-0 overflow-hidden rounded-[1.5rem] pointer-events-none">
+          <div className="absolute -right-8 -top-8 w-40 h-40 rounded-full border-[12px] border-white/10" />
+          <div className="absolute right-6 top-1/2 -translate-y-1/2 w-28 h-28 rounded-full border-[6px] border-white/5 flex items-center justify-center">
+            <span className="font-black text-[11px] uppercase tracking-widest text-white/10 rotate-[-12deg]">
+              UNSA 2026
+            </span>
+          </div>
         </div>
 
-        <div className="relative z-10">
+        <div className="relative z-10 px-5 pt-8 pb-6">
           {/* Header de la constancia */}
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
@@ -108,16 +111,14 @@ export function AdmisionHero() {
               </div>
               <div className="leading-tight">
                 <span className="block text-[10px] font-black uppercase tracking-widest text-white/70">
-                  Constancia Digital
+                  Centro de noticias
                 </span>
                 <span className="block text-[13px] font-black text-white">
                   Postulante UNSA
                 </span>
               </div>
             </div>
-            <span className="px-2.5 py-1 rounded-full bg-white/10 text-[10px] font-black uppercase tracking-wider text-white">
-              {currentPhase.type}
-            </span>
+            <NotificationBell theme="dark" />
           </div>
 
           {/* Cuenta regresiva */}

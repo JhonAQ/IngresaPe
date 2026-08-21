@@ -42,9 +42,17 @@ export interface OfficialLink {
 
 export interface CareerCutoff {
   name: string;
-  area: string;
-  sede: string;
-  scores: { year: number; score: number; vacancies: number }[];
+  area: 'Biomédicas' | 'Ingenierías' | 'Sociales';
+  scores: { year: number; score: number }[];
+  vacancies: {
+    ceprunsaI: number;
+    ceprunsaII: number;
+    quintos: number;
+    ordinarioI: number;
+    ordinarioII: number;
+    extraordinario: number;
+    traslado: number;
+  };
   malla: string[];
   perfil: string;
 }
@@ -210,96 +218,96 @@ export const CAREERS: CareerCutoff[] = [
   {
     name: 'Medicina Humana',
     area: 'Biomédicas',
-    sede: 'Av. Independencia',
     scores: [
-      { year: 2025, score: 1420, vacancies: 95 },
-      { year: 2024, score: 1412, vacancies: 90 },
-      { year: 2023, score: 1405, vacancies: 88 },
+      { year: 2025, score: 1420 },
+      { year: 2024, score: 1412 },
+      { year: 2023, score: 1405 },
     ],
+    vacancies: { ceprunsaI: 12, ceprunsaII: 10, quintos: 8, ordinarioI: 20, ordinarioII: 30, extraordinario: 10, traslado: 5 },
     malla: ['Anatomía', 'Fisiología', 'Bioquímica', 'Patología', 'Farmacología'],
     perfil: 'Médico cirujano con formación científica y ética.',
   },
   {
     name: 'Arquitectura',
     area: 'Sociales',
-    sede: 'Campus Universitario',
     scores: [
-      { year: 2025, score: 1180, vacancies: 70 },
-      { year: 2024, score: 1165, vacancies: 68 },
-      { year: 2023, score: 1150, vacancies: 65 },
+      { year: 2025, score: 1180 },
+      { year: 2024, score: 1165 },
+      { year: 2023, score: 1150 },
     ],
+    vacancies: { ceprunsaI: 8, ceprunsaII: 8, quintos: 4, ordinarioI: 15, ordinarioII: 25, extraordinario: 7, traslado: 3 },
     malla: ['Diseño Arquitectónico', 'Estructuras', 'Urbanismo', 'Construcción'],
     perfil: 'Arquitecto capaz de diseñar espacios sostenibles.',
   },
   {
     name: 'Ingeniería de Sistemas',
     area: 'Ingenierías',
-    sede: 'Av. Independencia',
     scores: [
-      { year: 2025, score: 1250, vacancies: 120 },
-      { year: 2024, score: 1230, vacancies: 115 },
-      { year: 2023, score: 1210, vacancies: 110 },
+      { year: 2025, score: 1250 },
+      { year: 2024, score: 1230 },
+      { year: 2023, score: 1210 },
     ],
+    vacancies: { ceprunsaI: 15, ceprunsaII: 15, quintos: 10, ordinarioI: 25, ordinarioII: 40, extraordinario: 10, traslado: 5 },
     malla: ['Programación', 'Bases de Datos', 'Redes', 'Inteligencia Artificial'],
     perfil: 'Ingeniero con visión tecnológica y empresarial.',
   },
   {
     name: 'Derecho',
     area: 'Sociales',
-    sede: 'Palacio Universitario',
     scores: [
-      { year: 2025, score: 1195, vacancies: 180 },
-      { year: 2024, score: 1180, vacancies: 175 },
-      { year: 2023, score: 1160, vacancies: 170 },
+      { year: 2025, score: 1195 },
+      { year: 2024, score: 1180 },
+      { year: 2023, score: 1160 },
     ],
+    vacancies: { ceprunsaI: 25, ceprunsaII: 20, quintos: 15, ordinarioI: 40, ordinarioII: 60, extraordinario: 12, traslado: 8 },
     malla: ['Derecho Constitucional', 'Penal', 'Civil', 'Procesal'],
     perfil: 'Abogado con sólida formación en justicia y derechos.',
   },
   {
     name: 'Administración',
     area: 'Sociales',
-    sede: 'Campus Universitario',
     scores: [
-      { year: 2025, score: 1050, vacancies: 200 },
-      { year: 2024, score: 1040, vacancies: 195 },
-      { year: 2023, score: 1030, vacancies: 190 },
+      { year: 2025, score: 1050 },
+      { year: 2024, score: 1040 },
+      { year: 2023, score: 1030 },
     ],
+    vacancies: { ceprunsaI: 30, ceprunsaII: 25, quintos: 15, ordinarioI: 45, ordinarioII: 65, extraordinario: 15, traslado: 5 },
     malla: ['Marketing', 'Finanzas', 'Gestión', 'Emprendimiento'],
     perfil: 'Gestor estratégico de organizaciones públicas y privadas.',
   },
   {
     name: 'Ingeniería Civil',
     area: 'Ingenierías',
-    sede: 'Av. Independencia',
     scores: [
-      { year: 2025, score: 1280, vacancies: 100 },
-      { year: 2024, score: 1260, vacancies: 95 },
-      { year: 2023, score: 1240, vacancies: 92 },
+      { year: 2025, score: 1280 },
+      { year: 2024, score: 1260 },
+      { year: 2023, score: 1240 },
     ],
+    vacancies: { ceprunsaI: 12, ceprunsaII: 13, quintos: 10, ordinarioI: 20, ordinarioII: 35, extraordinario: 7, traslado: 3 },
     malla: ['Mecánica de Suelos', 'Estructuras', 'Hidráulica', 'Vías'],
     perfil: 'Ingeniero civil proyectista y constructor.',
   },
   {
     name: 'Psicología',
     area: 'Sociales',
-    sede: 'Palacio Universitario',
     scores: [
-      { year: 2025, score: 1150, vacancies: 90 },
-      { year: 2024, score: 1135, vacancies: 85 },
-      { year: 2023, score: 1120, vacancies: 80 },
+      { year: 2025, score: 1150 },
+      { year: 2024, score: 1135 },
+      { year: 2023, score: 1120 },
     ],
+    vacancies: { ceprunsaI: 10, ceprunsaII: 12, quintos: 8, ordinarioI: 20, ordinarioII: 25, extraordinario: 10, traslado: 5 },
     malla: ['Psicología Clínica', 'Educacional', 'Social', 'Organizacional'],
     perfil: 'Psicólogo con enfoque humanista e investigativo.',
   },
   {
     name: 'Odontología',
     area: 'Biomédicas',
-    sede: 'Av. Independencia',
     scores: [
-      { year: 2025, score: 1380, vacancies: 55 },
-      { year: 2024, score: 1365, vacancies: 50 },
-      { year: 2023, score: 1350, vacancies: 48 },
+      { year: 2025, score: 1380 },
+      { year: 2024, score: 1365 },
+      { year: 2023, score: 1350 },
     ],
+    vacancies: { ceprunsaI: 6, ceprunsaII: 5, quintos: 4, ordinarioI: 10, ordinarioII: 20, extraordinario: 7, traslado: 3 },
     malla: ['Anatomía Dental', 'Operatoria', 'Periodoncia', 'Cirugía Bucal'],
     perfil: 'Odontólogo con formación clínica y preventiva.',
   },
