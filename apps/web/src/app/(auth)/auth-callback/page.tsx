@@ -4,6 +4,7 @@ import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '../../../hooks/useAuth';
+import { exchangeOAuthCode } from '../../../lib/auth';
 
 function AuthCallbackContent() {
   const router = useRouter();
@@ -11,17 +12,20 @@ function AuthCallbackContent() {
   const { login } = useAuth();
 
   useEffect(() => {
-    const token = searchParams?.get('token');
-    if (token) {
-      try {
+    const code = searchParams?.get('code');
+    if (!code) {
+      router.replace('/login');
+      return;
+    }
+
+    exchangeOAuthCode(code)
+      .then(({ token }) => {
         login(token);
         router.replace('/dashboard');
-      } catch {
+      })
+      .catch(() => {
         router.replace('/login');
-      }
-    } else {
-      router.replace('/login');
-    }
+      });
   }, [router, searchParams, login]);
 
   return null;

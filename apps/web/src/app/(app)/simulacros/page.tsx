@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertCircle } from 'lucide-react';
 import {
@@ -17,7 +17,6 @@ import { usePremiumUpsell } from '../../../components/premium/PremiumUpsellConte
 export default function SimulacroDashboardPage() {
   const router = useRouter();
   const upsell = usePremiumUpsell();
-  const [isLoaded, setIsLoaded] = useState(false);
   const [numQuestions, setNumQuestions] = useState(40);
   const [timeLimit, setTimeLimit] = useState(60);
   const [startError, setStartError] = useState<string | null>(null);
@@ -59,13 +58,7 @@ export default function SimulacroDashboardPage() {
     },
   });
 
-  useEffect(() => {
-    setIsLoaded(true);
-  }, []);
-
   const career = profile?.career;
-  const currentScore = stats?.score ?? 0;
-  const targetScore = career?.minimumScore;
   const season = stats?.season;
 
   const isLoading =

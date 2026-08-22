@@ -17,6 +17,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
+    env:
+      JWT_SECRET: 'ci-test-secret-must-be-at-least-32-characters'
+      DATABASE_URL: 'postgresql://user:pass@localhost:5433/ingresa_db'
+      GOOGLE_CLIENT_ID: 'ci-client-id'
+      GOOGLE_CLIENT_SECRET: 'ci-client-secret'
+      GOOGLE_CALLBACK_URL: 'http://localhost:3000/api/auth/google/callback'
+      FRONTEND_URL: 'http://localhost:4200'
+      REDIS_URL: 'redis://localhost:6379'
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -25,6 +25,7 @@ export class AdminRouter {
 
   public router = this.trpc.router({
     createQuestion: this.trpc.protectedProcedure
+      .use(this.trpc.createRateLimitMiddleware({ max: 10, windowMs: 60000, keyPrefix: 'admin-create' }))
       .input(createQuestionSchema)
       .mutation(async ({ ctx, input }) => {
         if (ctx.user.role !== Role.ADMIN && ctx.user.role !== Role.DATA_ENTRY) {

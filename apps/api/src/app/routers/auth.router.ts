@@ -18,6 +18,7 @@ export class AuthRouter {
     
     // --- 1. REGISTRO ---
     register: this.trpc.publicProcedure
+      .use(this.trpc.createRateLimitMiddleware({ max: 5, windowMs: 60000, keyPrefix: 'register' }))
       .input(registerSchema)
       .mutation(async ({ input }) => {
         // A. Verificar si ya existe
@@ -56,6 +57,7 @@ export class AuthRouter {
 
     // --- 2. LOGIN (Email/Password) ---
     login: this.trpc.publicProcedure
+      .use(this.trpc.createRateLimitMiddleware({ max: 5, windowMs: 60000, keyPrefix: 'login' }))
       .input(loginSchema)
       .mutation(async ({ input }) => {
         // A. Buscar usuario (normalizar email)

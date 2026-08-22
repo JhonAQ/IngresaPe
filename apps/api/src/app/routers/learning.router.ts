@@ -46,6 +46,7 @@ export class LearningRouter {
       }),
 
     submitAnswer: this.trpc.protectedProcedure
+      .use(this.trpc.createRateLimitMiddleware({ max: 30, windowMs: 60000, keyPrefix: 'submit' }))
       .input(
         z.object({
           questionId: z.string(),

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff, ChevronRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { ChunkyButton } from '../../../components/ui/ChunkyButton';
@@ -10,7 +10,6 @@ import { useAuth } from '../../../hooks/useAuth';
 
 function LoginContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { login } = useAuth();
   const loginMutation = trpc.auth.login.useMutation();
 
@@ -18,15 +17,6 @@ function LoginContent() {
   const [isLoadingEmail, setIsLoadingEmail] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-
-  // Efecto para verificar si volvemos desde Google OAuth en Nest
-  useEffect(() => {
-    const token = searchParams?.get('token');
-    if (token) {
-      login(token);
-      router.push('/dashboard');
-    }
-  }, [searchParams, router, login]);
 
   const handleGoogleLogin = () => {
     setIsLoadingGoogle(true);

@@ -1,11 +1,20 @@
+// Cargar y validar variables de entorno antes que cualquier provider lea process.env.
+import './config/env';
+
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+import { JWT_SECRET } from './config/env';
 
 // Core Services
 import { TrpcService } from './trpc.service';
 import { PrismaService } from './prisma.service';
 import { AppRouter } from './app.router';
+
+// Redis
+import { RedisModule } from './redis/redis.module';
 
 // Question engine services
 import { QuestionGraderService } from './services/question-grader.service';
@@ -35,6 +44,7 @@ import { SocialRouter } from './routers/social.router';
 // Auth Components (REST & Strategies)
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
+import { OAuthCodeService } from './services/oauth-code.service';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { GameService } from './services/game.service';
 import { RankingCronService } from './ranking-cron.service';
@@ -43,14 +53,29 @@ import { RankingCronService } from './ranking-cron.service';
   imports: [
     // Configuración Global de JWT
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'secret',
+      secret: JWT_SECRET,
       signOptions: { expiresIn: '7d' }, // El token dura 7 días
     }),
+    // Rate limiting para controladores REST
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 10,
+      },
+    ]),
+    // Redis para códigos OAuth temporales y caché futura
+    RedisModule,
     // Tareas programadas
     ScheduleModule.forRoot(),
   ],
   controllers: [AuthController],
   providers: [
+    // Rate limiting guard global para controladores REST
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+
     // Infraestructura
     TrpcService,
     PrismaService,
@@ -87,6 +112,7 @@ import { RankingCronService } from './ranking-cron.service';
 
     // Lógica de Negocio Auth
     AuthService,
+    OAuthCodeService,
     GoogleStrategy,
   ],
 })

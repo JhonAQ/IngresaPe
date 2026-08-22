@@ -3,8 +3,7 @@ import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma.service';
 import * as jwt from 'jsonwebtoken';
 
-// Guardamos el secreto original para restaurarlo después
-const ORIGINAL_SECRET = process.env.JWT_SECRET;
+const TEST_JWT_SECRET = 'test-secret-must-be-at-least-32-characters';
 
 // Mock de PrismaService
 const mockPrismaService = () => ({
@@ -20,8 +19,6 @@ describe('AuthService', () => {
   let prisma: ReturnType<typeof mockPrismaService>;
 
   beforeEach(async () => {
-    process.env.JWT_SECRET = 'test-secret-for-unit-tests';
-
     prisma = mockPrismaService();
 
     const module: TestingModule = await Test.createTestingModule({
@@ -34,18 +31,14 @@ describe('AuthService', () => {
     service = module.get<AuthService>(AuthService);
   });
 
-  afterEach(() => {
-    process.env.JWT_SECRET = ORIGINAL_SECRET;
-  });
-
   describe('generateToken', () => {
     it('debería generar un JWT con userId, email y role', () => {
       const user = { id: 'user-123', email: 'test@example.com', role: 'USER' };
 
-      const token = service.generateToken(user);
+      const token = service.generateToken(user, TEST_JWT_SECRET);
 
       expect(typeof token).toBe('string');
-      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as jwt.JwtPayload;
+      const decoded = jwt.verify(token, TEST_JWT_SECRET) as jwt.JwtPayload;
       expect(decoded.userId).toBe(user.id);
       expect(decoded.email).toBe(user.email);
       expect(decoded.role).toBe(user.role);
@@ -55,8 +48,8 @@ describe('AuthService', () => {
       const user = { id: 'user-123', email: 'test@example.com', role: 'USER' };
       const now = Math.floor(Date.now() / 1000);
 
-      const token = service.generateToken(user);
-      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as jwt.JwtPayload;
+      const token = service.generateToken(user, TEST_JWT_SECRET);
+      const decoded = jwt.verify(token, TEST_JWT_SECRET) as jwt.JwtPayload;
 
       expect(decoded.exp).toBeDefined();
       // Permitimos una tolerancia de 60 segundos

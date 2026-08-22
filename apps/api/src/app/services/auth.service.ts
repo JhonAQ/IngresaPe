@@ -1,13 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import * as jwt from 'jsonwebtoken';
+import { JWT_SECRET } from '../config/env';
+
+interface OAuthProfile {
+  email: string;
+  name: string;
+  picture: string;
+  providerId: string;
+}
+
+interface TokenUser {
+  id: string;
+  email: string;
+  role?: string;
+}
 
 @Injectable()
 export class AuthService {
   constructor(private prisma: PrismaService) {}
 
   // 1. Validar o Crear usuario de Google
-  async validateOAuthUser(profile: any) {
+  async validateOAuthUser(profile: OAuthProfile) {
     const { email, name, picture, providerId } = profile;
 
     // A. Buscamos si ya existe
@@ -43,14 +57,14 @@ export class AuthService {
   }
 
   // 2. Generar el Token JWT (Centralizado)
-  generateToken(user: any) {
-    const payload = { 
-      userId: user.id, 
+  generateToken(user: TokenUser, secret: string = JWT_SECRET) {
+    const payload = {
+      userId: user.id,
       email: user.email,
-      role: user.role 
+      role: user.role,
     };
-    
-    return jwt.sign(payload, process.env.JWT_SECRET || 'secret', {
+
+    return jwt.sign(payload, secret, {
       expiresIn: '7d',
     });
   }

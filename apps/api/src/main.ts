@@ -1,23 +1,21 @@
+// Cargar y validar variables de entorno antes que cualquier módulo de NestJS.
+import './app/config/env';
+
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import type { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { AppModule } from './app/app.module';
 import { AppRouter } from './app/app.router';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { createContext } from './app/trpc.context';
-import { json, urlencoded, Request, Response, NextFunction } from 'express'; 
-import * as path from 'path';
-import * as dotenv from 'dotenv';
-
-// Cargar el .env de apps/api sin importar desde dónde se lance el proceso:
-// - cwd = raíz del monorepo  -> apps/api/.env
-// - cwd = apps/api           -> .env
-dotenv.config({
-  path: [
-    path.resolve(process.cwd(), 'apps/api/.env'),
-    path.resolve(process.cwd(), '.env'),
-  ],
-  override: true, // Ignora las variables globales del sistema si cruzan
-});
+import { json, urlencoded, Request, Response, NextFunction } from 'express';
+import { rateLimit } from 'express-rate-limit';
+import {
+  PORT,
+  CORS_ORIGINS,
+  RATE_LIMIT_TTL_MS,
+  RATE_LIMIT_MAX,
+} from './app/config/env';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -41,7 +39,34 @@ async function bootstrap() {
     next();
   });
 
-  app.enableCors();
+  // CORS restringido a orígenes conocidos.
+  app.enableCors({
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      if (!origin || CORS_ORIGINS.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS policy does not allow origin: ${origin}`), false);
+      }
+    },
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
+    credentials: true,
+  } as CorsOptions);
+
+  // Rate limiting global por IP para todas las rutas (REST + tRPC).
+  app.use(
+    rateLimit({
+      windowMs: RATE_LIMIT_TTL_MS,
+      max: RATE_LIMIT_MAX,
+      standardHeaders: true,
+      legacyHeaders: false,
+      message: {
+        error: 'Too many requests, please try again later.',
+      },
+      // Trust proxy si el API corre detrás de un load balancer/proxy.
+      skip: (req) => req.method === 'OPTIONS',
+    })
+  );
 
   const appRouter = app.get(AppRouter);
 
@@ -53,7 +78,7 @@ async function bootstrap() {
     })
   );
 
-  const port = process.env.PORT || 3000;
+  const port = PORT;
   await app.listen(port);
   Logger.log(
     `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`
