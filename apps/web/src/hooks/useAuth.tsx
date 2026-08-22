@@ -80,6 +80,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     removeAuthToken();
     setToken(null);
+    localStorage.removeItem('ingresape_onboarded');
+    localStorage.removeItem('ingresape_career');
     queryClient.clear();
     router.replace('/login');
   }, [queryClient, router]);

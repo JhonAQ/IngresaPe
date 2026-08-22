@@ -43,7 +43,13 @@ function LoginContent() {
 
       const result = await loginMutation.mutateAsync({ email, password });
       login(result.token);
-      router.push('/dashboard');
+
+      const hasOnboarded = localStorage.getItem('ingresape_onboarded');
+      if (hasOnboarded) {
+        router.push('/dashboard');
+      } else {
+        router.push('/onboarding');
+      }
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : 'Error al iniciar sesión.';

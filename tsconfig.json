@@ -15,5 +15,9 @@
     {
       "path": "./libs/ui"
     }
-  ]
+  ],
+  "compilerOptions": {
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  }
 }
