@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ShieldCheck, ChevronRight, Check } from 'lucide-react';
+import { ShieldCheck, Check } from 'lucide-react';
 import { Button3D } from '../../../components/ui/Button3D';
 import { AuthGuard } from '../../../components/auth/AuthGuard';
 

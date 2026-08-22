@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Crown, Lock, Clock, X, ArrowRight } from 'lucide-react';
+import { Zap, Crown, Lock, Clock, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { Button3D } from './../ui/Button3D';
 

@@ -3,22 +3,9 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { X, CheckCircle2, Zap, Target, BookOpen, Crown } from 'lucide-react';
+import { X, CheckCircle2, Crown } from 'lucide-react';
 import { Button3D } from '../../components/ui/Button3D';
 import { AuthGuard } from '../../components/auth/AuthGuard';
-
-const NeonIcon = ({ icon: Icon, gradient }: { icon: any, gradient: string }) => (
-  <div className={`relative w-12 h-12 rounded-2xl flex items-center justify-center shrink-0`}>
-    <div className={`absolute inset-0 rounded-2xl opacity-20 ${gradient}`} />
-    <Icon size={24} className={`relative z-10`} style={{ stroke: 'url(#neon-grad)' }} />
-    <svg width="0" height="0">
-      <linearGradient id="neon-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop stopColor="#22d3ee" offset="0%" />
-        <stop stopColor="#d946ef" offset="100%" />
-      </linearGradient>
-    </svg>
-  </div>
-);
 
 const FeatureRow = ({ title, description }: { title: string, description: string }) => (
   <div className="flex gap-4 items-center mb-6">

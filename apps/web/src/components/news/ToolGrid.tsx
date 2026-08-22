@@ -2,12 +2,11 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Camera, Calculator, School, GraduationCap } from 'lucide-react';
+import { Camera, Calculator, School } from 'lucide-react';
 import { ToolSheet } from './ToolSheet';
 import { PhotoValidator } from './tools/PhotoValidator';
 import { CeprunsaCalculator } from './tools/CeprunsaCalculator';
 import { CutoffSearch } from './tools/CutoffSearch';
-import { CareerDirectory } from './tools/CareerDirectory';
 
 type ToolId = 'photo' | 'calculator' | 'cutoff' | 'careers' | null;
 

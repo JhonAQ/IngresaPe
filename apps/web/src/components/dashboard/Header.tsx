@@ -1,4 +1,4 @@
-import { ChevronDown, Crown, Bell } from 'lucide-react';
+import { ChevronDown, Crown } from 'lucide-react';
 import { UserStats } from '@ingresa-pe/domain';
 import { StatBadge } from '@ingresa-pe/ui';
 import { trpc } from '../../utils/trpc';

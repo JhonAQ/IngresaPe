@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Calculator, Award, ArrowRight, Info } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Calculator, Info } from 'lucide-react';
 import { CAREERS } from '../data';
 
 export function CeprunsaCalculator() {
@@ -47,7 +47,7 @@ export function CeprunsaCalculator() {
     return Number.parseFloat(examScore) || 0;
   }, [modality, isArts, examScore, previaScore, rmScore, rvScore, firstYear, aptitud]);
 
-  const targetDiff = result - target;
+
   const passedMinExtra = modality === 'EXTRAORDINARIO' && result >= 52.5;
 
   return (

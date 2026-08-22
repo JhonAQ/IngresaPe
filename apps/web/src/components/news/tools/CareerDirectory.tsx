@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, BookOpen, GraduationCap, ChevronDown } from 'lucide-react';
+import { BookOpen, GraduationCap, ChevronDown } from 'lucide-react';
 import { CAREERS } from '../data';
 
 export function CareerDirectory() {
@@ -64,20 +64,6 @@ export function CareerDirectory() {
                       className="overflow-hidden"
                     >
                       <div className="px-4 pb-4 space-y-4">
-                        <div className="flex items-start gap-3">
-                          <div className="p-2 rounded-xl bg-[#F2F0EC] text-[#9B0F1C]">
-                            <MapPin size={18} />
-                          </div>
-                          <div>
-                            <span className="block text-[12px] font-black uppercase tracking-wider text-[#8B8F98]">
-                              Sede
-                            </span>
-                            <span className="block text-[14px] font-bold text-[#15192B]">
-                              {career.sede}
-                            </span>
-                          </div>
-                        </div>
-
                         <div className="flex items-start gap-3">
                           <div className="p-2 rounded-xl bg-[#F2F0EC] text-[#B8860B]">
                             <BookOpen size={18} />

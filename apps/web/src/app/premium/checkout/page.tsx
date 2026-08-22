@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ChevronLeft, Upload, CheckCircle2, Copy, ShieldCheck, Image as ImageIcon } from 'lucide-react';
+import { ChevronLeft, Upload, CheckCircle2, Copy, Image as ImageIcon } from 'lucide-react';
 import { Button3D } from '../../../components/ui/Button3D';
 import { AuthGuard } from '../../../components/auth/AuthGuard';
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const plan = searchParams.get('plan') || 'ANNUAL';
@@ -163,5 +163,13 @@ export default function CheckoutPage() {
 
       </div>
     </AuthGuard>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-[100dvh] bg-[#0a0f2c] items-center justify-center text-white font-bold">Cargando...</div>}>
+      <CheckoutContent />
+    </Suspense>
   );
 }
